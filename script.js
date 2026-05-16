@@ -39,7 +39,7 @@
       }
 
       note.textContent =
-        interest === "home cook"
+        interest.includes("cook")
           ? "You are on the cook waitlist. We will email you before launch."
           : "You are on the waitlist. We will email you when LocalCoKitchen goes live.";
       form.reset();

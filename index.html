@@ -1,0 +1,156 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta
+      name="description"
+      content="LocalCoKitchen is a coming soon marketplace for local homemade food, connecting trusted home cooks with nearby customers."
+    >
+    <title>LocalCoKitchen | Coming Soon</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <main class="page-shell">
+      <section class="hero" aria-labelledby="page-title">
+        <div class="hero__content">
+          <header class="site-header">
+            <a class="brand" href="/" aria-label="LocalCoKitchen home">
+              <span class="brand__mark" aria-hidden="true">lc</span>
+              <span>LocalCoKitchen</span>
+            </a>
+            <span class="launch-pill">Launching soon in Dallas</span>
+          </header>
+
+          <div class="hero__copy">
+            <p class="eyebrow">Homemade food, closer to home</p>
+            <h1 id="page-title">
+              <span class="headline-brand">LocalCoKitchen</span>
+              <span>is coming soon.</span>
+            </h1>
+            <p class="lede">
+              We are building a local marketplace where independent home cooks
+              can share authentic homemade meals, snacks, and cottage-food
+              favorites with nearby customers.
+            </p>
+          </div>
+
+          <form
+            class="signup-card"
+            name="waitlist"
+            method="POST"
+            data-netlify="true"
+            netlify-honeypot="company"
+            aria-label="Join the LocalCoKitchen waitlist"
+          >
+            <input type="hidden" name="form-name" value="waitlist">
+            <p class="hidden-field">
+              <label>
+                Do not fill this out:
+                <input name="company" tabindex="-1" autocomplete="off">
+              </label>
+            </p>
+
+            <div class="signup-card__header">
+              <h2>Join the waitlist</h2>
+              <p>Leave your email and we will let you know when we go live.</p>
+            </div>
+
+            <div class="role-toggle" role="radiogroup" aria-label="I am interested as a">
+              <label>
+                <input type="radio" name="interest" value="customer" checked>
+                <span>Customer</span>
+              </label>
+              <label>
+                <input type="radio" name="interest" value="home cook">
+                <span>Home cook</span>
+              </label>
+              <label>
+                <input type="radio" name="interest" value="both">
+                <span>Both</span>
+              </label>
+            </div>
+
+            <div class="email-row">
+              <label class="sr-only" for="email">Email address</label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
+              <button type="submit">Notify me</button>
+            </div>
+
+            <p class="form-note" id="form-note" aria-live="polite">
+              No spam. Just launch updates and early access invitations.
+            </p>
+          </form>
+        </div>
+
+        <div class="hero__visual" aria-label="Illustration of homemade food cards">
+          <div class="market-board">
+            <div class="dish-card dish-card--large">
+              <span class="dish-card__tag">Fresh batch</span>
+              <div class="dish-card__plate dish-card__plate--one" aria-hidden="true"></div>
+              <div>
+                <strong>Chicken biryani</strong>
+                <span>Home cook in Richardson</span>
+              </div>
+            </div>
+            <div class="dish-card dish-card--small dish-card--top">
+              <div class="dish-card__plate dish-card__plate--two" aria-hidden="true"></div>
+              <div>
+                <strong>Tamales</strong>
+                <span>Fresh batch</span>
+              </div>
+            </div>
+            <div class="dish-card dish-card--small dish-card--bottom">
+              <div class="dish-card__plate dish-card__plate--three" aria-hidden="true"></div>
+              <div>
+                <strong>Baklava box</strong>
+                <span>Cottage-food friendly</span>
+              </div>
+            </div>
+            <div class="route-line" aria-hidden="true"></div>
+          </div>
+        </div>
+      </section>
+
+      <section class="info-band" aria-label="Who LocalCoKitchen is for">
+        <article>
+          <h2>For home cooks</h2>
+          <p>
+            Build a customer base, manage interest before launch, and prepare to
+            sell through a marketplace designed for independent local food sellers.
+          </p>
+        </article>
+        <article>
+          <h2>For customers</h2>
+          <p>
+            Discover nearby homemade food from local cooks, including regional
+            favorites and alternatives to restaurants or fast food.
+          </p>
+        </article>
+        <article>
+          <h2>Built on trust</h2>
+          <p>
+            Our marketplace is being designed around cook review, clear food
+            details, and allergen visibility.
+          </p>
+        </article>
+      </section>
+    </main>
+
+    <script src="script.js"></script>
+  </body>
+</html>

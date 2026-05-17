@@ -7,6 +7,9 @@ Static landing page for the LocalCoKitchen waitlist.
 - `index.html` - landing page markup and waitlist form
 - `styles.css` - responsive visual design
 - `script.js` - form submission enhancement
+- `sitemap.xml` - canonical sitemap for search crawlers
+- `robots.txt` - crawler access rules and sitemap location
+- `llms.txt` - concise site context for AI and LLM-based discovery
 
 ## Waitlist form
 

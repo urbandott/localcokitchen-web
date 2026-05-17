@@ -1,0 +1,27 @@
+# LocalCoKitchen
+
+> LocalCoKitchen is a Texas homemade food marketplace coming soon, connecting customers with trusted home cooks and micro-chefs.
+
+LocalCoKitchen helps people discover local homemade meals, snacks, regional favorites, and small-batch food from independent home cooks and micro-chefs in Texas.
+
+## Primary Pages
+
+- [LocalCoKitchen homepage](https://localcokitchen.com/): Coming soon waitlist page for customers, home cooks, micro-chefs, and local food sellers.
+
+## Key Topics
+
+- Texas homemade food marketplace
+- Local home cooks and micro-chefs
+- Homemade meals near me
+- Regional meals and local favorites
+- Cook waitlist and customer early access
+- Allergen visibility, food details, and cook review
+
+## Audience
+
+- Customers looking for local homemade food in Texas
+- Home cooks, micro-chefs, and local food sellers interested in early access
+
+## Canonical Site
+
+https://localcokitchen.com/

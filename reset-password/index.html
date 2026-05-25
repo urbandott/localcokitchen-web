@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, follow">
+    <meta name="theme-color" content="#fffaf1">
+    <link rel="canonical" href="https://localcokitchen.com/reset-password/">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Reset Password | LocalCoKitchen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="../styles.css?v=20260524-auth">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/auth.js" defer></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <header class="auth-header">
+        <a class="brand" href="/" aria-label="LocalCoKitchen home">
+          <img src="/images/logo.svg" alt="LocalCoKitchen">
+        </a>
+      </header>
+
+      <section class="auth-panel" aria-labelledby="reset-title">
+        <div class="auth-copy">
+          <p class="eyebrow">Account security</p>
+          <h1 id="reset-title">Set a new password.</h1>
+          <p>
+            Use the reset link from your email, then choose a new password for
+            your LocalCoKitchen account.
+          </p>
+        </div>
+
+        <div class="auth-card">
+          <form class="auth-form" data-auth-form="reset-password">
+            <div class="field-stack">
+              <label for="new-password">New password</label>
+              <input
+                id="new-password"
+                name="password"
+                type="password"
+                autocomplete="new-password"
+                minlength="8"
+                required
+              >
+            </div>
+            <button class="auth-submit" type="submit">Update password</button>
+          </form>
+
+          <p class="auth-note" id="auth-status" aria-live="polite">
+            Remembered your password? <a href="/signin/">Sign in</a>.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

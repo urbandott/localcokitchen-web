@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, follow">
+    <meta name="theme-color" content="#fffaf1">
+    <link rel="canonical" href="https://localcokitchen.com/signup/">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Sign Up | LocalCoKitchen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    >
+    <link rel="stylesheet" href="../styles.css?v=20260524-auth">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/auth.js" defer></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <header class="auth-header">
+        <a class="brand" href="/" aria-label="LocalCoKitchen home">
+          <img src="/images/logo.svg" alt="LocalCoKitchen">
+        </a>
+      </header>
+
+      <section class="auth-panel" aria-labelledby="signup-title">
+        <div class="auth-copy">
+          <p class="eyebrow">Create account</p>
+          <h1 id="signup-title">Join LocalCoKitchen.</h1>
+          <p>
+            Start as a customer, a cook preparing for onboarding, or both.
+          </p>
+        </div>
+
+        <div class="auth-card">
+          <form class="auth-form" data-auth-form="signup">
+            <div class="field-stack">
+              <label for="signup-name">Full name</label>
+              <input
+                id="signup-name"
+                name="full_name"
+                type="text"
+                autocomplete="name"
+                placeholder="Your name"
+                required
+              >
+            </div>
+            <div class="field-stack">
+              <label for="signup-email">Email address</label>
+              <input
+                id="signup-email"
+                name="email"
+                type="email"
+                inputmode="email"
+                autocomplete="email"
+                placeholder="you@example.com"
+                required
+              >
+            </div>
+            <div class="field-stack">
+              <label for="signup-password">Password</label>
+              <div class="password-input">
+                <input
+                  id="signup-password"
+                  name="password"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="10"
+                  required
+                  aria-describedby="password-rules password-match"
+                >
+                <button type="button" data-password-toggle="signup-password">Show</button>
+              </div>
+              <ul class="password-rules" id="password-rules" aria-label="Password requirements">
+                <li data-password-rule="length">At least 10 characters</li>
+                <li data-password-rule="lowercase">One lowercase letter</li>
+                <li data-password-rule="uppercase">One uppercase letter</li>
+                <li data-password-rule="digit">One digit</li>
+                <li data-password-rule="symbol">One symbol</li>
+              </ul>
+            </div>
+            <div class="field-stack">
+              <label for="signup-password-confirm">Confirm password</label>
+              <div class="password-input">
+                <input
+                  id="signup-password-confirm"
+                  name="password_confirm"
+                  type="password"
+                  autocomplete="new-password"
+                  minlength="10"
+                  required
+                  aria-describedby="password-match"
+                >
+                <button type="button" data-password-toggle="signup-password-confirm">Show</button>
+              </div>
+              <p class="password-match" id="password-match" data-password-match>
+                Passwords must match.
+              </p>
+            </div>
+            <fieldset class="auth-role-group">
+              <legend>I am joining as</legend>
+              <label>
+                <input type="radio" name="role" value="customer" checked>
+                <span>Customer</span>
+              </label>
+              <label>
+                <input type="radio" name="role" value="cook">
+                <span>Cook</span>
+              </label>
+              <label>
+                <input type="radio" name="role" value="both">
+                <span>Both</span>
+              </label>
+            </fieldset>
+            <button class="auth-submit" type="submit">Create account</button>
+          </form>
+
+          <p class="auth-note" id="auth-status" aria-live="polite">
+            Already have an account? <a href="/signin/">Sign in</a>.
+          </p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

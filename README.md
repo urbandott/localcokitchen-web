@@ -83,6 +83,7 @@ Next.js migration path.
 - `docs/auth/` - authentication implementation and setup notes
 - `sitemap.xml` - canonical sitemap for search crawlers
 - `robots.txt` - crawler access rules and sitemap location
+- `_headers` - security headers for static hosting, including CSP
 - `llms.txt` - concise site context for AI and LLM-based discovery
 
 ## Waitlist form

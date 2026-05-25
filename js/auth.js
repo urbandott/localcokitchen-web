@@ -2,6 +2,13 @@
   const statusEl = document.querySelector("#auth-status");
   const form = document.querySelector("[data-auth-form]");
   const passwordPolicy = window.LocalCoKitchenPasswordPolicy;
+  const allowedSignupRoles = new Set(["customer", "cook", "both"]);
+
+  const cleanTextValue = (value, maxLength = 120) =>
+    String(value || "")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim()
+      .slice(0, maxLength);
 
   const setStatus = (message) => {
     if (statusEl) {
@@ -12,7 +19,11 @@
   const getRedirectUrl = () => {
     const params = new URLSearchParams(window.location.search);
     const next = params.get("next") || "/";
-    return new URL(next, window.location.origin).toString();
+    const redirectUrl = new URL(next, window.location.origin);
+
+    return redirectUrl.origin === window.location.origin
+      ? redirectUrl.toString()
+      : window.location.origin;
   };
 
   const getEmailRedirectUrl = () =>
@@ -123,9 +134,15 @@
 
     const mode = form.dataset.authForm;
     const formData = new FormData(form);
-    const email = String(formData.get("email") || "").trim();
+    const email = cleanTextValue(formData.get("email"), 254).toLowerCase();
     const password = String(formData.get("password") || "");
     const submitButton = form.querySelector('button[type="submit"]');
+    const emailInput = form.querySelector('input[name="email"]');
+
+    if (emailInput && !emailInput.validity.valid) {
+      setStatus("Please enter a valid email address.");
+      return;
+    }
 
     if (submitButton) {
       submitButton.disabled = true;
@@ -202,14 +219,15 @@
           return;
         }
 
-        const role = String(formData.get("role") || "customer");
+        const requestedRole = cleanTextValue(formData.get("role"), 20);
+        const role = allowedSignupRoles.has(requestedRole) ? requestedRole : "customer";
         const { error } = await client.auth.signUp({
           email,
           password,
           options: {
             emailRedirectTo: getEmailRedirectUrl(),
             data: {
-              full_name: String(formData.get("full_name") || "").trim(),
+              full_name: cleanTextValue(formData.get("full_name")),
               signup_role: role,
             },
           },

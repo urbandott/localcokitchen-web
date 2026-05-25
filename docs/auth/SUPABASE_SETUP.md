@@ -94,7 +94,26 @@ Configure the password policy to match the signup UI:
 - Require digits
 - Require symbols
 
-## 5. Deferred OAuth
+## 5. Configure Session Controls
+
+In Supabase Dashboard:
+
+```text
+Authentication > Sessions
+```
+
+Use production session controls so stolen browser sessions have a bounded life:
+
+- Keep JWT expiry at the default `1 hour`, or lower it only if you have tested
+  refresh behavior. Supabase recommends not going below `5 minutes`.
+- Enable an inactivity timeout. Start with `12 hours` for marketplace accounts.
+- Enable a time-boxed session lifetime. Start with `7 days`.
+- Consider single-session-per-user for admin accounts once an admin UI exists.
+
+These settings are enforced when sessions refresh, so existing sessions may not
+be terminated immediately.
+
+## 6. Deferred OAuth
 
 Google and Apple OAuth are not currently exposed in the UI. When social login is
 needed, add the buttons back to the auth pages, wire `signInWithOAuth()`, and

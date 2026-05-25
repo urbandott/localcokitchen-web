@@ -46,7 +46,7 @@
       event.preventDefault();
       link.setAttribute("aria-disabled", "true");
 
-      const { error } = await client.auth.signOut({ scope: "local" });
+      const { error } = await client.auth.signOut();
 
       if (!error) {
         setSignedInState(false);

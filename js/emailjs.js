@@ -4,6 +4,13 @@
   const publicKey = "5UfHbfEdu2nuA3dVM";
   const serviceID = "default_service";
   const templateID = "template_f26aocx";
+  const allowedInterests = new Set(["customer", "home-cook", "both"]);
+
+  const cleanTextValue = (value, maxLength = 254) =>
+    String(value || "")
+      .replace(/[\u0000-\u001f\u007f]/g, "")
+      .trim()
+      .slice(0, maxLength);
 
   if (!form || !note) {
     return;
@@ -14,12 +21,16 @@
     event.stopImmediatePropagation();
 
     const formData = new FormData(form);
-    const email = String(formData.get("email") || "").trim();
-    const interest = String(formData.get("interest") || "customer");
+    const email = cleanTextValue(formData.get("email")).toLowerCase();
+    const requestedInterest = cleanTextValue(formData.get("interest"), 20);
+    const interest = allowedInterests.has(requestedInterest)
+      ? requestedInterest
+      : "customer";
     const button = form.querySelector('button[type="submit"]');
+    const emailInput = form.querySelector('input[name="email"]');
 
-    if (!email) {
-      note.textContent = "Please enter your email address.";
+    if (!emailInput?.validity.valid) {
+      note.textContent = "Please enter a valid email address.";
       return;
     }
 

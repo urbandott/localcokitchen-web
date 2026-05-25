@@ -75,6 +75,16 @@ Owns browser-side auth behavior:
 - Calls `signUp()` for email/password signup.
 - Calls `resetPasswordForEmail()` on `/forgot-password/` for password recovery.
 - Calls `updateUser()` on `/reset-password/` to save a new password.
+- Restricts post-sign-in redirects to same-origin URLs.
+
+### `/js/auth-nav.js`
+
+Owns the homepage sign-in/sign-out control:
+
+- Calls `getSession()` to decide whether the header action should show
+  `Sign in` or `Sign out`.
+- Calls `signOut()` without a local-only scope so Supabase revokes the
+  server-side session instead of only clearing browser storage.
 
 ## Database Behavior
 
@@ -117,13 +127,26 @@ email confirmations and password recovery.
 
 ## Security Notes
 
+- `_headers` sends a strict Content Security Policy for static hosting. Inline
+  executable scripts are not allowed; the only inline scripts permitted are the
+  hashed JSON-LD blocks on the homepage.
+- Browser code never renders user-provided values with `innerHTML`; status
+  messages use `textContent`.
+- Signup and waitlist inputs are normalized and constrained to expected role and
+  interest values before being sent to Supabase or EmailJS.
 - RLS is enabled for `identity.users` and `identity.user_roles`.
 - Users can read and update their own identity profile.
 - Users can read their own roles.
 - Admin-role users can read all identity profiles and roles.
 - Public browser code only uses the Supabase publishable key.
-- Service-role operations and admin role grants should be implemented
-  server-side.
+- Service-role operations, admin role grants, payments, ordering, profile
+  changes beyond the current Supabase Auth forms, and other sensitive actions
+  must be implemented server-side. Use `supabase.auth.getUser()` on the server
+  for request authentication, or validate the JWT `session_id` against
+  `auth.sessions` when an action needs immediate logout/revocation guarantees.
+- Future Supabase Edge Functions can import
+  `supabase/functions/_shared/auth.ts` and call `getVerifiedUser(req)` before
+  performing sensitive work.
 
 ## Supabase References
 

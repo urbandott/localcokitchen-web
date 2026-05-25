@@ -59,14 +59,17 @@ Add Redirect URLs:
 https://localcokitchen.com/
 https://localcokitchen.com/signin/
 https://localcokitchen.com/signup/
+https://localcokitchen.com/forgot-password/
 https://localcokitchen.com/reset-password/
 https://www.localcokitchen.com/
 https://www.localcokitchen.com/signin/
 https://www.localcokitchen.com/signup/
+https://www.localcokitchen.com/forgot-password/
 https://www.localcokitchen.com/reset-password/
 http://localhost:8000/
 http://localhost:8000/signin/
 http://localhost:8000/signup/
+http://localhost:8000/forgot-password/
 http://localhost:8000/reset-password/
 ```
 
@@ -112,7 +115,7 @@ After deploy:
 4. Confirm the email, if email confirmation is enabled.
 5. Confirm a row exists in `identity.users`.
 6. Confirm `identity.user_roles` contains `customer`, and `cook` when selected.
-7. Test password reset from `/signin/` through `/reset-password/`.
+7. Test password reset from `/forgot-password/` through `/reset-password/`.
 
 ## Manual Admin Role Grants
 

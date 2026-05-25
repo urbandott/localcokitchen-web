@@ -812,7 +812,7 @@ h1 span {
 .field-stack input:focus,
 .auth-submit:focus-visible,
 .password-input button:focus-visible,
-.text-button:focus-visible,
+.text-link:focus-visible,
 .signin-link:focus-visible {
   outline: 3px solid rgba(47, 125, 88, 0.26);
   outline-offset: 2px;
@@ -877,21 +877,24 @@ h1 span {
   font-weight: 800;
 }
 
-.text-button {
+.text-link {
+  display: inline-flex;
   margin-top: 0.75rem;
-  padding: 0;
-  border: 0;
   color: var(--accent-dark);
-  background: transparent;
   font-size: 0.9rem;
   font-weight: 800;
-  cursor: pointer;
+  text-decoration: none;
+}
+
+.text-link:hover {
+  text-decoration: underline;
 }
 
 .auth-role-group {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 0.5rem;
+  column-gap: 0.5rem;
+  row-gap: 0.65rem;
   min-width: 0;
   padding: 0;
   margin: 0;
@@ -900,7 +903,9 @@ h1 span {
 
 .auth-role-group legend {
   grid-column: 1 / -1;
-  margin-bottom: -0.1rem;
+  margin: 0;
+  padding: 0;
+  line-height: 1.3;
 }
 
 .auth-role-group label {

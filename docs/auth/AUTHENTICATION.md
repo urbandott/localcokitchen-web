@@ -24,7 +24,7 @@ roles. The migration implements that foundation with:
 The sign-in page includes:
 
 - Email/password sign in.
-- Password reset email request.
+- Link to `/forgot-password/` for password recovery.
 - Link to `/signup/` for users who have not signed up.
 
 ### `/signup/`
@@ -43,6 +43,12 @@ The sign-up page includes:
 
 The reset page accepts the Supabase password recovery session and lets the user
 set a new password with `updateUser()`.
+
+### `/forgot-password/`
+
+The forgot-password page asks for an email address and sends a Supabase recovery
+email with `resetPasswordForEmail()`. The success message is intentionally
+generic so the UI does not reveal whether an email address has an account.
 
 ## Client Files
 
@@ -67,7 +73,7 @@ Owns browser-side auth behavior:
 - Creates the Supabase browser client.
 - Calls `signInWithPassword()` for email/password sign in.
 - Calls `signUp()` for email/password signup.
-- Calls `resetPasswordForEmail()` for password reset.
+- Calls `resetPasswordForEmail()` on `/forgot-password/` for password recovery.
 - Calls `updateUser()` on `/reset-password/` to save a new password.
 
 ## Database Behavior
@@ -104,6 +110,7 @@ server-side validation matches the browser-side experience.
 The client uses:
 
 - Email confirmation redirect: `/signin/?verified=1`
+- Forgot-password page: `/forgot-password/`
 - Password reset redirect: `/reset-password/`
 Configure these URLs in Supabase Auth URL settings before testing production
 email confirmations and password recovery.

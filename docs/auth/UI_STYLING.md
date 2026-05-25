@@ -66,6 +66,8 @@ component-oriented, so they can be reused without CSS module rewrites.
 - `.field-stack`: label/input grouping.
 - `.auth-submit`: primary submit button.
 - `.auth-role-group`: signup role selector.
+- `.text-link`: low-emphasis auth action links.
 - `.auth-note`: status text and page-to-page links.
 
-The same classes are used by `/signin/`, `/signup/`, and `/reset-password/`.
+The same classes are used by `/signin/`, `/signup/`, `/forgot-password/`, and
+`/reset-password/`.

@@ -1,7 +1,6 @@
 (function () {
   const statusEl = document.querySelector("#auth-status");
   const form = document.querySelector("[data-auth-form]");
-  const resetButton = document.querySelector('[data-auth-action="reset-password"]');
   const passwordRules = {
     length: (value) => value.length >= 10,
     lowercase: (value) => /[a-z]/.test(value),
@@ -146,9 +145,36 @@
       submitButton.disabled = true;
     }
 
-    setStatus(mode === "signup" ? "Creating your account..." : "Signing you in...");
+    setStatus(
+      mode === "signup"
+        ? "Creating your account..."
+        : mode === "forgot-password"
+          ? "Sending password reset email..."
+          : "Signing you in..."
+    );
 
     try {
+      if (mode === "forgot-password") {
+        if (!client) {
+          setStatus(
+            "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
+          );
+          return;
+        }
+
+        const { error } = await client.auth.resetPasswordForEmail(email, {
+          redirectTo: getPasswordResetRedirectUrl(),
+        });
+
+        if (error) {
+          throw error;
+        }
+
+        setStatus("If an account exists for that email, a reset link has been sent.");
+        form.reset();
+        return;
+      }
+
       if (mode === "reset-password") {
         if (!client) {
           setStatus(
@@ -237,31 +263,5 @@
         submitButton.disabled = false;
       }
     }
-  });
-
-  resetButton?.addEventListener("click", async () => {
-    const email = window.prompt("Enter the email address for your account.");
-
-    if (!email) {
-      return;
-    }
-
-    if (!client) {
-      setStatus(
-        "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
-      );
-      return;
-    }
-
-    setStatus("Sending password reset email...");
-    const { error } = await client.auth.resetPasswordForEmail(email.trim(), {
-      redirectTo: getPasswordResetRedirectUrl(),
-    });
-
-    setStatus(
-      error
-        ? error.message || "Could not send a reset email."
-        : "Password reset email sent."
-    );
   });
 })();

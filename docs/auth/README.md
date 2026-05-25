@@ -15,6 +15,7 @@ LocalCoKitchen web app.
 
 - Sign-in page at `/signin/`.
 - Sign-up page at `/signup/`.
+- Forgot-password page at `/forgot-password/`.
 - Password reset page at `/reset-password/`.
 - Email/password authentication through Supabase Auth.
 - Password reset email request from the sign-in page.

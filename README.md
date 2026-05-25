@@ -16,6 +16,7 @@ Then open:
 - Homepage: `http://localhost:8000/`
 - Sign in: `http://localhost:8000/signin/`
 - Sign up: `http://localhost:8000/signup/`
+- Forgot password: `http://localhost:8000/forgot-password/`
 - Reset password: `http://localhost:8000/reset-password/`
 
 Do not open the nested HTML files directly from Finder for auth testing. Use the
@@ -47,6 +48,7 @@ With the local server running, these should return `200`:
 curl -I http://localhost:8000/
 curl -I http://localhost:8000/signin/
 curl -I http://localhost:8000/signup/
+curl -I http://localhost:8000/forgot-password/
 curl -I http://localhost:8000/reset-password/
 curl -I 'http://localhost:8000/styles.css?v=20260524-auth'
 ```
@@ -56,6 +58,7 @@ curl -I 'http://localhost:8000/styles.css?v=20260524-auth'
 - `index.html` - landing page markup and waitlist form
 - `signin/index.html` - Supabase Auth sign-in page
 - `signup/index.html` - Supabase Auth sign-up page
+- `forgot-password/index.html` - Supabase Auth password recovery request page
 - `reset-password/index.html` - Supabase Auth password update page
 - `styles.css` - responsive visual design
 - `script.js` - form submission enhancement

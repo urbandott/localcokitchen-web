@@ -53,6 +53,18 @@ curl -I http://localhost:8000/reset-password/
 curl -I 'http://localhost:8000/styles.css?v=20260524-auth'
 ```
 
+## Unit tests
+
+Run unit tests with:
+
+```sh
+npm test
+```
+
+The current unit tests cover the signup password policy in
+`js/password-policy.js`. See `docs/TESTING.md` for the testing strategy and the
+Next.js migration path.
+
 ## Files
 
 - `index.html` - landing page markup and waitlist form
@@ -63,7 +75,10 @@ curl -I 'http://localhost:8000/styles.css?v=20260524-auth'
 - `styles.css` - responsive visual design
 - `script.js` - form submission enhancement
 - `js/auth.js` - Supabase Auth browser behavior
+- `js/password-policy.js` - reusable signup password validation logic
 - `js/supabase-config.js` - public Supabase browser configuration
+- `test/` - unit tests
+- `docs/TESTING.md` - testing strategy and Next.js testing notes
 - `supabase/migrations/` - database migrations tracked in source control
 - `docs/auth/` - authentication implementation and setup notes
 - `sitemap.xml` - canonical sitemap for search crawlers

@@ -1,13 +1,7 @@
 (function () {
   const statusEl = document.querySelector("#auth-status");
   const form = document.querySelector("[data-auth-form]");
-  const passwordRules = {
-    length: (value) => value.length >= 10,
-    lowercase: (value) => /[a-z]/.test(value),
-    uppercase: (value) => /[A-Z]/.test(value),
-    digit: (value) => /\d/.test(value),
-    symbol: (value) => /[^A-Za-z0-9]/.test(value),
-  };
+  const passwordPolicy = window.LocalCoKitchenPasswordPolicy;
 
   const setStatus = (message) => {
     if (statusEl) {
@@ -50,23 +44,15 @@
 
     const password = form.querySelector('input[name="password"]')?.value || "";
     const confirm = form.querySelector('input[name="password_confirm"]')?.value || "";
-    const ruleResults = Object.entries(passwordRules).reduce(
-      (results, [rule, test]) => ({
-        ...results,
-        [rule]: test(password),
-      }),
-      {}
-    );
-    const allRulesMet = Object.values(ruleResults).every(Boolean);
-    const passwordsMatch = password.length > 0 && password === confirm;
+    const validation = passwordPolicy.validatePassword(password, confirm);
 
     return {
-      allRulesMet,
+      allRulesMet: validation.allRulesMet,
       confirm,
-      isValid: allRulesMet && passwordsMatch,
+      isValid: validation.isValid,
       password,
-      passwordsMatch,
-      ruleResults,
+      passwordsMatch: validation.passwordsMatch,
+      ruleResults: validation.rules,
     };
   };
 

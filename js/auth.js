@@ -2,7 +2,6 @@
   const statusEl = document.querySelector("#auth-status");
   const form = document.querySelector("[data-auth-form]");
   const passwordPolicy = window.LocalCoKitchenPasswordPolicy;
-  const allowedSignupRoles = new Set(["customer", "cook", "both"]);
 
   const cleanTextValue = (value, maxLength = 120) =>
     String(value || "")
@@ -219,8 +218,6 @@
           return;
         }
 
-        const requestedRole = cleanTextValue(formData.get("role"), 20);
-        const role = allowedSignupRoles.has(requestedRole) ? requestedRole : "customer";
         const firstName = cleanTextValue(formData.get("first_name"), 80);
         const lastName = cleanTextValue(formData.get("last_name"), 80);
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
@@ -236,7 +233,7 @@
               full_name: fullName,
               last_name: lastName,
               marketing_opt_in: marketingOptIn,
-              signup_role: role,
+              signup_role: "customer",
             },
           },
         });

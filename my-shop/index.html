@@ -1,0 +1,49 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/js/analytics.js"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-D7X7B5TY2J"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, follow"><meta name="description" content="Manage your LocalCoKitchen shop."><link rel="canonical" href="https://localcokitchen.com/my-shop/"><link rel="icon" href="/images/logo.svg" type="image/svg+xml"><title>My shop | LocalCoKitchen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css?v=20260525"></head>
+  <body>
+    <header class="top-nav"><a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a><nav class="nav-actions" aria-label="Primary navigation"><a class="nav-icon-link" href="/menu/" aria-label="Open available menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg><span>Menu</span></a><a class="nav-button" href="/signin/" data-auth-nav>Sign in</a><div class="nav-more"><button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div></nav></header>
+    <main class="content-page">
+      <section class="page-hero"><p class="eyebrow">Cook tools</p><h1>My shop</h1><p class="lede">Set up your storefront, pickup windows, and menu items. Starter shops can publish up to 10 active menu items.</p></section>
+      <p class="auth-message" data-status aria-live="polite"></p>
+      <section class="shop-dashboard" data-shop-page>
+        <form class="auth-card shop-form" data-shop-profile-form>
+          <h2>Storefront</h2>
+          <div class="form-row"><div class="field-stack"><label for="display-name">Display name</label><input id="display-name" name="display_name" required maxlength="120"></div><div class="field-stack"><label for="cuisine-type">Cuisine type</label><input id="cuisine-type" name="cuisine_type" maxlength="80" placeholder="Pakistani, Tex-Mex, Bakery"></div></div>
+          <div class="field-stack"><label for="profile-image">Profile picture</label><input id="profile-image" name="profile_image" type="file" accept="image/png,image/jpeg,image/webp"><p class="field-hint">PNG, JPG, or WebP. Max 2 MB.</p></div>
+          <div class="field-stack"><label for="shop-description">Description</label><textarea id="shop-description" name="description" rows="7" maxlength="3500" placeholder="Tell customers about your food, background, and pickup expectations."></textarea><p class="field-hint">500 words max.</p></div>
+          <div class="form-row"><div class="field-stack"><label for="shop-zip">Pickup zip code</label><input id="shop-zip" name="pickup_zip_code" maxlength="12"></div><div class="field-stack"><label for="cutoff">Order cutoff, hours before pickup</label><input id="cutoff" name="preorder_cutoff_hours" type="number" min="1" max="168" value="24"></div></div>
+          <div class="field-stack"><label for="order-notes">Order notes</label><textarea id="order-notes" name="order_notes" rows="4" maxlength="800" placeholder="Example: Pickup only. Address unlocks close to pickup."></textarea></div>
+          <label class="checkbox-field"><input type="checkbox" name="is_public" value="yes"><span>Make my shop visible after setup.</span></label>
+          <button class="auth-submit" type="submit">Save storefront</button>
+        </form>
+
+        <section class="auth-card shop-form">
+          <div class="section-heading"><div><h2>Menu items</h2><p data-menu-limit>Loading menu limit...</p></div></div>
+          <div class="shop-list" data-menu-items></div>
+          <form class="shop-subform" data-menu-item-form>
+            <h3>Add menu item</h3>
+            <div class="form-row"><div class="field-stack"><label for="item-name">Item name</label><input id="item-name" name="name" required maxlength="120"></div><div class="field-stack"><label for="item-category">Category</label><input id="item-category" name="category" maxlength="80" placeholder="Entree, dessert, snack"></div></div>
+            <div class="field-stack"><label for="item-image">Item image</label><input id="item-image" name="image" type="file" required accept="image/png,image/jpeg,image/webp"><p class="field-hint">PNG, JPG, or WebP. Max 3 MB.</p></div>
+            <div class="field-stack"><label for="item-description">Description</label><textarea id="item-description" name="description" rows="5" required maxlength="1200"></textarea></div>
+            <div class="form-row"><div class="field-stack"><label for="price">Price per count</label><input id="price" name="price" type="number" min="0.01" step="0.01" required></div><div class="field-stack"><label for="quantity">Quantity available</label><input id="quantity" name="quantity_available" type="number" min="0" step="1" value="0"></div></div>
+            <div class="form-row"><div class="field-stack"><label for="allergens">Allergens</label><input id="allergens" name="allergens" placeholder="Milk, wheat, peanuts"></div><div class="field-stack"><label for="dietary-tags">Dietary tags</label><input id="dietary-tags" name="dietary_tags" placeholder="Halal, vegetarian, gluten-free"></div></div>
+            <label class="checkbox-field"><input type="checkbox" name="is_sold_out" value="yes"><span>Mark as sold out.</span></label>
+            <button class="auth-submit" type="submit">Add menu item</button>
+          </form>
+        </section>
+
+        <section class="auth-card shop-form">
+          <h2>Pickup windows</h2>
+          <div class="shop-list compact" data-pickup-windows></div>
+          <form class="shop-subform" data-pickup-window-form>
+            <h3>Add pickup window</h3>
+            <div class="form-row"><div class="field-stack"><label for="day">Day</label><select id="day" name="day_of_week" required><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></div><div class="field-stack"><label for="start-time">Start time</label><input id="start-time" name="start_time" type="time" required></div><div class="field-stack"><label for="end-time">End time</label><input id="end-time" name="end_time" type="time" required></div></div>
+            <button class="auth-submit" type="submit">Add pickup window</button>
+          </form>
+        </section>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="/js/supabase-config.js" defer></script><script src="/js/auth-nav.js" defer></script><script src="/js/cook.js" defer></script>
+  </body>
+</html>

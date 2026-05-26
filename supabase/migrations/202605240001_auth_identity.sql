@@ -70,7 +70,6 @@ set search_path = identity, public
 as $$
 declare
   marketing_opted_in boolean;
-  requested_role text;
 begin
   marketing_opted_in :=
     case
@@ -78,8 +77,6 @@ begin
         then (new.raw_user_meta_data->>'marketing_opt_in')::boolean
       else false
     end;
-  requested_role := coalesce(new.raw_user_meta_data->>'signup_role', 'customer');
-
   insert into identity.users (
     id,
     email,
@@ -126,12 +123,6 @@ begin
   insert into identity.user_roles (user_id, role)
   values (new.id, 'customer')
   on conflict do nothing;
-
-  if requested_role in ('cook', 'both') then
-    insert into identity.user_roles (user_id, role)
-    values (new.id, 'cook')
-    on conflict do nothing;
-  end if;
 
   return new;
 end;

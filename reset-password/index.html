@@ -36,12 +36,7 @@
         </a>
         <a class="nav-button" href="/signin/" data-auth-nav>Sign in</a>
         <div class="nav-more">
-          <button class="nav-more__button" type="button" aria-haspopup="true">
-            More
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="m6 9 6 6 6-6"></path>
-            </svg>
-          </button>
+          <button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button>
           <div class="nav-more__menu" role="menu">
             <a href="/" role="menuitem">Home</a>
             <a href="/find-a-meal/" role="menuitem">Find a meal</a>
@@ -83,7 +78,9 @@
             <button class="auth-submit" type="submit">Update password</button>
           </form>
 
-          <p class="auth-note" id="auth-status" aria-live="polite">
+          <p class="auth-message" id="auth-status" aria-live="polite"></p>
+
+          <p class="auth-note">
             Remembered your password? <a href="/signin/">Sign in</a>.
           </p>
         </div>

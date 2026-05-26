@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head><script src="/js/analytics.js"></script><script async src="https://www.googletagmanager.com/gtag/js?id=G-D7X7B5TY2J"></script><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex, follow"><meta name="description" content="Manage your LocalCoKitchen profile."><link rel="canonical" href="https://localcokitchen.com/profile/"><link rel="icon" href="/images/logo.svg" type="image/svg+xml"><title>My profile | LocalCoKitchen</title><link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet"><link rel="stylesheet" href="/styles.css?v=20260525"></head>
+  <body>
+    <header class="top-nav"><a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a><nav class="nav-actions" aria-label="Primary navigation"><a class="nav-icon-link" href="/menu/" aria-label="Open available menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg><span>Menu</span></a><a class="nav-button" href="/signin/" data-auth-nav>Sign in</a><div class="nav-more"><button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div></nav></header>
+    <main class="content-page">
+      <section class="page-hero"><p class="eyebrow">Account</p><h1>My profile</h1><p class="lede">Manage the name connected to your LocalCoKitchen account.</p></section>
+      <p class="auth-message" data-status aria-live="polite"></p>
+      <form class="auth-card profile-form" data-profile-form>
+        <section class="profile-picture-panel" aria-labelledby="profile-picture-title">
+          <div class="profile-picture-row">
+            <img src="/images/logo.svg" alt="" data-profile-avatar>
+            <div>
+              <h2 id="profile-picture-title">Profile picture</h2>
+              <p>Upload a PNG, JPG, or WebP image up to 2 MB.</p>
+            </div>
+          </div>
+          <div class="field-stack"><label for="profile-picture">Change profile picture</label><input id="profile-picture" name="profile_picture" type="file" accept="image/png,image/jpeg,image/webp"></div>
+          <div class="button-row">
+            <button class="auth-submit" type="submit">Save profile picture</button>
+            <button class="secondary-action" type="button" data-remove-profile-picture>Remove picture</button>
+          </div>
+        </section>
+
+        <section class="profile-details-panel" aria-labelledby="profile-details-title">
+          <h2 id="profile-details-title">Account details</h2>
+        <div class="field-stack"><label for="profile-email">Email</label><input id="profile-email" name="email" type="email" readonly></div>
+        <div class="form-row"><div class="field-stack"><label for="profile-first-name">First name</label><input id="profile-first-name" name="first_name" type="text" readonly></div><div class="field-stack"><label for="profile-last-name">Last name</label><input id="profile-last-name" name="last_name" type="text" readonly></div></div>
+        </section>
+      </form>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="/js/supabase-config.js" defer></script><script src="/js/auth-nav.js" defer></script><script src="/js/cook.js" defer></script>
+  </body>
+</html>

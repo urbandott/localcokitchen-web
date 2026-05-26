@@ -12,14 +12,14 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css?v=20260525">
+    <link rel="stylesheet" href="/styles.css?v=20260526">
   </head>
   <body>
     <header class="top-nav">
       <a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a>
       <nav class="nav-actions" aria-label="Primary navigation">
         <a class="nav-icon-link" href="/menu/" aria-label="Open available menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg><span>Menu</span></a>
-        <a class="nav-button" href="/signin/" data-auth-nav>Sign in</a>
+        <a class="nav-button is-auth-loading" href="/signin/" data-auth-nav>Sign in</a>
         <div class="nav-more"><button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div>
       </nav>
     </header>
@@ -38,7 +38,7 @@
       <section class="feature-list">
         <article><h2>Training proof required</h2><p>Upload proof that you completed a basic food handler training course. PDF, PNG, JPG, or WebP files up to 5 MB are accepted.</p></article>
         <article><h2>Independent seller model</h2><p>You control your menu, pricing, inventory, pickup availability, and fulfillment operations.</p></article>
-        <article><h2>Shop tools after signup</h2><p>After submission, My shop appears in your account menu so you can configure storefront details, pickup windows, and menu items.</p></article>
+        <article><h2>Shop tools after approval</h2><p>After an admin approves your application, My shop appears in your account menu so you can configure storefront details, pickup windows, and menu items.</p></article>
       </section>
 
       <p class="auth-message" data-status aria-live="polite"></p>
@@ -48,21 +48,24 @@
         <div class="form-row">
           <div class="field-stack">
             <label for="legal-name">Legal name</label>
-            <input id="legal-name" name="legal_name" required maxlength="160" autocomplete="name">
+            <input id="legal-name" name="legal_name" required minlength="2" maxlength="120" autocomplete="name">
+            <p class="field-hint">2 to 120 characters.</p>
           </div>
           <div class="field-stack">
             <label for="phone">Phone number</label>
-            <input id="phone" name="phone" type="tel" maxlength="40" autocomplete="tel">
+            <input id="phone" name="phone" type="tel" required value="+1 " inputmode="tel" autocomplete="tel" minlength="17" maxlength="17" pattern="^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$">
+            <p class="field-hint">US numbers only. Format: +1 555-123-4567.</p>
           </div>
         </div>
         <div class="field-stack">
           <label for="pickup-address">Pickup address</label>
-          <input id="pickup-address" name="pickup_address" maxlength="240" autocomplete="street-address">
+          <input id="pickup-address" name="pickup_address" required minlength="8" maxlength="240" autocomplete="street-address">
           <p class="field-hint">Customers see only your zip code until close to pickup.</p>
         </div>
         <div class="field-stack">
           <label for="pickup-zip">Pickup zip code</label>
-          <input id="pickup-zip" name="pickup_zip_code" required maxlength="12" autocomplete="postal-code">
+          <input id="pickup-zip" name="pickup_zip_code" required inputmode="numeric" minlength="5" maxlength="5" pattern="^[0-9]{5}$" autocomplete="postal-code">
+          <p class="field-hint">Enter a 5-digit US ZIP code.</p>
         </div>
         <label class="checkbox-field">
           <input type="checkbox" name="food_handler_training_completed" value="yes" required>

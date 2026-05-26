@@ -9,6 +9,7 @@
     window.supabase && hasConfig
       ? window.supabase.createClient(config.url, config.publishableKey)
       : null;
+  const marketplaceDb = client?.schema("lck_marketplace");
   const maxProofBytes = 5 * 1024 * 1024;
   const maxProfileImageBytes = 2 * 1024 * 1024;
   const maxMenuImageBytes = 3 * 1024 * 1024;
@@ -21,13 +22,134 @@
       .trim()
       .slice(0, maxLength);
 
-  const escapeHtml = (value) =>
-    String(value || "")
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll('"', "&quot;")
-      .replaceAll("'", "&#039;");
+  const clearChildren = (element) => {
+    while (element.firstChild) {
+      element.firstChild.remove();
+    }
+  };
+
+  const getInitials = (user) => {
+    const metadata = user?.user_metadata || {};
+    const fullName = String(
+      metadata.full_name ||
+        [metadata.first_name, metadata.last_name].filter(Boolean).join(" ")
+    ).trim();
+    const email = String(user?.email || "").trim();
+    const source = fullName || email;
+
+    return (
+      source
+        .split(/\s+|@/)
+        .filter(Boolean)
+        .slice(0, 2)
+        .map((part) => part[0]?.toUpperCase())
+        .join("") || "LC"
+    );
+  };
+
+  const getAvatarUrl = (user) => {
+    const avatarUrl = String(user?.user_metadata?.avatar_url || "").trim();
+
+    if (!avatarUrl || avatarUrl === "null" || avatarUrl === "undefined") {
+      return "";
+    }
+
+    return avatarUrl;
+  };
+
+  const renderProfileAvatar = (avatar, user, avatarUrl) => {
+    if (!avatar) {
+      return;
+    }
+
+    clearChildren(avatar);
+    avatar.classList.toggle("has-image", Boolean(avatarUrl));
+
+    if (avatarUrl) {
+      const image = document.createElement("img");
+      image.src = avatarUrl;
+      image.alt = "";
+      avatar.append(image);
+      return;
+    }
+
+    avatar.textContent = getInitials(user);
+  };
+
+  const getProfileImagePath = (user) => {
+    const metadata = user?.user_metadata || {};
+
+    if (metadata.avatar_path) {
+      return metadata.avatar_path;
+    }
+
+    const avatarUrl = String(metadata.avatar_url || "");
+    const marker = "/storage/v1/object/public/profile-images/";
+    const markerIndex = avatarUrl.indexOf(marker);
+
+    if (markerIndex === -1) {
+      return "";
+    }
+
+    return decodeURIComponent(avatarUrl.slice(markerIndex + marker.length));
+  };
+
+  const removeProfileImageObject = async (path) => {
+    if (!path) {
+      return;
+    }
+
+    const { error } = await client.storage.from("profile-images").remove([path]);
+
+    if (error) {
+      throw error;
+    }
+  };
+
+  const formatUsPhone = (value) => {
+    const digits = String(value || "")
+      .replace(/\D/g, "")
+      .replace(/^1/, "")
+      .slice(0, 10);
+    const area = digits.slice(0, 3);
+    const prefix = digits.slice(3, 6);
+    const line = digits.slice(6, 10);
+
+    if (digits.length <= 3) {
+      return `+1 ${area}`.trimEnd();
+    }
+
+    if (digits.length <= 6) {
+      return `+1 ${area}-${prefix}`;
+    }
+
+    return `+1 ${area}-${prefix}-${line}`;
+  };
+
+  const setupCookApplicationFormatting = (form) => {
+    const phoneInput = form.elements.phone;
+    const zipInput = form.elements.pickup_zip_code;
+
+    if (phoneInput) {
+      phoneInput.value = formatUsPhone(phoneInput.value || "+1 ");
+      phoneInput.addEventListener("input", () => {
+        phoneInput.value = formatUsPhone(phoneInput.value);
+      });
+      phoneInput.addEventListener("focus", () => {
+        if (!phoneInput.value) {
+          phoneInput.value = "+1 ";
+        }
+      });
+    }
+
+    if (zipInput) {
+      zipInput.addEventListener("input", () => {
+        zipInput.value = String(zipInput.value || "")
+          .replace(/\D/g, "")
+          .slice(0, 5);
+      });
+    }
+  };
 
   const moneyToCents = (value) => Math.round(Number(value || 0) * 100);
 
@@ -57,11 +179,12 @@
     return data.session;
   };
 
-  const getIsCook = async (userId) => {
-    const { data, error } = await client
-      .from("cook_profiles")
-      .select("cook_id")
-      .eq("cook_id", userId)
+  const getIsApprovedCook = async (userId) => {
+    const { data, error } = await marketplaceDb
+      .from("cook_applications")
+      .select("status")
+      .eq("user_id", userId)
+      .eq("status", "approved")
       .maybeSingle();
 
     return !error && Boolean(data);
@@ -115,7 +238,7 @@
       return;
     }
 
-    const { data: application } = await client
+    const { data: application } = await marketplaceDb
       .from("cook_applications")
       .select("status, submitted_at")
       .eq("user_id", session.user.id)
@@ -124,9 +247,15 @@
     if (application) {
       setText(
         "[data-status]",
-        `Cook application ${application.status}. You can manage your shop from the account menu.`
+        application.status === "approved"
+          ? "Cook application approved. My shop is available from the account menu."
+          : `Cook application ${application.status}. An admin must review your details and uploaded files before your shop opens.`
       );
+      form.hidden = true;
+      return;
     }
+
+    setupCookApplicationFormatting(form);
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -134,6 +263,25 @@
       const button = form.querySelector('button[type="submit"]');
       const proof = formData.get("food_handler_certificate");
       const permit = formData.get("permit_or_certification");
+      const legalName = clean(formData.get("legal_name"), 120);
+      const phone = formatUsPhone(formData.get("phone"));
+      const pickupAddress = clean(formData.get("pickup_address"), 240);
+      const pickupZipCode = clean(formData.get("pickup_zip_code"), 5);
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      if (
+        legalName.length < 2 ||
+        !/^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(phone) ||
+        pickupAddress.length < 8 ||
+        !/^[0-9]{5}$/.test(pickupZipCode)
+      ) {
+        setText("[data-status]", "Check the highlighted fields and try again.");
+        return;
+      }
 
       if (!(proof instanceof File) || !proof.size) {
         setText("[data-status]", "Upload proof of food handler training.");
@@ -163,12 +311,12 @@
           });
         }
 
-        const { error } = await client.from("cook_applications").upsert({
+        const { error } = await marketplaceDb.from("cook_applications").insert({
           user_id: session.user.id,
-          legal_name: clean(formData.get("legal_name"), 160),
-          phone: clean(formData.get("phone"), 40),
-          pickup_address: clean(formData.get("pickup_address"), 240),
-          pickup_zip_code: clean(formData.get("pickup_zip_code"), 12),
+          legal_name: legalName,
+          phone,
+          pickup_address: pickupAddress,
+          pickup_zip_code: pickupZipCode,
           food_handler_training_completed:
             formData.get("food_handler_training_completed") === "yes",
           food_handler_certificate_url: proofPath,
@@ -181,7 +329,7 @@
           throw error;
         }
 
-        setText("[data-status]", "Cook application submitted. My shop is now available from the account menu.");
+        setText("[data-status]", "Cook application submitted for admin review.");
         window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
         form.reset();
       } catch (error) {
@@ -208,15 +356,15 @@
     }
 
     const avatar = form.querySelector("[data-profile-avatar]");
-    const currentAvatarUrl = session.user.user_metadata?.avatar_url || "/images/logo.svg";
+    const profilePictureInput = form.elements.profile_picture;
+    let currentAvatarUrl = getAvatarUrl(session.user);
+    let currentAvatarPath = getProfileImagePath(session.user);
 
     form.elements.email.value = session.user.email || "";
     form.elements.first_name.value = session.user.user_metadata?.first_name || "";
     form.elements.last_name.value = session.user.user_metadata?.last_name || "";
 
-    if (avatar) {
-      avatar.src = currentAvatarUrl;
-    }
+    renderProfileAvatar(avatar, session.user, currentAvatarUrl);
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -229,15 +377,17 @@
       }
 
       try {
+        const avatarPath = filePath(session.user.id, "account-profile", image);
         const avatarUrl = await uploadFile({
-          bucket: "cook-profile-images",
+          bucket: "profile-images",
           file: image,
           maxBytes: maxProfileImageBytes,
-          path: filePath(session.user.id, "account-profile", image),
+          path: avatarPath,
           types: imageTypes,
         });
         const { error } = await client.auth.updateUser({
           data: {
+            avatar_path: avatarPath,
             avatar_url: avatarUrl,
           },
         });
@@ -246,11 +396,18 @@
           throw error;
         }
 
-        if (avatar) {
-          avatar.src = avatarUrl;
+        if (currentAvatarPath) {
+          await removeProfileImageObject(currentAvatarPath);
         }
 
-        form.reset();
+        currentAvatarUrl = avatarUrl;
+        currentAvatarPath = avatarPath;
+        renderProfileAvatar(avatar, session.user, currentAvatarUrl);
+
+        if (profilePictureInput) {
+          profilePictureInput.value = "";
+        }
+
         window.dispatchEvent(new CustomEvent("localcokitchen:profile-updated"));
         setText("[data-status]", "Profile picture updated.");
       } catch (error) {
@@ -261,8 +418,16 @@
     form
       .querySelector("[data-remove-profile-picture]")
       ?.addEventListener("click", async () => {
+        try {
+          await removeProfileImageObject(currentAvatarPath);
+        } catch (error) {
+          setText("[data-status]", error.message || "Could not delete profile picture from storage.");
+          return;
+        }
+
         const { error } = await client.auth.updateUser({
           data: {
+            avatar_path: null,
             avatar_url: null,
           },
         });
@@ -272,10 +437,9 @@
           return;
         }
 
-        if (avatar) {
-          avatar.src = "/images/logo.svg";
-        }
-
+        currentAvatarUrl = "";
+        currentAvatarPath = "";
+        renderProfileAvatar(avatar, session.user, "");
         window.dispatchEvent(new CustomEvent("localcokitchen:profile-updated"));
         setText("[data-status]", "Profile picture removed.");
       });
@@ -284,19 +448,19 @@
   const loadShop = async (session) => {
     const [{ data: profile }, { data: limit }, { data: items }, { data: windows }] =
       await Promise.all([
-        client.from("cook_profiles").select("*").eq("cook_id", session.user.id).maybeSingle(),
-        client
+        marketplaceDb.from("cook_profiles").select("*").eq("cook_id", session.user.id).maybeSingle(),
+        marketplaceDb
           .from("cook_account_limits")
           .select("menu_item_limit, membership_tier")
           .eq("cook_id", session.user.id)
           .maybeSingle(),
-        client
+        marketplaceDb
           .from("cook_menu_items")
           .select("*")
           .eq("cook_id", session.user.id)
           .eq("is_active", true)
           .order("created_at", { ascending: false }),
-        client
+        marketplaceDb
           .from("cook_pickup_windows")
           .select("*")
           .eq("cook_id", session.user.id)
@@ -334,38 +498,63 @@
     }
 
     if (itemsList) {
-      itemsList.innerHTML =
-        items
-          .map(
-            (item) => `
-              <article class="shop-list-item">
-                <img src="${item.image_url}" alt="">
-                <div>
-                  <h3>${escapeHtml(item.name)}</h3>
-                  <p>${escapeHtml(item.description)}</p>
-                  <strong>$${(item.price_cents / 100).toFixed(2)}</strong>
-                  <span>${item.quantity_available} available${item.is_sold_out ? " · sold out" : ""}</span>
-                </div>
-                <button type="button" data-delete-item="${item.id}">Remove</button>
-              </article>
-            `
-          )
-          .join("") || "<p>No menu items yet.</p>";
+      clearChildren(itemsList);
+
+      if (!items.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "No menu items yet.";
+        itemsList.append(empty);
+      }
+
+      items.forEach((item) => {
+        const article = document.createElement("article");
+        article.className = "shop-list-item";
+
+        const image = document.createElement("img");
+        image.src = item.image_url;
+        image.alt = "";
+
+        const body = document.createElement("div");
+        const title = document.createElement("h3");
+        title.textContent = item.name;
+        const description = document.createElement("p");
+        description.textContent = item.description;
+        const price = document.createElement("strong");
+        price.textContent = `$${(item.price_cents / 100).toFixed(2)}`;
+        const quantity = document.createElement("span");
+        quantity.textContent = `${item.quantity_available} available${item.is_sold_out ? " - sold out" : ""}`;
+        body.append(title, description, price, quantity);
+
+        const remove = document.createElement("button");
+        remove.type = "button";
+        remove.dataset.deleteItem = item.id;
+        remove.textContent = "Remove";
+
+        article.append(image, body, remove);
+        itemsList.append(article);
+      });
     }
 
     if (windowsList) {
       const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-      windowsList.innerHTML =
-        windows
-          .map(
-            (windowRow) => `
-              <article class="pickup-window-row">
-                <span>${dayNames[windowRow.day_of_week]}</span>
-                <strong>${windowRow.start_time.slice(0, 5)} - ${windowRow.end_time.slice(0, 5)}</strong>
-              </article>
-            `
-          )
-          .join("") || "<p>No pickup windows yet.</p>";
+      clearChildren(windowsList);
+
+      if (!windows.length) {
+        const empty = document.createElement("p");
+        empty.textContent = "No pickup windows yet.";
+        windowsList.append(empty);
+      }
+
+      windows.forEach((windowRow) => {
+        const article = document.createElement("article");
+        article.className = "pickup-window-row";
+        const day = document.createElement("span");
+        day.textContent = dayNames[windowRow.day_of_week];
+        const time = document.createElement("strong");
+        time.textContent = `${windowRow.start_time.slice(0, 5)} - ${windowRow.end_time.slice(0, 5)}`;
+        article.append(day, time);
+        windowsList.append(article);
+      });
     }
   };
 
@@ -384,7 +573,7 @@
       return;
     }
 
-    if (!(await getIsCook(session.user.id))) {
+    if (!(await getIsApprovedCook(session.user.id))) {
       shopPage.hidden = true;
       setText("[data-status]", "Apply to sell food before opening your shop.");
       return;
@@ -417,7 +606,7 @@
           });
         }
 
-        const { error } = await client.from("cook_profiles").upsert({
+        const { error } = await marketplaceDb.from("cook_profiles").upsert({
           cook_id: session.user.id,
           display_name: clean(formData.get("display_name"), 120),
           profile_image_url: imageUrl || null,
@@ -458,7 +647,7 @@
           path: filePath(session.user.id, "menu-item", image),
           types: imageTypes,
         });
-        const { error } = await client.from("cook_menu_items").insert({
+        const { error } = await marketplaceDb.from("cook_menu_items").insert({
           cook_id: session.user.id,
           name: clean(formData.get("name"), 120),
           description: clean(formData.get("description"), 1200),
@@ -493,7 +682,7 @@
       event.preventDefault();
       const form = event.currentTarget;
       const formData = new FormData(form);
-      const { error } = await client.from("cook_pickup_windows").insert({
+      const { error } = await marketplaceDb.from("cook_pickup_windows").insert({
         cook_id: session.user.id,
         day_of_week: Number(formData.get("day_of_week")),
         start_time: formData.get("start_time"),
@@ -517,7 +706,7 @@
         return;
       }
 
-      const { error } = await client
+      const { error } = await marketplaceDb
         .from("cook_menu_items")
         .update({ is_active: false })
         .eq("id", button.dataset.deleteItem)

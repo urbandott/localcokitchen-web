@@ -8,11 +8,22 @@
     !config.publishableKey.includes("YOUR_SUPABASE");
 
   if (!authLinks.length || !window.supabase || !hasConfig) {
+    authLinks.forEach((link) => {
+      link.classList.remove("is-auth-loading");
+    });
     return;
   }
 
   const client = window.supabase.createClient(config.url, config.publishableKey);
+  const identityDb = client.schema("lck_identity");
+  const marketplaceDb = client.schema("lck_marketplace");
   let sessionUser = null;
+
+  const clearAuthLoading = () => {
+    authLinks.forEach((link) => {
+      link.classList.remove("is-auth-loading");
+    });
+  };
 
   const closeOpenDropdowns = (except) => {
     document.querySelectorAll(".nav-more.is-open, .nav-profile.is-open").forEach((menu) => {
@@ -53,13 +64,19 @@
       return false;
     }
 
-    const { data, error } = await client
-      .from("cook_profiles")
-      .select("cook_id")
-      .eq("cook_id", userId)
+    const { data, error } = await marketplaceDb
+      .from("cook_applications")
+      .select("status")
+      .eq("user_id", userId)
+      .eq("status", "approved")
       .maybeSingle();
 
     return !error && Boolean(data);
+  };
+
+  const getIsAdmin = async () => {
+    const { data, error } = await identityDb.rpc("current_user_is_admin");
+    return !error && data === true;
   };
 
   const getInitials = (user) => {
@@ -80,6 +97,7 @@
       const existingMenu = link.parentElement?.querySelector("[data-profile-menu]");
       existingMenu?.remove();
       link.hidden = false;
+      link.classList.remove("is-auth-loading");
       link.classList.remove("is-auth-hidden");
       link.textContent = "Sign in";
       link.setAttribute("aria-label", "Sign in");
@@ -89,7 +107,7 @@
   };
 
   const renderSignedIn = async (user) => {
-    const isCook = await getIsCook(user?.id);
+    const [isCook, isAdmin] = await Promise.all([getIsCook(user?.id), getIsAdmin()]);
 
     authLinks.forEach((link) => {
       const parent = link.parentElement;
@@ -99,6 +117,7 @@
       }
 
       link.hidden = true;
+      link.classList.remove("is-auth-loading");
       link.classList.add("is-auth-hidden");
       parent.querySelector("[data-profile-menu]")?.remove();
 
@@ -139,6 +158,14 @@
         menu.append(shopLink);
       }
 
+      if (isAdmin) {
+        const adminLink = document.createElement("a");
+        adminLink.href = "/admin/cook-applications/";
+        adminLink.setAttribute("role", "menuitem");
+        adminLink.textContent = "Admin";
+        menu.append(adminLink);
+      }
+
       const signOutButton = document.createElement("button");
       signOutButton.type = "button";
       signOutButton.setAttribute("role", "menuitem");
@@ -170,6 +197,8 @@
 
   client.auth.getSession().then(({ data }) => {
     setSignedInState(data.session?.user || null);
+  }).catch(() => {
+    clearAuthLoading();
   });
 
   client.auth.onAuthStateChange((_event, session) => {

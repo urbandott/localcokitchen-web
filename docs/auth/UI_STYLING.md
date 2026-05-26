@@ -19,13 +19,13 @@ The stylesheet is organized into portable blocks:
 Top-level pages should link the stylesheet like this:
 
 ```html
-<link rel="stylesheet" href="styles.css?v=20260524-auth">
+<link rel="stylesheet" href="styles.css?v=20260524">
 ```
 
 Nested static pages should use a relative parent path:
 
 ```html
-<link rel="stylesheet" href="../styles.css?v=20260524-auth">
+<link rel="stylesheet" href="../styles.css?v=20260524">
 ```
 
 This works when previewing files locally, serving with a static server, and

@@ -14,19 +14,48 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
       rel="stylesheet"
     >
-    <link rel="stylesheet" href="../styles.css?v=20260524-auth">
+    <link rel="stylesheet" href="/styles.css?v=20260525">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/auth-nav.js" defer></script>
     <script src="/js/password-policy.js" defer></script>
     <script src="/js/auth.js" defer></script>
   </head>
   <body>
-    <main class="auth-shell">
-      <header class="auth-header">
-        <a class="brand" href="/" aria-label="LocalCoKitchen home">
-          <img src="/images/logo.svg" alt="LocalCoKitchen">
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home">
+        <img src="/images/logo.svg" alt="LocalCoKitchen">
+      </a>
+      <nav class="nav-actions" aria-label="Primary navigation">
+        <a class="nav-icon-link" href="/menu/" aria-label="Open available menu">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m21 21-4.35-4.35"></path>
+            <circle cx="11" cy="11" r="7"></circle>
+          </svg>
+          <span>Menu</span>
         </a>
-      </header>
+        <a class="nav-button" href="/signin/" data-auth-nav>Sign in</a>
+        <div class="nav-more">
+          <button class="nav-more__button" type="button" aria-haspopup="true">
+            More
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div class="nav-more__menu" role="menu">
+            <a href="/" role="menuitem">Home</a>
+            <a href="/find-a-meal/" role="menuitem">Find a meal</a>
+            <a href="/sell-your-food/" role="menuitem">Sell your Food</a>
+            <a href="/how-it-works/" role="menuitem">How it works</a>
+            <a href="/mission/" role="menuitem">Mission</a>
+            <a href="/faq/" role="menuitem">FAQ</a>
+            <a href="/contact-us/" role="menuitem">Contact us</a>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <main class="auth-shell auth-shell--with-nav">
 
       <section class="auth-panel" aria-labelledby="signup-title">
         <div class="auth-copy">
@@ -39,16 +68,29 @@
 
         <div class="auth-card">
           <form class="auth-form" data-auth-form="signup">
-            <div class="field-stack">
-              <label for="signup-name">Full name</label>
-              <input
-                id="signup-name"
-                name="full_name"
-                type="text"
-                autocomplete="name"
-                placeholder="Your name"
-                required
-              >
+            <div class="form-row">
+              <div class="field-stack">
+                <label for="signup-first-name">First name</label>
+                <input
+                  id="signup-first-name"
+                  name="first_name"
+                  type="text"
+                  autocomplete="given-name"
+                  placeholder="First name"
+                  required
+                >
+              </div>
+              <div class="field-stack">
+                <label for="signup-last-name">Last name</label>
+                <input
+                  id="signup-last-name"
+                  name="last_name"
+                  type="text"
+                  autocomplete="family-name"
+                  placeholder="Last name"
+                  required
+                >
+              </div>
             </div>
             <div class="field-stack">
               <label for="signup-email">Email address</label>
@@ -117,6 +159,16 @@
                 <span>Both</span>
               </label>
             </fieldset>
+            <label class="checkbox-field">
+              <input type="checkbox" name="marketing_opt_in" value="yes" checked>
+              <span>Opt in to receive deals and promotions from LocalCoKitchen.</span>
+            </label>
+            <p class="legal-consent">
+              By proceeding, you agree to the
+              <a href="/terms-and-conditions/">Terms and Conditions</a>
+              and
+              <a href="/privacy-policy/">Privacy Policy</a>.
+            </p>
             <button class="auth-submit" type="submit">Create account</button>
           </form>
 

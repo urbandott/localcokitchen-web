@@ -50,7 +50,7 @@ curl -I http://localhost:8000/signin/
 curl -I http://localhost:8000/signup/
 curl -I http://localhost:8000/forgot-password/
 curl -I http://localhost:8000/reset-password/
-curl -I 'http://localhost:8000/styles.css?v=20260524-auth'
+curl -I 'http://localhost:8000/styles.css?v=20260524'
 ```
 
 ## Unit tests

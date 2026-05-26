@@ -20,7 +20,11 @@ end $$;
 create table if not exists identity.users (
   id uuid primary key references auth.users(id) on delete cascade,
   email text not null,
+  first_name text,
+  last_name text,
   full_name text,
+  marketing_opt_in boolean not null default true,
+  marketing_opt_in_at timestamptz,
   avatar_url text,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
@@ -65,21 +69,58 @@ security definer
 set search_path = identity, public
 as $$
 declare
+  marketing_opted_in boolean;
   requested_role text;
 begin
+  marketing_opted_in :=
+    case
+      when jsonb_typeof(new.raw_user_meta_data->'marketing_opt_in') = 'boolean'
+        then (new.raw_user_meta_data->>'marketing_opt_in')::boolean
+      else false
+    end;
   requested_role := coalesce(new.raw_user_meta_data->>'signup_role', 'customer');
 
-  insert into identity.users (id, email, full_name, avatar_url)
+  insert into identity.users (
+    id,
+    email,
+    first_name,
+    last_name,
+    full_name,
+    marketing_opt_in,
+    marketing_opt_in_at,
+    avatar_url
+  )
   values (
     new.id,
     coalesce(new.email, ''),
-    nullif(new.raw_user_meta_data->>'full_name', ''),
+    nullif(new.raw_user_meta_data->>'first_name', ''),
+    nullif(new.raw_user_meta_data->>'last_name', ''),
+    coalesce(
+      nullif(new.raw_user_meta_data->>'full_name', ''),
+      nullif(
+        concat_ws(
+          ' ',
+          nullif(new.raw_user_meta_data->>'first_name', ''),
+          nullif(new.raw_user_meta_data->>'last_name', '')
+        ),
+        ''
+      )
+    ),
+    marketing_opted_in,
+    case
+      when marketing_opted_in then now()
+      else null
+    end,
     nullif(new.raw_user_meta_data->>'avatar_url', '')
   )
   on conflict (id) do update
   set
     email = excluded.email,
+    first_name = coalesce(excluded.first_name, identity.users.first_name),
+    last_name = coalesce(excluded.last_name, identity.users.last_name),
     full_name = coalesce(excluded.full_name, identity.users.full_name),
+    marketing_opt_in = excluded.marketing_opt_in,
+    marketing_opt_in_at = coalesce(excluded.marketing_opt_in_at, identity.users.marketing_opt_in_at),
     avatar_url = coalesce(excluded.avatar_url, identity.users.avatar_url);
 
   insert into identity.user_roles (user_id, role)

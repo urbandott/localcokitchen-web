@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <script src="/js/analytics.js"></script>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-D7X7B5TY2J"></script>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="index, follow">
+    <meta name="description" content="Browse placeholder LocalCoKitchen menu items currently available from local cooks.">
+    <link rel="canonical" href="https://localcokitchen.com/menu/">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Available Menu | LocalCoKitchen</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/styles.css?v=20260525">
+  </head>
+  <body>
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a>
+      <nav class="nav-actions" aria-label="Primary navigation">
+        <a class="nav-icon-link" href="/menu/" aria-label="Open available menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg><span>Menu</span></a>
+        <a class="nav-button" href="/signin/" data-auth-nav>Sign in</a>
+        <div class="nav-more"><button class="nav-more__button" type="button" aria-haspopup="true">More<svg aria-hidden="true" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div>
+      </nav>
+    </header>
+    <main class="content-page">
+      <section class="page-hero">
+        <p class="eyebrow">Menu</p>
+        <h1>Items currently available</h1>
+        <p class="lede">These are placeholder listings for the LocalCoKitchen marketplace experience. Live listings will show cook approval status, pickup windows, allergens, inventory, and preorder cutoffs.</p>
+      </section>
+      <section class="menu-layout" aria-label="Available menu items">
+        <aside class="filter-panel">
+          <h2>Filters</h2>
+          <span>Dallas pickup</span>
+          <span>Available today</span>
+          <span>Halal</span>
+          <span>Vegetarian</span>
+          <span>Nut-free</span>
+        </aside>
+        <div class="menu-list">
+          <article class="menu-item"><div class="plate-art plate-art--biryani" aria-hidden="true"></div><div><span class="status-pill">12 left</span><h2>Chicken biryani tray</h2><p>Fragrant basmati rice, spiced chicken, raita, and onion salad. Contains milk.</p><strong>$16</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--tamales" aria-hidden="true"></div><div><span class="status-pill">Preorder</span><h2>Tamales dozen</h2><p>Red chile pork tamales with salsa roja. Pickup window set by the cook.</p><strong>$24</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--baklava" aria-hidden="true"></div><div><span class="status-pill">8 boxes</span><h2>Baklava box</h2><p>Honey walnut pastry squares. Contains tree nuts and wheat.</p><strong>$18</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--curry" aria-hidden="true"></div><div><span class="status-pill">Sold soon</span><h2>Paneer curry bowl</h2><p>Tomato cream curry, paneer, rice, and cilantro. Vegetarian placeholder item.</p><strong>$14</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--cookies" aria-hidden="true"></div><div><span class="status-pill">Fresh batch</span><h2>Brown butter cookies</h2><p>Six cookie box with allergen details supplied by the cook.</p><strong>$12</strong></div></article>
+        </div>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/auth-nav.js" defer></script>
+  </body>
+</html>

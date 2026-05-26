@@ -8,229 +8,238 @@
     <meta name="robots" content="index, follow">
     <meta
       name="description"
-      content="LocalCoKitchen is a Texas homemade food marketplace coming soon, helping customers discover local meals from trusted home cooks and micro-chefs."
+      content="LocalCoKitchen helps Dallas customers discover trusted local home cooks, homemade meals, and scheduled pickups."
     >
     <meta
       name="keywords"
-      content="LocalCoKitchen, homemade food Texas, local home cooks, micro-chefs, Texas food marketplace, homemade meals near me"
+      content="LocalCoKitchen, Dallas homemade food, home cooks, local meals, Texas food marketplace"
     >
     <meta name="theme-color" content="#fffaf1">
     <meta property="og:type" content="website">
-    <meta property="og:title" content="LocalCoKitchen | Texas Homemade Food Marketplace">
+    <meta property="og:title" content="LocalCoKitchen | Homemade Meals Near You">
     <meta
       property="og:description"
-      content="Join the LocalCoKitchen waitlist to discover local homemade meals from trusted home cooks and micro-chefs in Texas."
+      content="Discover local homemade meals from trusted independent cooks through scheduled pickups."
     >
     <meta property="og:site_name" content="LocalCoKitchen">
     <meta property="og:url" content="https://localcokitchen.com/">
     <meta name="twitter:card" content="summary">
-    <meta name="twitter:title" content="LocalCoKitchen | Texas Homemade Food Marketplace">
+    <meta name="twitter:title" content="LocalCoKitchen | Homemade Meals Near You">
     <meta
       name="twitter:description"
-      content="A local homemade food marketplace connecting Texas customers with trusted home cooks and micro-chefs."
+      content="A local homemade food marketplace connecting customers with trusted home cooks and micro-chefs."
     >
     <link rel="canonical" href="https://localcokitchen.com/">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
-    <title>LocalCoKitchen | Texas Homemade Food Marketplace Coming Soon</title>
+    <title>LocalCoKitchen | Homemade Meals Near You</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
-      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap"
       rel="stylesheet"
     >
-    <link rel="stylesheet" href="styles.css?v=20260524-auth">
+    <link rel="stylesheet" href="/styles.css?v=20260525">
   </head>
   <body>
-    <main class="page-shell">
-      <section class="hero" aria-labelledby="page-title">
-        <div class="hero__content">
-          <header class="site-header">
-            <div class="site-header__left">
-              <a class="brand" href="https://localcokitchen.com/" aria-label="LocalCoKitchen home">
-                <img src="/images/logo.svg" alt="LocalCoKitchen">
-              </a>
-              <a class="signin-link" href="/signin/" data-auth-nav>Sign in</a>
-            </div>
-            <span class="launch-pill">Launching soon in Texas</span>
-          </header>
-
-          <div class="hero__copy">
-            <p class="eyebrow">Texas-made food, closer to home</p>
-            <h1 id="page-title">
-              <span class="headline-brand">LocalCoKitchen</span>
-              <span>is coming soon.</span>
-            </h1>
-            <p class="lede">
-              We are building a Texas homemade food marketplace where
-              independent home cooks and micro-chefs can share authentic meals,
-              snacks, and family favorites with the community.
-            </p>
-            <div class="flavor-tags" aria-label="Marketplace highlights">
-              <span>Fresh drops</span>
-              <span>Local favorites</span>
-              <span>Made nearby</span>
-            </div>
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home">
+        <img src="/images/logo.svg" alt="LocalCoKitchen">
+      </a>
+      <nav class="nav-actions" aria-label="Primary navigation">
+        <a class="nav-icon-link" href="/menu/" aria-label="Open available menu">
+          <svg aria-hidden="true" viewBox="0 0 24 24">
+            <path d="m21 21-4.35-4.35"></path>
+            <circle cx="11" cy="11" r="7"></circle>
+          </svg>
+          <span>Menu</span>
+        </a>
+        <a class="nav-button" href="/signin/" data-auth-nav>Sign in</a>
+        <div class="nav-more">
+          <button class="nav-more__button" type="button" aria-haspopup="true">
+            More
+            <svg aria-hidden="true" viewBox="0 0 24 24">
+              <path d="m6 9 6 6 6-6"></path>
+            </svg>
+          </button>
+          <div class="nav-more__menu" role="menu">
+            <a href="/" role="menuitem">Home</a>
+            <a href="/find-a-meal/" role="menuitem">Find a meal</a>
+            <a href="/sell-your-food/" role="menuitem">Sell your Food</a>
+            <a href="/how-it-works/" role="menuitem">How it works</a>
+            <a href="/mission/" role="menuitem">Mission</a>
+            <a href="/faq/" role="menuitem">FAQ</a>
+            <a href="/contact-us/" role="menuitem">Contact us</a>
           </div>
+        </div>
+      </nav>
+    </header>
 
-          <form
-            class="signup-card"
-            name="waitlist"
-            method="POST"
-            data-netlify="true"
-            netlify-honeypot="company"
-            aria-label="Join the LocalCoKitchen waitlist"
-          >
-            <input type="hidden" name="form-name" value="waitlist">
-            <p class="hidden-field">
-              <label>
-                Do not fill this out:
-                <input name="company" tabindex="-1" autocomplete="off">
-              </label>
-            </p>
-
-            <div class="signup-card__header">
-              <h2>Get first taste</h2>
-              <p>Leave your email and we will let you know when we go live.</p>
-            </div>
-
-            <div class="role-toggle" role="radiogroup" aria-label="I am interested as a">
-              <label>
-                <input type="radio" name="interest" value="customer" checked>
-                <span>Customer</span>
-              </label>
-              <label>
-                <input type="radio" name="interest" value="home-cook">
-                <span>Home Cook</span>
-              </label>
-              <label>
-                <input type="radio" name="interest" value="both">
-                <span>Both</span>
-              </label>
-            </div>
-
-            <div class="email-row">
-              <label class="sr-only" for="email">Email address</label>
-              <input
-                id="email"
-                name="email"
-                type="email"
-                inputmode="email"
-                autocomplete="email"
-                placeholder="you@example.com"
-                required
-              >
-              <button type="submit">Notify me</button>
-            </div>
-
-            <p class="form-note" id="form-note" aria-live="polite">
-              No spam. Just launch updates and early access invitations.
-            </p>
-          </form>
+    <main>
+      <section class="home-hero" aria-labelledby="page-title">
+        <div class="home-hero__copy">
+          <p class="eyebrow">Dallas-first homemade food marketplace</p>
+          <h1 id="page-title">Find meals made by cooks in your community.</h1>
+          <p class="lede">
+            LocalCoKitchen connects customers with independent home cooks for
+            authentic meals, snacks, and cultural favorites through clear menus,
+            secure checkout, and scheduled local pickups.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-action" href="/find-a-meal/">Find a meal</a>
+            <a class="secondary-action" href="/sell-your-food/">Sell your food</a>
+          </div>
         </div>
 
-        <div class="hero__visual" aria-label="Illustration of homemade food cards">
-          <div class="market-board">
-            <div class="board-badges" aria-hidden="true">
-              <span class="board-sticker">Texas kitchens</span>
-              <span class="board-sticker">Small batches</span>
+        <div class="meal-preview" aria-label="Featured meal preview">
+          <div class="meal-preview__image">
+            <div class="plate-art plate-art--large" aria-hidden="true"></div>
+          </div>
+          <div class="meal-preview__body">
+            <span class="status-pill">Pickup window today</span>
+            <h2>Chicken biryani tray</h2>
+            <p>Placeholder listing from an approved Dallas cook.</p>
+            <div class="meal-meta">
+              <span>4.9 rating</span>
+              <span>75206</span>
+              <span>Allergens listed</span>
             </div>
-            <div class="dish-card dish-card--large">
-              <span class="dish-card__tag">Fresh batch</span>
-              <div class="dish-card__plate dish-card__plate--one" aria-hidden="true"></div>
-              <div>
-                <strong>Pecan pie</strong>
-                <span>Home cook in Richardson</span>
-              </div>
-            </div>
-            <div class="dish-card dish-card--small dish-card--top">
-              <div class="dish-card__plate dish-card__plate--two" aria-hidden="true"></div>
-              <div>
-                <strong>Tamales</strong>
-                <span>Fresh batch</span>
-              </div>
-            </div>
-            <div class="dish-card dish-card--small dish-card--bottom">
-              <div class="dish-card__plate dish-card__plate--three" aria-hidden="true"></div>
-              <div>
-                <strong>Baklava box</strong>
-                <span>Made by a local cook</span>
-              </div>
-            </div>
-            <div class="route-line" aria-hidden="true"></div>
           </div>
         </div>
       </section>
 
-      <section class="info-band" aria-label="Who LocalCoKitchen is for">
+      <section class="section-grid" aria-label="Marketplace highlights">
         <article>
-          <h2>For cooks</h2>
+          <span class="section-kicker">Customers</span>
+          <h2>Search by dish, cuisine, distance, rating, and dietary needs.</h2>
           <p>
-            Build a customer base, manage interest before launch, and prepare to
-            sell through a marketplace designed for independent home cooks,
-            micro-chefs, and local food sellers.
+            Discover nearby cooks without chasing social posts or group chats.
+            Menu details, pickup windows, and sold-out states are visible before
+            you order.
           </p>
         </article>
         <article>
-          <h2>For customers</h2>
+          <span class="section-kicker">Cooks</span>
+          <h2>Turn a trusted kitchen into a repeat customer base.</h2>
           <p>
-            Discover nearby homemade food from local cooks, including regional
-            favorites and alternatives to restaurants or fast food.
+            Approved cooks can publish menus, set preorder cutoffs, control
+            inventory, collect online payments, and manage pickup availability.
           </p>
         </article>
         <article>
-          <h2>Built on trust</h2>
+          <span class="section-kicker">Trust</span>
+          <h2>Built around verification, disclosure, and marketplace review.</h2>
           <p>
-            Our marketplace is being designed around cook review, clear food
-            details, and allergen visibility.
+            LocalCoKitchen is designed for cook approval, ingredient visibility,
+            allergen tags, verified-buyer reviews, and privacy-aware pickup
+            instructions.
           </p>
         </article>
       </section>
 
-      <section class="seo-section" aria-labelledby="seo-title">
+      <section class="wide-band" aria-labelledby="pickup-title">
         <div>
-          <p class="eyebrow">Texas homemade food marketplace</p>
-          <h2 id="seo-title">Discover local homemade food from trusted cooks.</h2>
+          <p class="eyebrow">How pickup works</p>
+          <h2 id="pickup-title">Order ahead. Get the address when it matters.</h2>
         </div>
-        <div class="seo-section__copy">
-          <p>
-            LocalCoKitchen is being built for people searching for homemade food
-            near them, authentic regional meals, and a simpler way to find local
-            cooks in Texas. Customers can join the waitlist for launch updates,
-            while home cooks and micro-chefs can sign up for early access.
-          </p>
-          <p>
-            Our goal is to support a trusted local food community with clear
-            menu details, allergen visibility, and cook review before launch.
-          </p>
+        <div class="timeline">
+          <article>
+            <strong>Browse</strong>
+            <span>Find local cooks and placeholder menu drops by proximity.</span>
+          </article>
+          <article>
+            <strong>Order</strong>
+            <span>Pay online and respect the cook's preorder cutoff.</span>
+          </article>
+          <article>
+            <strong>Pickup</strong>
+            <span>Exact pickup details unlock close to the pickup window.</span>
+          </article>
         </div>
       </section>
 
-      <section class="faq-section" aria-labelledby="faq-title">
-        <h2 id="faq-title">LocalCoKitchen FAQ</h2>
-        <div class="faq-grid">
-          <article>
-            <h3>What is LocalCoKitchen?</h3>
-            <p>
-              LocalCoKitchen is a homemade food marketplace coming soon in
-              Texas, built to help customers discover meals from local home
-              cooks and micro-chefs.
-            </p>
+      <section class="menu-strip" aria-labelledby="menu-title">
+        <div class="section-heading">
+          <p class="eyebrow">Currently available</p>
+          <h2 id="menu-title">Placeholder menu items</h2>
+          <a class="text-link" href="/menu/">View menu</a>
+        </div>
+        <div class="meal-card-grid">
+          <article class="meal-card">
+            <div class="plate-art plate-art--biryani" aria-hidden="true"></div>
+            <h3>Chicken biryani tray</h3>
+            <p>Fragrant rice, spiced chicken, cucumber raita.</p>
+            <span>$16</span>
           </article>
-          <article>
-            <h3>Who can join the waitlist?</h3>
-            <p>
-              Customers, home cooks, micro-chefs, and local food sellers can
-              join the waitlist to receive launch updates and early access.
-            </p>
+          <article class="meal-card">
+            <div class="plate-art plate-art--tamales" aria-hidden="true"></div>
+            <h3>Tamales dozen</h3>
+            <p>Red chile pork tamales, salsa roja, pickup only.</p>
+            <span>$24</span>
           </article>
-          <article>
-            <h3>Where is LocalCoKitchen launching first?</h3>
-            <p>
-              LocalCoKitchen is planned to launch in Texas, with future
-              expansion to more local food communities.
-            </p>
+          <article class="meal-card">
+            <div class="plate-art plate-art--baklava" aria-hidden="true"></div>
+            <h3>Baklava box</h3>
+            <p>Walnut pastry squares with honey syrup.</p>
+            <span>$18</span>
           </article>
         </div>
+      </section>
+
+      <section class="waitlist-panel" aria-labelledby="waitlist-title">
+        <div>
+          <p class="eyebrow">Early access</p>
+          <h2 id="waitlist-title">Join the launch list.</h2>
+          <p>
+            Customers and cooks can join now while LocalCoKitchen prepares the
+            Dallas launch.
+          </p>
+        </div>
+        <form
+          class="signup-card"
+          name="waitlist"
+          method="POST"
+          data-netlify="true"
+          netlify-honeypot="company"
+          aria-label="Join the LocalCoKitchen waitlist"
+        >
+          <input type="hidden" name="form-name" value="waitlist">
+          <p class="hidden-field">
+            <label>
+              Do not fill this out:
+              <input name="company" tabindex="-1" autocomplete="off">
+            </label>
+          </p>
+          <div class="role-toggle" role="radiogroup" aria-label="I am interested as a">
+            <label>
+              <input type="radio" name="interest" value="customer" checked>
+              <span>Customer</span>
+            </label>
+            <label>
+              <input type="radio" name="interest" value="home-cook">
+              <span>Home Cook</span>
+            </label>
+            <label>
+              <input type="radio" name="interest" value="both">
+              <span>Both</span>
+            </label>
+          </div>
+          <div class="email-row">
+            <label class="sr-only" for="email">Email address</label>
+            <input
+              id="email"
+              name="email"
+              type="email"
+              inputmode="email"
+              autocomplete="email"
+              placeholder="you@example.com"
+              required
+            >
+            <button type="submit">Notify me</button>
+          </div>
+          <p class="form-note" id="form-note" aria-live="polite">
+            No spam. Just launch updates and early access invitations.
+          </p>
+        </form>
       </section>
     </main>
 
@@ -240,64 +249,20 @@
         "@type": "Organization",
         "name": "LocalCoKitchen",
         "url": "https://localcokitchen.com/",
-        "description": "LocalCoKitchen is a Texas homemade food marketplace coming soon, connecting customers with trusted home cooks and micro-chefs.",
+        "description": "LocalCoKitchen is a Dallas-first homemade food marketplace connecting customers with trusted home cooks and micro-chefs.",
         "areaServed": {
-          "@type": "State",
-          "name": "Texas",
+          "@type": "City",
+          "name": "Dallas",
           "addressRegion": "TX",
           "addressCountry": "US"
         }
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "WebSite",
-        "name": "LocalCoKitchen",
-        "url": "https://localcokitchen.com/",
-        "potentialAction": {
-          "@type": "RegisterAction",
-          "name": "Join the LocalCoKitchen waitlist",
-          "target": "https://localcokitchen.com/"
-        }
-      }
-    </script>
-    <script type="application/ld+json">
-      {
-        "@context": "https://schema.org",
-        "@type": "FAQPage",
-        "mainEntity": [
-          {
-            "@type": "Question",
-            "name": "What is LocalCoKitchen?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "LocalCoKitchen is a homemade food marketplace coming soon in Texas, built to help customers discover meals from local home cooks and micro-chefs."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Who can join the waitlist?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "Customers, home cooks, micro-chefs, and local food sellers can join the waitlist to receive launch updates and early access."
-            }
-          },
-          {
-            "@type": "Question",
-            "name": "Where is LocalCoKitchen launching first?",
-            "acceptedAnswer": {
-              "@type": "Answer",
-              "text": "LocalCoKitchen is planned to launch in Texas, with future expansion to more local food communities."
-            }
-          }
-        ]
       }
     </script>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="/js/supabase-config.js" defer></script>
     <script src="/js/auth-nav.js" defer></script>
     <script defer src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-    <script src="js/emailjs.js" defer></script>
+    <script src="/js/emailjs.js" defer></script>
+    <script src="/js/script.js" defer></script>
   </body>
 </html>

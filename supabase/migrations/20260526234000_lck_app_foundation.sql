@@ -251,6 +251,31 @@ as $$
   select lck_identity.current_user_has_admin_role();
 $$;
 
+create or replace function public.lck_get_signup_account_status(email_input text)
+returns text
+language sql
+stable
+security definer
+set search_path = auth, public
+as $$
+  select case
+    when not exists (
+      select 1
+      from auth.users auth_user
+      where lower(auth_user.email) = lower(btrim(email_input))
+    ) then 'available'
+    when exists (
+      select 1
+      from auth.users auth_user
+      where lower(auth_user.email) = lower(btrim(email_input))
+        and auth_user.confirmed_at is not null
+    ) then 'active'
+    else 'pending'
+  end;
+$$;
+
+grant execute on function public.lck_get_signup_account_status(text) to anon, authenticated;
+
 create or replace function lck_private.normalize_cook_application_user_write()
 returns trigger
 language plpgsql

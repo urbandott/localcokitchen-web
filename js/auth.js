@@ -31,6 +31,38 @@
   const getPasswordResetRedirectUrl = () =>
     new URL("/reset-password/", window.location.origin).toString();
 
+  const genericSignupStatus =
+    "If this email can be used for a new account, we will send a confirmation link. If you already have an account, sign in or reset your password.";
+
+  const isAlreadyRegisteredError = (error) =>
+    /already\s+registered|already\s+exists|email.*taken/i.test(error?.message || "");
+
+  const isDuplicateConfirmedSignup = (data) => {
+    const user = data?.user;
+
+    if (!user) {
+      return false;
+    }
+
+    return Array.isArray(user.identities) && user.identities.length === 0;
+  };
+
+  const getSignupAccountStatus = async (email) => {
+    if (!client) {
+      return "unknown";
+    }
+
+    const { data, error } = await client.rpc("lck_get_signup_account_status", {
+      email_input: email,
+    });
+
+    if (error) {
+      return "unknown";
+    }
+
+    return data || "unknown";
+  };
+
   const setupPasswordToggles = () => {
     document.querySelectorAll("[data-password-toggle]").forEach((button) => {
       const input = document.getElementById(button.dataset.passwordToggle);
@@ -222,8 +254,14 @@
         const lastName = cleanTextValue(formData.get("last_name"), 80);
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
         const marketingOptIn = formData.get("marketing_opt_in") === "yes";
+        const accountStatus = await getSignupAccountStatus(email);
 
-        const { error } = await client.auth.signUp({
+        if (accountStatus === "active") {
+          setStatus(genericSignupStatus);
+          return;
+        }
+
+        const { data, error } = await client.auth.signUp({
           email,
           password,
           options: {
@@ -238,11 +276,16 @@
           },
         });
 
+        if (isAlreadyRegisteredError(error) || isDuplicateConfirmedSignup(data)) {
+          setStatus(genericSignupStatus);
+          return;
+        }
+
         if (error) {
           throw error;
         }
 
-        setStatus("Check your email to confirm your account before signing in.");
+        setStatus(genericSignupStatus);
         form.reset();
         return;
       }

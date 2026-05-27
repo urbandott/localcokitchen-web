@@ -175,14 +175,23 @@
 
   const setText = (selector, text) => {
     const el = document.querySelector(selector);
+    const visibleShopPage = document.querySelector("[data-shop-page]:not([hidden])");
 
     if (el) {
-      el.textContent = text;
+      el.textContent = selector === "[data-status]" && visibleShopPage ? "" : text;
     }
 
     if (selector === "[data-status]" && text) {
       window.LocalCoKitchenToast?.show(text);
     }
+  };
+
+  const redirectHome = () => {
+    window.location.replace("/");
+  };
+
+  const revealAuthRequiredPage = () => {
+    document.querySelector("[data-auth-required]")?.removeAttribute("hidden");
   };
 
   const requireClient = () => {
@@ -369,11 +378,37 @@
       return;
     }
 
+    const modal = document.querySelector("[data-cook-application-modal]");
+    const openButton = document.querySelector("[data-open-cook-application]");
+    const completeButton = document.querySelector("[data-cook-application-complete]");
+
+    const closeModal = () => {
+      if (modal?.open) {
+        modal.close();
+      }
+    };
+
+    openButton?.addEventListener("click", () => {
+      if (typeof modal?.showModal === "function") {
+        modal.showModal();
+      } else {
+        modal?.setAttribute("open", "");
+      }
+    });
+
+    document.querySelectorAll("[data-close-cook-application]").forEach((button) => {
+      button.addEventListener("click", closeModal);
+    });
+
+    modal?.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        closeModal();
+      }
+    });
+
     const session = await getSession();
 
     if (!session) {
-      form.hidden = true;
-      setText("[data-status]", "Sign in first, then return here to apply as a cook.");
       return;
     }
 
@@ -384,36 +419,52 @@
       .maybeSingle();
 
     if (application) {
-      setText(
-        "[data-status]",
-        application.status === "approved"
-          ? "Cook application approved. My shop is available from the account menu."
-          : "Cook application submitted. Head to My shop to start setting up your storefront, menu items, and pickup windows while an admin reviews your application."
-      );
       form.hidden = true;
+      if (openButton) {
+        openButton.hidden = true;
+      }
+      if (completeButton) {
+        completeButton.hidden = false;
+      }
       return;
     }
 
     setupCookApplicationFormatting(form);
+    form.hidden = false;
+    if (openButton) {
+      openButton.hidden = false;
+    }
+    if (completeButton) {
+      completeButton.hidden = true;
+    }
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       const button = form.querySelector('button[type="submit"]');
+      const buttonText = button.textContent;
 
       button.disabled = true;
-      setText("[data-status]", "Submitting cook application...");
+      button.textContent = "Submitting...";
 
       try {
         const saved = await saveCookApplication({ form, session });
         if (saved) {
-          setText("[data-status]", "Cook application submitted. Head to My shop to start setting up your storefront, menu items, and pickup windows while an admin reviews your application.");
           window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
           form.reset();
+          form.hidden = true;
+          if (openButton) {
+            openButton.hidden = true;
+          }
+          if (completeButton) {
+            completeButton.hidden = false;
+          }
+          closeModal();
         }
       } catch (error) {
         setText("[data-status]", error.message || "Could not submit application.");
       } finally {
         button.disabled = false;
+        button.textContent = buttonText;
       }
     });
   };
@@ -428,10 +479,12 @@
     const session = await getSession();
 
     if (!session) {
-      form.hidden = true;
-      setText("[data-status]", "Sign in to view your profile.");
+      redirectHome();
       return;
     }
+
+    revealAuthRequiredPage();
+    form.hidden = false;
 
     const avatar = form.querySelector("[data-profile-avatar]");
     const profilePictureInput = form.elements.profile_picture;
@@ -727,13 +780,29 @@
         fields.className = "pickup-window-times";
         fields.append(start, end);
 
+        const validateTimes = () => {
+          end.setCustomValidity("");
+
+          if (!enabled.checked) {
+            return;
+          }
+
+          if (start.value && end.value && start.value >= end.value) {
+            end.setCustomValidity("End time must be after start time.");
+          }
+        };
+
         enabled.addEventListener("change", () => {
           start.required = enabled.checked;
           end.required = enabled.checked;
           start.disabled = !enabled.checked;
           end.disabled = !enabled.checked;
-          end.setCustomValidity("");
+          validateTimes();
         });
+        start.addEventListener("input", validateTimes);
+        start.addEventListener("change", validateTimes);
+        end.addEventListener("input", validateTimes);
+        end.addEventListener("change", validateTimes);
 
         start.disabled = !enabled.checked;
         end.disabled = !enabled.checked;
@@ -753,8 +822,7 @@
     const session = await getSession();
 
     if (!session) {
-      shopPage.hidden = true;
-      setText("[data-status]", "Sign in to manage your shop.");
+      redirectHome();
       return;
     }
 
@@ -763,16 +831,19 @@
     try {
       application = await getCookApplication(session.user.id);
     } catch (error) {
-      shopPage.hidden = true;
+      revealAuthRequiredPage();
       setText("[data-status]", error.message || "Could not load cook application status.");
       return;
     }
 
     if (!application || !["submitted", "approved"].includes(application.status)) {
-      shopPage.hidden = true;
+      revealAuthRequiredPage();
       setText("[data-status]", "Apply to sell food before opening your shop.");
       return;
     }
+
+    revealAuthRequiredPage();
+    shopPage.hidden = false;
 
     let currentApplication = application;
     const refresh = async () => {
@@ -1099,6 +1170,10 @@
       event.preventDefault();
       const form = event.currentTarget;
       const updates = [];
+
+      form.querySelectorAll("[name^='pickup_end_']").forEach((endInput) => {
+        endInput.setCustomValidity("");
+      });
 
       if (!form.checkValidity()) {
         form.reportValidity();

@@ -43,45 +43,55 @@
 
       <p class="auth-message" data-status aria-live="polite"></p>
 
-      <form class="auth-card cook-application-form" data-cook-application>
-        <h2>Cook application</h2>
-        <div class="form-row">
-          <div class="field-stack">
-            <label for="legal-name">Legal name</label>
-            <input id="legal-name" name="legal_name" required minlength="2" maxlength="120" autocomplete="name">
-            <p class="field-hint">2 to 120 characters.</p>
+      <div class="button-row cook-signup-actions">
+        <button class="auth-submit compact-action" type="button" data-open-cook-application hidden>Start cook signup</button>
+        <button class="secondary-action compact-action" type="button" data-cook-application-complete disabled hidden>Signup complete</button>
+      </div>
+
+      <dialog class="menu-item-dialog" data-cook-application-modal>
+        <form class="shop-subform menu-item-modal-form cook-application-form" data-cook-application hidden>
+          <div class="modal-heading">
+            <h3>Cook application</h3>
+            <button class="modal-close" type="button" data-close-cook-application aria-label="Close cook application form">&times;</button>
+          </div>
+          <div class="form-row">
+            <div class="field-stack">
+              <label for="legal-name">Legal name</label>
+              <input id="legal-name" name="legal_name" required minlength="2" maxlength="120" autocomplete="name">
+              <p class="field-hint">2 to 120 characters.</p>
+            </div>
+            <div class="field-stack">
+              <label for="phone">Phone number</label>
+              <input id="phone" name="phone" type="tel" required value="+1 " inputmode="tel" autocomplete="tel" minlength="17" maxlength="17" pattern="^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$">
+              <p class="field-hint">US numbers only. Format: +1 555-123-4567.</p>
+            </div>
           </div>
           <div class="field-stack">
-            <label for="phone">Phone number</label>
-            <input id="phone" name="phone" type="tel" required value="+1 " inputmode="tel" autocomplete="tel" minlength="17" maxlength="17" pattern="^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$">
-            <p class="field-hint">US numbers only. Format: +1 555-123-4567.</p>
+            <label for="pickup-address">Pickup address</label>
+            <input id="pickup-address" name="pickup_address" required minlength="8" maxlength="240" autocomplete="street-address">
+            <p class="field-hint">Customers see only your zip code until close to pickup.</p>
           </div>
-        </div>
-        <div class="field-stack">
-          <label for="pickup-address">Pickup address</label>
-          <input id="pickup-address" name="pickup_address" required minlength="8" maxlength="240" autocomplete="street-address">
-          <p class="field-hint">Customers see only your zip code until close to pickup.</p>
-        </div>
-        <div class="field-stack">
-          <label for="pickup-zip">Pickup zip code</label>
-          <input id="pickup-zip" name="pickup_zip_code" required inputmode="numeric" minlength="5" maxlength="5" pattern="^[0-9]{5}$" autocomplete="postal-code">
-          <p class="field-hint">Enter a 5-digit US ZIP code.</p>
-        </div>
-        <label class="checkbox-field">
-          <input type="checkbox" name="food_handler_training_completed" value="yes" required>
-          <span>I have completed a basic food handler training course.</span>
-        </label>
-        <div class="field-stack">
-          <label for="food-handler-certificate">Food handler training proof</label>
-          <input id="food-handler-certificate" name="food_handler_certificate" type="file" required accept="application/pdf,image/png,image/jpeg,image/webp">
-          <p class="field-hint">PDF, PNG, JPG, or WebP. Max 5 MB.</p>
-        </div>
-        <div class="field-stack">
-          <label for="permit-or-certification">Food permit or certification, if applicable</label>
-          <input id="permit-or-certification" name="permit_or_certification" type="file" accept="application/pdf,image/png,image/jpeg,image/webp">
-        </div>
-        <button class="auth-submit" type="submit">Submit cook application</button>
-      </form>
+          <div class="field-stack">
+            <label for="pickup-zip">Pickup zip code</label>
+            <input id="pickup-zip" name="pickup_zip_code" required inputmode="numeric" minlength="5" maxlength="5" pattern="^[0-9]{5}$" autocomplete="postal-code">
+            <p class="field-hint">Enter a 5-digit US ZIP code.</p>
+          </div>
+          <label class="checkbox-field">
+            <input type="checkbox" name="food_handler_training_completed" value="yes" required>
+            <span>I have completed a basic food handler training course.</span>
+          </label>
+          <div class="field-stack">
+            <label for="food-handler-certificate">Food handler training proof</label>
+            <input id="food-handler-certificate" name="food_handler_certificate" type="file" required accept="application/pdf,image/png,image/jpeg,image/webp">
+            <p class="field-hint">PDF, PNG, JPG, or WebP. Max 5 MB.</p>
+          </div>
+          <div class="field-stack">
+            <label for="permit-or-certification">Food permit or certification, if applicable</label>
+            <input id="permit-or-certification" name="permit_or_certification" type="file" accept="application/pdf,image/png,image/jpeg,image/webp">
+          </div>
+          <button class="auth-submit" type="submit">Submit cook application</button>
+        </form>
+      </dialog>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>

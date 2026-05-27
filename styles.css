@@ -2044,6 +2044,10 @@ h1 span {
   gap: 0.75rem;
 }
 
+.cook-signup-actions {
+  margin-top: 1.25rem;
+}
+
 .cook-application-form h2,
 .shop-form h2 {
   margin-bottom: 1rem;

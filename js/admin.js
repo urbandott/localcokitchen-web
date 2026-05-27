@@ -24,6 +24,14 @@
     }
   };
 
+  const redirectHome = () => {
+    window.location.replace("/");
+  };
+
+  const revealAuthRequiredPage = () => {
+    document.querySelector("[data-auth-required]")?.removeAttribute("hidden");
+  };
+
   const clearChildren = (element) => {
     while (element.firstChild) {
       element.firstChild.remove();
@@ -170,6 +178,7 @@
     }
 
     if (!client) {
+      revealAuthRequiredPage();
       setText("[data-status]", "Supabase is not configured yet.");
       return;
     }
@@ -177,15 +186,17 @@
     const { data: sessionData } = await client.auth.getSession();
 
     if (!sessionData.session) {
-      clearChildren(container);
-      setText("[data-status]", "Sign in as an admin to review cook applications.");
+      redirectHome();
       return;
     }
+
+    revealAuthRequiredPage();
 
     const { data: isAdmin, error: adminError } = await identityDb.rpc("current_user_is_admin");
 
     if (adminError || isAdmin !== true) {
       clearChildren(container);
+      container.hidden = false;
       setText("[data-status]", "You do not have admin access.");
       return;
     }
@@ -201,6 +212,7 @@
     }
 
     clearChildren(container);
+    container.hidden = false;
 
     if (!data.length) {
       container.append(createEl("p", "", "No cook applications yet."));

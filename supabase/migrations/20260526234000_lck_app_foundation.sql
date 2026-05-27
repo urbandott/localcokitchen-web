@@ -674,8 +674,16 @@ create policy "Cooks manage their menu items"
   );
 
 grant usage on schema lck_identity, lck_marketplace to anon, authenticated;
+alter role authenticator set pgrst.db_schemas = 'public, graphql_public, lck_identity, lck_marketplace';
+notify pgrst, 'reload config';
+
 grant execute on function lck_identity.current_user_is_admin() to authenticated;
-grant select on lck_marketplace.cook_profiles, lck_marketplace.cook_pickup_windows, lck_marketplace.cook_menu_items to anon;
+grant select on
+  lck_marketplace.cook_applications,
+  lck_marketplace.cook_profiles,
+  lck_marketplace.cook_pickup_windows,
+  lck_marketplace.cook_menu_items
+  to anon;
 grant select on lck_identity.users, lck_identity.user_roles to authenticated;
 grant select, insert, update, delete on
   lck_marketplace.cook_applications,

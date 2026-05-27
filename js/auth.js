@@ -13,6 +13,10 @@
     if (statusEl) {
       statusEl.textContent = message;
     }
+
+    if (message) {
+      window.LocalCoKitchenToast?.show(message);
+    }
   };
 
   const getRedirectUrl = () => {

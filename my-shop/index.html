@@ -24,41 +24,41 @@
         </form>
         <form class="auth-card shop-form" data-shop-profile-form>
           <h2>Storefront</h2>
-          <div class="form-row"><div class="field-stack"><label for="display-name">Display name</label><input id="display-name" name="display_name" required maxlength="120"></div><div class="field-stack"><label for="cuisine-type">Cuisine type</label><input id="cuisine-type" name="cuisine_type" maxlength="80" placeholder="Pakistani, Tex-Mex, Bakery"></div></div>
-          <div class="field-stack"><label for="profile-image">Profile picture</label><input id="profile-image" name="profile_image" type="file" accept="image/png,image/jpeg,image/webp"><p class="field-hint">PNG, JPG, or WebP. Max 2 MB. Required before saving unless already uploaded.</p></div>
+          <div class="form-row"><div class="field-stack"><label for="display-name">Display name</label><input id="display-name" name="display_name" required maxlength="120"></div><div class="field-stack"><label for="cuisine-type">Cuisine type</label><input id="cuisine-type" name="cuisine_type" maxlength="80" placeholder="BBQ, Tex-Mex, Bakery"></div></div>
+          <div class="shop-image-field"><div class="shop-image-preview" data-shop-profile-image-preview aria-hidden="true">LC</div><div class="field-stack"><label for="profile-image">Profile picture</label><input id="profile-image" name="profile_image" type="file" accept="image/png,image/jpeg,image/webp"><p class="field-hint">PNG, JPG, or WebP. Max 2 MB. Required before saving unless already uploaded.</p></div></div>
           <div class="field-stack"><label for="shop-description">Description</label><textarea id="shop-description" name="description" rows="7" required maxlength="3500" placeholder="Tell customers about your food, background, and pickup expectations."></textarea><p class="field-hint">Required. 500 words max.</p></div>
           <div class="form-row"><div class="field-stack"><label for="shop-zip">Pickup zip code</label><input id="shop-zip" name="pickup_zip_code" required inputmode="numeric" minlength="5" maxlength="5" pattern="^[0-9]{5}$" autocomplete="postal-code"><p class="field-hint">Required. Enter a 5-digit US ZIP code.</p></div><div class="field-stack"><label for="cutoff">Order cutoff, hours before pickup</label><input id="cutoff" name="preorder_cutoff_hours" type="number" required min="1" max="168" step="1" value="24"></div></div>
           <div class="field-stack"><label for="order-notes">Order notes</label><textarea id="order-notes" name="order_notes" rows="4" maxlength="800" placeholder="Example: Pickup only. Address unlocks close to pickup."></textarea></div>
-          <label class="checkbox-field"><input type="checkbox" name="is_public" value="yes"><span>Make my shop visible after admin approval.</span></label>
+          <div class="storefront-toggle-row"><div><strong>Storefront active</strong><p id="storefront-toggle-note" data-storefront-toggle-note>This will become available once your profile is approved by an admin.</p></div><label class="switch-toggle"><input type="checkbox" name="is_public" value="yes" aria-describedby="storefront-toggle-note" data-storefront-toggle><span></span></label></div>
           <button class="auth-submit" type="submit">Save storefront</button>
         </form>
 
         <section class="auth-card shop-form">
-          <div class="section-heading"><div><h2>Menu items</h2><p data-menu-limit>Loading menu limit...</p></div></div>
+          <div class="section-heading"><div><h2>Menu items</h2><p data-menu-limit>Loading menu limit...</p></div><button class="auth-submit compact-action" type="button" data-open-menu-item-modal>Add item</button></div>
           <div class="shop-list" data-menu-items></div>
-          <form class="shop-subform" data-menu-item-form>
-            <h3>Add menu item</h3>
+          <dialog class="menu-item-dialog" data-menu-item-modal>
+          <form class="shop-subform menu-item-modal-form" data-menu-item-form>
+            <div class="modal-heading"><h3 data-menu-item-modal-title>Add menu item</h3><button class="modal-close" type="button" data-close-menu-item-modal aria-label="Close menu item form">&times;</button></div>
             <div class="form-row"><div class="field-stack"><label for="item-name">Item name</label><input id="item-name" name="name" required maxlength="120"></div><div class="field-stack"><label for="item-category">Category</label><input id="item-category" name="category" required maxlength="80" placeholder="Entree, dessert, snack"></div></div>
-            <div class="field-stack"><label for="item-image">Item image</label><input id="item-image" name="image" type="file" required accept="image/png,image/jpeg,image/webp"><p class="field-hint">PNG, JPG, or WebP. Max 3 MB.</p></div>
+            <div class="field-stack"><label for="item-image">Item image</label><input id="item-image" name="image" type="file" required accept="image/png,image/jpeg,image/webp"><p class="field-hint" data-menu-image-hint>PNG, JPG, or WebP. Max 3 MB.</p></div>
             <div class="field-stack"><label for="item-description">Description</label><textarea id="item-description" name="description" rows="5" required maxlength="1200"></textarea></div>
-            <div class="form-row"><div class="field-stack"><label for="price">Price per count, USD</label><input id="price" name="price" type="number" min="0.01" step="0.01" inputmode="decimal" required></div><div class="field-stack"><label for="quantity">Quantity available</label><input id="quantity" name="quantity_available" type="number" required min="1" max="10000" step="1" value="1"></div></div>
+            <div class="form-row"><div class="field-stack"><label for="price">Price per count, USD</label><input id="price" name="price" type="number" min="0.01" max="100000" step="0.01" inputmode="decimal" required></div><div class="field-stack"><label for="quantity">Quantity available</label><input id="quantity" name="quantity_available" type="number" required min="1" max="10000" step="1" value="1"></div></div>
             <div class="form-row"><div class="field-stack"><label for="allergens">Allergens</label><input id="allergens" name="allergens" placeholder="Milk, wheat, peanuts"></div><div class="field-stack"><label for="dietary-tags">Dietary tags</label><input id="dietary-tags" name="dietary_tags" placeholder="Halal, vegetarian, gluten-free"></div></div>
             <label class="checkbox-field"><input type="checkbox" name="is_sold_out" value="yes"><span>Mark as sold out.</span></label>
-            <button class="auth-submit" type="submit">Add menu item</button>
+            <div class="button-row"><button class="auth-submit" type="submit" data-menu-item-submit>Add menu item</button><button class="secondary-action" type="button" data-close-menu-item-modal>Cancel</button></div>
           </form>
+          </dialog>
         </section>
 
         <section class="auth-card shop-form">
           <h2>Pickup windows</h2>
-          <div class="shop-list compact" data-pickup-windows></div>
           <form class="shop-subform" data-pickup-window-form>
-            <h3>Add pickup window</h3>
-            <div class="form-row"><div class="field-stack"><label for="day">Day</label><select id="day" name="day_of_week" required><option value="0">Sunday</option><option value="1">Monday</option><option value="2">Tuesday</option><option value="3">Wednesday</option><option value="4">Thursday</option><option value="5">Friday</option><option value="6">Saturday</option></select></div><div class="field-stack"><label for="start-time">Start time</label><input id="start-time" name="start_time" type="time" required></div><div class="field-stack"><label for="end-time">End time</label><input id="end-time" name="end_time" type="time" required></div></div>
-            <button class="auth-submit" type="submit">Add pickup window</button>
+            <div class="pickup-schedule-grid" data-pickup-windows></div>
+            <button class="auth-submit" type="submit">Save pickup windows</button>
           </form>
         </section>
       </section>
     </main>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="/js/supabase-config.js" defer></script><script src="/js/auth-nav.js" defer></script><script src="/js/cook.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script><script src="/js/supabase-config.js" defer></script><script src="/js/auth-nav.js" defer></script><script src="/js/toast.js" defer></script><script src="/js/cook.js" defer></script>
   </body>
 </html>

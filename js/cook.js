@@ -15,6 +15,9 @@
   const maxMenuImageBytes = 3 * 1024 * 1024;
   const imageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
   const documentTypes = new Set([...imageTypes, "application/pdf"]);
+  let currentMenuItems = [];
+  let currentPickupWindows = [];
+  const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 
   const clean = (value, maxLength = 500) =>
     String(value || "")
@@ -163,6 +166,8 @@
     return /^(?:0\.(?:0[1-9]|[1-9]\d?)|[1-9]\d*(?:\.\d{1,2})?)$/.test(text);
   };
 
+  const maxMenuPriceCents = 10000000;
+
   const cleanZipCode = (value) =>
     String(value || "")
       .replace(/\D/g, "")
@@ -173,6 +178,10 @@
 
     if (el) {
       el.textContent = text;
+    }
+
+    if (selector === "[data-status]" && text) {
+      window.LocalCoKitchenToast?.show(text);
     }
   };
 
@@ -239,6 +248,27 @@
   const filePath = (userId, label, file) => {
     const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
     return `${userId}/${label}-${Date.now()}.${extension}`;
+  };
+
+  const renderShopImagePreview = (form, imageUrl) => {
+    const preview = form?.querySelector("[data-shop-profile-image-preview]");
+
+    if (!preview) {
+      return;
+    }
+
+    clearChildren(preview);
+    preview.classList.toggle("has-image", Boolean(imageUrl));
+
+    if (imageUrl) {
+      const image = document.createElement("img");
+      image.src = imageUrl;
+      image.alt = "";
+      preview.append(image);
+      return;
+    }
+
+    preview.textContent = "LC";
   };
 
   const validateCookApplicationFields = ({ form, legalName, phone, pickupAddress, pickupZipCode }) => {
@@ -517,7 +547,6 @@
           .from("cook_pickup_windows")
           .select("*")
           .eq("cook_id", session.user.id)
-          .eq("is_active", true)
           .order("day_of_week", { ascending: true }),
       ]);
 
@@ -531,6 +560,19 @@
   };
 
   const renderShop = ({ application, items, limit, profile, windows }) => {
+    currentMenuItems = items;
+    currentPickupWindows = dayNames.map((_dayName, dayIndex) => {
+      const dayWindows = windows.filter((windowRow) => windowRow.day_of_week === dayIndex);
+      return (
+        dayWindows.find((windowRow) => windowRow.is_active) ||
+        dayWindows[0] || {
+          day_of_week: dayIndex,
+          start_time: "09:00:00",
+          end_time: "17:00:00",
+          is_active: false,
+        }
+      );
+    });
     const applicationForm = document.querySelector("[data-shop-application-form]");
     const profileForm = document.querySelector("[data-shop-profile-form]");
     const itemsList = document.querySelector("[data-menu-items]");
@@ -586,15 +628,23 @@
       profileForm.elements.order_notes.value = profile.order_notes || "";
       profileForm.elements.is_public.checked = Boolean(profile.is_public);
       profileForm.dataset.currentImage = profile.profile_image_url || "";
+      renderShopImagePreview(profileForm, profile.profile_image_url || "");
     }
 
     if (profileForm) {
       const isPublicInput = profileForm.elements.is_public;
+      const visibilityNote = profileForm.querySelector("[data-storefront-toggle-note]");
       if (isPublicInput) {
         const isApproved = application?.status === "approved";
         isPublicInput.disabled = !isApproved;
         if (!isApproved) {
           isPublicInput.checked = false;
+        }
+
+        if (visibilityNote) {
+          visibilityNote.textContent = isApproved
+            ? "Use this toggle to control whether customers can see your approved storefront."
+            : "This will become available once your profile is approved by an admin.";
         }
       }
     }
@@ -627,34 +677,67 @@
         quantity.textContent = `${item.quantity_available} available${item.is_sold_out ? " - sold out" : ""}`;
         body.append(title, description, price, quantity);
 
+        const actions = document.createElement("div");
+        actions.className = "shop-list-item__actions";
+        const edit = document.createElement("button");
+        edit.type = "button";
+        edit.dataset.editItem = item.id;
+        edit.textContent = "Edit";
         const remove = document.createElement("button");
         remove.type = "button";
         remove.dataset.deleteItem = item.id;
         remove.textContent = "Remove";
+        actions.append(edit, remove);
 
-        article.append(image, body, remove);
+        article.append(image, body, actions);
         itemsList.append(article);
       });
     }
 
     if (windowsList) {
-      const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
       clearChildren(windowsList);
 
-      if (!windows.length) {
-        const empty = document.createElement("p");
-        empty.textContent = "No pickup windows yet.";
-        windowsList.append(empty);
-      }
-
-      windows.forEach((windowRow) => {
-        const article = document.createElement("article");
+      currentPickupWindows.forEach((windowRow, dayIndex) => {
+        const article = document.createElement("label");
         article.className = "pickup-window-row";
+        article.dataset.pickupWindowDay = String(dayIndex);
+
+        const enabled = document.createElement("input");
+        enabled.type = "checkbox";
+        enabled.name = `pickup_enabled_${dayIndex}`;
+        enabled.checked = Boolean(windowRow.is_active);
+
         const day = document.createElement("span");
-        day.textContent = dayNames[windowRow.day_of_week];
-        const time = document.createElement("strong");
-        time.textContent = `${windowRow.start_time.slice(0, 5)} - ${windowRow.end_time.slice(0, 5)}`;
-        article.append(day, time);
+        day.className = "pickup-window-day";
+        day.textContent = dayNames[dayIndex];
+
+        const start = document.createElement("input");
+        start.type = "time";
+        start.name = `pickup_start_${dayIndex}`;
+        start.required = enabled.checked;
+        start.value = windowRow.start_time?.slice(0, 5) || "09:00";
+
+        const end = document.createElement("input");
+        end.type = "time";
+        end.name = `pickup_end_${dayIndex}`;
+        end.required = enabled.checked;
+        end.value = windowRow.end_time?.slice(0, 5) || "17:00";
+
+        const fields = document.createElement("div");
+        fields.className = "pickup-window-times";
+        fields.append(start, end);
+
+        enabled.addEventListener("change", () => {
+          start.required = enabled.checked;
+          end.required = enabled.checked;
+          start.disabled = !enabled.checked;
+          end.disabled = !enabled.checked;
+          end.setCustomValidity("");
+        });
+
+        start.disabled = !enabled.checked;
+        end.disabled = !enabled.checked;
+        article.append(enabled, day, fields);
         windowsList.append(article);
       });
     }
@@ -731,6 +814,17 @@
     const shopProfileForm = document.querySelector("[data-shop-profile-form]");
     if (shopProfileForm) {
       setupCookApplicationFormatting(shopProfileForm);
+      shopProfileForm.elements.profile_image?.addEventListener("change", (event) => {
+        const input = event.currentTarget;
+        input.setCustomValidity("");
+        const image = input.files?.[0];
+
+        if (image) {
+          renderShopImagePreview(shopProfileForm, URL.createObjectURL(image));
+        } else {
+          renderShopImagePreview(shopProfileForm, shopProfileForm.dataset.currentImage || "");
+        }
+      });
     }
 
     shopProfileForm?.addEventListener("submit", async (event) => {
@@ -749,9 +843,14 @@
       }
 
       if (!(image instanceof File && image.size) && !imageUrl) {
-        setText("[data-status]", "Upload a storefront profile picture before saving.");
+        form.elements.profile_image.setCustomValidity(
+          "Upload a storefront profile picture before saving."
+        );
+        form.elements.profile_image.reportValidity();
         return;
       }
+
+      form.elements.profile_image.setCustomValidity("");
 
       if (!description) {
         setText("[data-status]", "Storefront description is required.");
@@ -808,11 +907,106 @@
       }
     });
 
-    document.querySelector("[data-menu-item-form]")?.addEventListener("submit", async (event) => {
+    const menuItemModal = document.querySelector("[data-menu-item-modal]");
+    const menuItemForm = document.querySelector("[data-menu-item-form]");
+    const menuImageInput = menuItemForm?.elements.image;
+    const menuImageHint = menuItemForm?.querySelector("[data-menu-image-hint]");
+    const menuModalTitle = document.querySelector("[data-menu-item-modal-title]");
+    const menuSubmitButton = document.querySelector("[data-menu-item-submit]");
+
+    const closeMenuItemModal = () => {
+      menuItemForm?.reset();
+      if (menuItemForm) {
+        menuItemForm.dataset.mode = "create";
+        delete menuItemForm.dataset.itemId;
+        delete menuItemForm.dataset.currentImage;
+      }
+      if (menuImageInput) {
+        menuImageInput.required = true;
+      }
+      if (menuImageHint) {
+        menuImageHint.textContent = "PNG, JPG, or WebP. Max 3 MB.";
+      }
+      if (menuModalTitle) {
+        menuModalTitle.textContent = "Add menu item";
+      }
+      if (menuSubmitButton) {
+        menuSubmitButton.textContent = "Add menu item";
+      }
+
+      if (menuItemModal?.open) {
+        menuItemModal.close();
+      }
+    };
+
+    const openMenuItemModal = (item) => {
+      if (!menuItemForm || !menuItemModal) {
+        return;
+      }
+
+      menuItemForm.reset();
+      menuItemForm.dataset.mode = item ? "edit" : "create";
+
+      if (item) {
+        menuItemForm.dataset.itemId = item.id;
+        menuItemForm.dataset.currentImage = item.image_url || "";
+        menuItemForm.elements.name.value = item.name || "";
+        menuItemForm.elements.category.value = item.category || "";
+        menuItemForm.elements.description.value = item.description || "";
+        menuItemForm.elements.price.value = (item.price_cents / 100).toFixed(2);
+        menuItemForm.elements.quantity_available.value = item.quantity_available || 1;
+        menuItemForm.elements.allergens.value = (item.allergens || []).join(", ");
+        menuItemForm.elements.dietary_tags.value = (item.dietary_tags || []).join(", ");
+        menuItemForm.elements.is_sold_out.checked = Boolean(item.is_sold_out);
+      } else {
+        delete menuItemForm.dataset.itemId;
+        delete menuItemForm.dataset.currentImage;
+        menuItemForm.elements.quantity_available.value = 1;
+      }
+
+      if (menuImageInput) {
+        menuImageInput.required = !item;
+      }
+      if (menuImageHint) {
+        menuImageHint.textContent = item
+          ? "Choose a new image only if you want to replace the current one. PNG, JPG, or WebP. Max 3 MB."
+          : "PNG, JPG, or WebP. Max 3 MB.";
+      }
+      if (menuModalTitle) {
+        menuModalTitle.textContent = item ? "Edit menu item" : "Add menu item";
+      }
+      if (menuSubmitButton) {
+        menuSubmitButton.textContent = item ? "Save item" : "Add menu item";
+      }
+
+      if (typeof menuItemModal.showModal === "function") {
+        menuItemModal.showModal();
+      } else {
+        menuItemModal.setAttribute("open", "");
+      }
+    };
+
+    document
+      .querySelector("[data-open-menu-item-modal]")
+      ?.addEventListener("click", () => openMenuItemModal());
+
+    document.querySelectorAll("[data-close-menu-item-modal]").forEach((button) => {
+      button.addEventListener("click", closeMenuItemModal);
+    });
+
+    menuItemModal?.addEventListener("click", (event) => {
+      if (event.target === menuItemModal) {
+        closeMenuItemModal();
+      }
+    });
+
+    menuItemForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
       const formData = new FormData(form);
       const image = formData.get("image");
+      const isEdit = form.dataset.mode === "edit";
+      const currentImageUrl = form.dataset.currentImage || "";
       const name = clean(formData.get("name"), 120);
       const category = clean(formData.get("category"), 80);
       const description = clean(formData.get("description"), 1200);
@@ -834,7 +1028,7 @@
           throw new Error("Category is required.");
         }
 
-        if (!(image instanceof File) || !image.size) {
+        if (!isEdit && (!(image instanceof File) || !image.size)) {
           throw new Error("Upload a menu item image.");
         }
 
@@ -842,22 +1036,27 @@
           throw new Error("Description is required.");
         }
 
-        if (!isMoneyAmount(price) || priceCents <= 0) {
-          throw new Error("Price must be a US dollar amount greater than $0.00.");
+        if (!isMoneyAmount(price) || priceCents <= 0 || priceCents > maxMenuPriceCents) {
+          throw new Error("Price must be a US dollar amount from $0.01 to $100,000.00.");
         }
 
         if (!isWholeNumberInRange(quantityAvailable, 1, 10000)) {
           throw new Error("Quantity available must be a whole number from 1 to 10000.");
         }
 
-        const imageUrl = await uploadFile({
-          bucket: "cook-menu-images",
-          file: image,
-          maxBytes: maxMenuImageBytes,
-          path: filePath(session.user.id, "menu-item", image),
-          types: imageTypes,
-        });
-        const { error } = await marketplaceDb.from("cook_menu_items").insert({
+        let imageUrl = currentImageUrl;
+
+        if (image instanceof File && image.size) {
+          imageUrl = await uploadFile({
+            bucket: "cook-menu-images",
+            file: image,
+            maxBytes: maxMenuImageBytes,
+            path: filePath(session.user.id, "menu-item", image),
+            types: imageTypes,
+          });
+        }
+
+        const payload = {
           cook_id: session.user.id,
           name,
           description,
@@ -874,42 +1073,118 @@
             .map((item) => clean(item, 40))
             .filter(Boolean),
           is_sold_out: formData.get("is_sold_out") === "yes",
-        });
+        };
+
+        const { error } = isEdit
+          ? await marketplaceDb
+              .from("cook_menu_items")
+              .update(payload)
+              .eq("id", form.dataset.itemId)
+              .eq("cook_id", session.user.id)
+          : await marketplaceDb.from("cook_menu_items").insert(payload);
 
         if (error) {
           throw error;
         }
 
-        form.reset();
-        setText("[data-status]", "Menu item added.");
+        closeMenuItemModal();
+        setText("[data-status]", isEdit ? "Menu item updated." : "Menu item added.");
         await refresh();
       } catch (error) {
-        setText("[data-status]", error.message || "Could not add menu item.");
+        setText("[data-status]", error.message || "Could not save menu item.");
       }
     });
 
     document.querySelector("[data-pickup-window-form]")?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
-      const formData = new FormData(form);
-      const { error } = await marketplaceDb.from("cook_pickup_windows").insert({
-        cook_id: session.user.id,
-        day_of_week: Number(formData.get("day_of_week")),
-        start_time: formData.get("start_time"),
-        end_time: formData.get("end_time"),
-      });
+      const updates = [];
 
-      if (error) {
-        setText("[data-status]", error.message);
+      if (!form.checkValidity()) {
+        form.reportValidity();
         return;
       }
 
-      form.reset();
-      setText("[data-status]", "Pickup window added.");
+      for (let dayIndex = 0; dayIndex < dayNames.length; dayIndex += 1) {
+        const row = form.querySelector(`[data-pickup-window-day="${dayIndex}"]`);
+        const enabledInput = row.querySelector(`[name="pickup_enabled_${dayIndex}"]`);
+        const startInput = row.querySelector(`[name="pickup_start_${dayIndex}"]`);
+        const endInput = row.querySelector(`[name="pickup_end_${dayIndex}"]`);
+        const startTime = startInput.value;
+        const endTime = endInput.value;
+
+        endInput.setCustomValidity("");
+
+        if (enabledInput.checked && (!startTime || !endTime)) {
+          endInput.setCustomValidity("Set both start and end times for enabled pickup days.");
+          endInput.reportValidity();
+          return;
+        }
+
+        if (enabledInput.checked && startTime >= endTime) {
+          endInput.setCustomValidity("End time must be after start time.");
+          endInput.reportValidity();
+          return;
+        }
+
+        updates.push({
+          dayIndex,
+          endTime,
+          existingWindow: currentPickupWindows[dayIndex],
+          isActive: enabledInput.checked,
+          startTime,
+        });
+      }
+
+      for (const update of updates) {
+        const payload = {
+          cook_id: session.user.id,
+          day_of_week: update.dayIndex,
+          start_time: update.startTime || "09:00",
+          end_time: update.endTime || "17:00",
+          is_active: update.isActive,
+        };
+
+        if (update.existingWindow?.id) {
+          const { error: deactivateError } = await marketplaceDb
+            .from("cook_pickup_windows")
+            .update({ is_active: false })
+            .eq("cook_id", session.user.id)
+            .eq("day_of_week", update.dayIndex);
+
+          if (deactivateError) {
+            setText("[data-status]", deactivateError.message);
+            return;
+          }
+        }
+
+        const query = update.existingWindow?.id
+          ? marketplaceDb
+              .from("cook_pickup_windows")
+              .update(payload)
+              .eq("id", update.existingWindow.id)
+              .eq("cook_id", session.user.id)
+          : marketplaceDb.from("cook_pickup_windows").insert(payload);
+        const { error } = await query;
+
+        if (error) {
+          setText("[data-status]", error.message);
+          return;
+        }
+      }
+
+      setText("[data-status]", "Pickup windows saved.");
       await refresh();
     });
 
     document.querySelector("[data-menu-items]")?.addEventListener("click", async (event) => {
+      const editButton = event.target.closest("[data-edit-item]");
+      if (editButton) {
+        const item = currentMenuItems.find((menuItem) => menuItem.id === editButton.dataset.editItem);
+        openMenuItemModal(item);
+        return;
+      }
+
       const button = event.target.closest("[data-delete-item]");
 
       if (!button) {

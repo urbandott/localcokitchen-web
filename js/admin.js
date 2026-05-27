@@ -18,6 +18,10 @@
     if (el) {
       el.textContent = text;
     }
+
+    if (selector === "[data-status]" && text) {
+      window.LocalCoKitchenToast?.show(text);
+    }
   };
 
   const clearChildren = (element) => {

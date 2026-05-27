@@ -124,7 +124,7 @@ create table if not exists lck_marketplace.cook_menu_items (
   name text not null,
   description text not null,
   image_url text not null,
-  price_cents integer not null check (price_cents > 0),
+  price_cents integer not null check (price_cents between 1 and 10000000),
   quantity_available integer not null default 1 check (quantity_available between 1 and 10000),
   category text not null,
   allergens text[] not null default '{}',

@@ -153,6 +153,21 @@
 
   const moneyToCents = (value) => Math.round(Number(value || 0) * 100);
 
+  const isWholeNumberInRange = (value, min, max) => {
+    const number = Number(value);
+    return Number.isInteger(number) && number >= min && number <= max;
+  };
+
+  const isMoneyAmount = (value) => {
+    const text = String(value || "").trim();
+    return /^(?:0\.(?:0[1-9]|[1-9]\d?)|[1-9]\d*(?:\.\d{1,2})?)$/.test(text);
+  };
+
+  const cleanZipCode = (value) =>
+    String(value || "")
+      .replace(/\D/g, "")
+      .slice(0, 5);
+
   const setText = (selector, text) => {
     const el = document.querySelector(selector);
 
@@ -226,6 +241,97 @@
     return `${userId}/${label}-${Date.now()}.${extension}`;
   };
 
+  const validateCookApplicationFields = ({ form, legalName, phone, pickupAddress, pickupZipCode }) => {
+    if (!form.checkValidity()) {
+      form.reportValidity();
+      return false;
+    }
+
+    if (
+      legalName.length < 2 ||
+      !/^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(phone) ||
+      pickupAddress.length < 8 ||
+      !/^[0-9]{5}$/.test(pickupZipCode)
+    ) {
+      setText("[data-status]", "Check the highlighted fields and try again.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const saveCookApplication = async ({ form, session, existingApplication }) => {
+    const formData = new FormData(form);
+    const proof = formData.get("food_handler_certificate");
+    const permit = formData.get("permit_or_certification");
+    const legalName = clean(formData.get("legal_name"), 120);
+    const phone = formatUsPhone(formData.get("phone"));
+    const pickupAddress = clean(formData.get("pickup_address"), 240);
+    const pickupZipCode = cleanZipCode(formData.get("pickup_zip_code"));
+
+    if (!validateCookApplicationFields({ form, legalName, phone, pickupAddress, pickupZipCode })) {
+      return false;
+    }
+
+    if (
+      !existingApplication?.food_handler_certificate_url &&
+      (!(proof instanceof File) || !proof.size)
+    ) {
+      setText("[data-status]", "Upload proof of food handler training.");
+      return false;
+    }
+
+    let proofPath = existingApplication?.food_handler_certificate_url || "";
+    let permitPath = existingApplication?.permit_or_certification_url || "";
+
+    if (proof instanceof File && proof.size) {
+      proofPath = await uploadFile({
+        bucket: "cook-documents",
+        file: proof,
+        maxBytes: maxProofBytes,
+        path: filePath(session.user.id, "food-handler-training", proof),
+        types: documentTypes,
+      });
+    }
+
+    if (permit instanceof File && permit.size) {
+      permitPath = await uploadFile({
+        bucket: "cook-documents",
+        file: permit,
+        maxBytes: maxProofBytes,
+        path: filePath(session.user.id, "permit", permit),
+        types: documentTypes,
+      });
+    }
+
+    const payload = {
+      user_id: session.user.id,
+      legal_name: legalName,
+      phone,
+      pickup_address: pickupAddress,
+      pickup_zip_code: pickupZipCode,
+      food_handler_training_completed:
+        formData.get("food_handler_training_completed") === "yes",
+      food_handler_certificate_url: proofPath,
+      permit_or_certification_url: permitPath || null,
+      status: "submitted",
+      submitted_at: new Date().toISOString(),
+    };
+
+    const { error } = existingApplication
+      ? await marketplaceDb
+          .from("cook_applications")
+          .update(payload)
+          .eq("user_id", session.user.id)
+      : await marketplaceDb.from("cook_applications").insert(payload);
+
+    if (error) {
+      throw error;
+    }
+
+    return true;
+  };
+
   const setupCookApplication = async () => {
     const form = document.querySelector("[data-cook-application]");
 
@@ -252,7 +358,7 @@
         "[data-status]",
         application.status === "approved"
           ? "Cook application approved. My shop is available from the account menu."
-          : `Cook application ${application.status}. An admin must review your details and uploaded files before your shop opens.`
+          : "Cook application submitted. Head to My shop to start setting up your storefront, menu items, and pickup windows while an admin reviews your application."
       );
       form.hidden = true;
       return;
@@ -262,79 +368,18 @@
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
-      const formData = new FormData(form);
       const button = form.querySelector('button[type="submit"]');
-      const proof = formData.get("food_handler_certificate");
-      const permit = formData.get("permit_or_certification");
-      const legalName = clean(formData.get("legal_name"), 120);
-      const phone = formatUsPhone(formData.get("phone"));
-      const pickupAddress = clean(formData.get("pickup_address"), 240);
-      const pickupZipCode = clean(formData.get("pickup_zip_code"), 5);
-
-      if (!form.checkValidity()) {
-        form.reportValidity();
-        return;
-      }
-
-      if (
-        legalName.length < 2 ||
-        !/^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$/.test(phone) ||
-        pickupAddress.length < 8 ||
-        !/^[0-9]{5}$/.test(pickupZipCode)
-      ) {
-        setText("[data-status]", "Check the highlighted fields and try again.");
-        return;
-      }
-
-      if (!(proof instanceof File) || !proof.size) {
-        setText("[data-status]", "Upload proof of food handler training.");
-        return;
-      }
 
       button.disabled = true;
       setText("[data-status]", "Submitting cook application...");
 
       try {
-        const proofPath = await uploadFile({
-          bucket: "cook-documents",
-          file: proof,
-          maxBytes: maxProofBytes,
-          path: filePath(session.user.id, "food-handler-training", proof),
-          types: documentTypes,
-        });
-        let permitPath = "";
-
-        if (permit instanceof File && permit.size) {
-          permitPath = await uploadFile({
-            bucket: "cook-documents",
-            file: permit,
-            maxBytes: maxProofBytes,
-            path: filePath(session.user.id, "permit", permit),
-            types: documentTypes,
-          });
+        const saved = await saveCookApplication({ form, session });
+        if (saved) {
+          setText("[data-status]", "Cook application submitted. Head to My shop to start setting up your storefront, menu items, and pickup windows while an admin reviews your application.");
+          window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
+          form.reset();
         }
-
-        const { error } = await marketplaceDb.from("cook_applications").insert({
-          user_id: session.user.id,
-          legal_name: legalName,
-          phone,
-          pickup_address: pickupAddress,
-          pickup_zip_code: pickupZipCode,
-          food_handler_training_completed:
-            formData.get("food_handler_training_completed") === "yes",
-          food_handler_certificate_url: proofPath,
-          permit_or_certification_url: permitPath || null,
-          status: "submitted",
-          submitted_at: new Date().toISOString(),
-        });
-
-        if (error) {
-          throw error;
-        }
-
-        setText("[data-status]", "Cook application submitted for admin review.");
-        window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
-        form.reset();
       } catch (error) {
         setText("[data-status]", error.message || "Could not submit application.");
       } finally {
@@ -453,7 +498,7 @@
       await Promise.all([
         marketplaceDb
           .from("cook_applications")
-          .select("status, submitted_at, reviewed_at")
+          .select("legal_name, phone, pickup_address, pickup_zip_code, food_handler_training_completed, food_handler_certificate_url, permit_or_certification_url, status, submitted_at, reviewed_at")
           .eq("user_id", session.user.id)
           .maybeSingle(),
         marketplaceDb.from("cook_profiles").select("*").eq("cook_id", session.user.id).maybeSingle(),
@@ -486,6 +531,7 @@
   };
 
   const renderShop = ({ application, items, limit, profile, windows }) => {
+    const applicationForm = document.querySelector("[data-shop-application-form]");
     const profileForm = document.querySelector("[data-shop-profile-form]");
     const itemsList = document.querySelector("[data-menu-items]");
     const windowsList = document.querySelector("[data-pickup-windows]");
@@ -493,6 +539,37 @@
 
     if (reviewNotice) {
       reviewNotice.hidden = application?.status === "approved";
+    }
+
+    if (applicationForm) {
+      const isApproved = application?.status === "approved";
+      applicationForm.hidden = isApproved;
+
+      if (!isApproved && application) {
+        applicationForm.elements.legal_name.value = application.legal_name || "";
+        applicationForm.elements.phone.value = formatUsPhone(application.phone || "+1 ");
+        applicationForm.elements.pickup_address.value = application.pickup_address || "";
+        applicationForm.elements.pickup_zip_code.value = application.pickup_zip_code || "";
+        applicationForm.elements.food_handler_training_completed.checked =
+          Boolean(application.food_handler_training_completed);
+        applicationForm.dataset.hasProof = application.food_handler_certificate_url ? "true" : "";
+        applicationForm.dataset.hasPermit = application.permit_or_certification_url ? "true" : "";
+
+        const proofHint = applicationForm.querySelector("[data-current-proof]");
+        const permitHint = applicationForm.querySelector("[data-current-permit]");
+
+        if (proofHint) {
+          proofHint.textContent = application.food_handler_certificate_url
+            ? "Proof is already uploaded. Choose a new file only if you need to replace it."
+            : "PDF, PNG, JPG, or WebP. Max 5 MB.";
+        }
+
+        if (permitHint) {
+          permitHint.textContent = application.permit_or_certification_url
+            ? "Permit or certification is already uploaded. Choose a new file only if you need to replace it."
+            : "Optional. PDF, PNG, JPG, or WebP. Max 5 MB.";
+        }
+      }
     }
 
     setText(
@@ -614,19 +691,85 @@
       return;
     }
 
-    const refresh = async () => renderShop(await loadShop(session));
+    let currentApplication = application;
+    const refresh = async () => {
+      const shopData = await loadShop(session);
+      currentApplication = shopData.application;
+      renderShop(shopData);
+    };
     await refresh();
 
-    document.querySelector("[data-shop-profile-form]")?.addEventListener("submit", async (event) => {
+    const applicationForm = document.querySelector("[data-shop-application-form]");
+    if (applicationForm) {
+      setupCookApplicationFormatting(applicationForm);
+      applicationForm.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const button = applicationForm.querySelector('button[type="submit"]');
+        button.disabled = true;
+        setText("[data-status]", "Saving application updates...");
+
+        try {
+          const saved = await saveCookApplication({
+            form: applicationForm,
+            session,
+            existingApplication: currentApplication,
+          });
+
+          if (saved) {
+            setText("[data-status]", "Application updates saved. We will review the latest details before your shop goes live.");
+            window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
+            await refresh();
+          }
+        } catch (error) {
+          setText("[data-status]", error.message || "Could not update application.");
+        } finally {
+          button.disabled = false;
+        }
+      });
+    }
+
+    const shopProfileForm = document.querySelector("[data-shop-profile-form]");
+    if (shopProfileForm) {
+      setupCookApplicationFormatting(shopProfileForm);
+    }
+
+    shopProfileForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
       const formData = new FormData(form);
       const image = formData.get("profile_image");
       let imageUrl = form.dataset.currentImage || "";
       const description = clean(formData.get("description"), 3500);
+      const pickupZipCode = cleanZipCode(formData.get("pickup_zip_code"));
+      const preorderCutoffHours = Number(formData.get("preorder_cutoff_hours"));
+
+      if (!form.checkValidity()) {
+        form.reportValidity();
+        return;
+      }
+
+      if (!(image instanceof File && image.size) && !imageUrl) {
+        setText("[data-status]", "Upload a storefront profile picture before saving.");
+        return;
+      }
+
+      if (!description) {
+        setText("[data-status]", "Storefront description is required.");
+        return;
+      }
 
       if (description.split(/\s+/).filter(Boolean).length > 500) {
         setText("[data-status]", "Shop description must be 500 words or fewer.");
+        return;
+      }
+
+      if (!/^[0-9]{5}$/.test(pickupZipCode)) {
+        setText("[data-status]", "Storefront pickup zip code must be exactly 5 digits.");
+        return;
+      }
+
+      if (!isWholeNumberInRange(preorderCutoffHours, 1, 168)) {
+        setText("[data-status]", "Order cutoff must be a whole number from 1 to 168 hours.");
         return;
       }
 
@@ -647,8 +790,8 @@
           profile_image_url: imageUrl || null,
           description,
           cuisine_type: clean(formData.get("cuisine_type"), 80),
-          pickup_zip_code: clean(formData.get("pickup_zip_code"), 12),
-          preorder_cutoff_hours: Number(formData.get("preorder_cutoff_hours") || 24),
+          pickup_zip_code: pickupZipCode,
+          preorder_cutoff_hours: preorderCutoffHours,
           order_notes: clean(formData.get("order_notes"), 800),
           is_public:
             application?.status === "approved" && formData.get("is_public") === "yes",
@@ -670,10 +813,41 @@
       const form = event.currentTarget;
       const formData = new FormData(form);
       const image = formData.get("image");
+      const name = clean(formData.get("name"), 120);
+      const category = clean(formData.get("category"), 80);
+      const description = clean(formData.get("description"), 1200);
+      const price = String(formData.get("price") || "").trim();
+      const priceCents = moneyToCents(price);
+      const quantityAvailable = Number(formData.get("quantity_available"));
 
       try {
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        if (!name) {
+          throw new Error("Item name is required.");
+        }
+
+        if (!category) {
+          throw new Error("Category is required.");
+        }
+
         if (!(image instanceof File) || !image.size) {
           throw new Error("Upload a menu item image.");
+        }
+
+        if (!description) {
+          throw new Error("Description is required.");
+        }
+
+        if (!isMoneyAmount(price) || priceCents <= 0) {
+          throw new Error("Price must be a US dollar amount greater than $0.00.");
+        }
+
+        if (!isWholeNumberInRange(quantityAvailable, 1, 10000)) {
+          throw new Error("Quantity available must be a whole number from 1 to 10000.");
         }
 
         const imageUrl = await uploadFile({
@@ -685,12 +859,12 @@
         });
         const { error } = await marketplaceDb.from("cook_menu_items").insert({
           cook_id: session.user.id,
-          name: clean(formData.get("name"), 120),
-          description: clean(formData.get("description"), 1200),
+          name,
+          description,
           image_url: imageUrl,
-          price_cents: moneyToCents(formData.get("price")),
-          quantity_available: Number(formData.get("quantity_available") || 0),
-          category: clean(formData.get("category"), 80) || null,
+          price_cents: priceCents,
+          quantity_available: quantityAvailable,
+          category,
           allergens: clean(formData.get("allergens"), 300)
             .split(",")
             .map((item) => clean(item, 40))

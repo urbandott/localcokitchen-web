@@ -125,8 +125,8 @@ create table if not exists lck_marketplace.cook_menu_items (
   description text not null,
   image_url text not null,
   price_cents integer not null check (price_cents > 0),
-  quantity_available integer not null default 0 check (quantity_available >= 0),
-  category text,
+  quantity_available integer not null default 1 check (quantity_available between 1 and 10000),
+  category text not null,
   allergens text[] not null default '{}',
   dietary_tags text[] not null default '{}',
   preorder_cutoff_at timestamptz,
@@ -136,7 +136,8 @@ create table if not exists lck_marketplace.cook_menu_items (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint cook_menu_items_name_length check (char_length(name) between 1 and 120),
-  constraint cook_menu_items_description_length check (char_length(description) between 1 and 1200)
+  constraint cook_menu_items_description_length check (char_length(description) between 1 and 1200),
+  constraint cook_menu_items_category_length check (char_length(btrim(category)) between 1 and 80)
 );
 
 create index if not exists cook_menu_items_cook_id_idx on lck_marketplace.cook_menu_items(cook_id);
@@ -292,7 +293,7 @@ begin
   new.reviewed_at := null;
   new.reviewed_by := null;
   new.review_notes := null;
-  new.submitted_at := coalesce(new.submitted_at, now());
+  new.submitted_at := now();
 
   return new;
 end;
@@ -511,6 +512,14 @@ create policy "Users can submit their own cook application"
   on lck_marketplace.cook_applications
   for insert
   to authenticated
+  with check ((select auth.uid()) = user_id and status = 'submitted');
+
+drop policy if exists "Users can update and resubmit their cook application" on lck_marketplace.cook_applications;
+create policy "Users can update and resubmit their cook application"
+  on lck_marketplace.cook_applications
+  for update
+  to authenticated
+  using ((select auth.uid()) = user_id and status in ('submitted', 'rejected'))
   with check ((select auth.uid()) = user_id and status = 'submitted');
 
 drop policy if exists "Admins manage cook applications" on lck_marketplace.cook_applications;

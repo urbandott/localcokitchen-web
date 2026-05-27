@@ -179,15 +179,18 @@
     return data.session;
   };
 
-  const getIsApprovedCook = async (userId) => {
+  const getCookApplication = async (userId) => {
     const { data, error } = await marketplaceDb
       .from("cook_applications")
-      .select("status")
+      .select("status, submitted_at, reviewed_at")
       .eq("user_id", userId)
-      .eq("status", "approved")
       .maybeSingle();
 
-    return !error && Boolean(data);
+    if (error) {
+      throw error;
+    }
+
+    return data;
   };
 
   const getPublicUrl = (bucket, path) =>
@@ -446,8 +449,13 @@
   };
 
   const loadShop = async (session) => {
-    const [{ data: profile }, { data: limit }, { data: items }, { data: windows }] =
+    const [{ data: application }, { data: profile }, { data: limit }, { data: items }, { data: windows }] =
       await Promise.all([
+        marketplaceDb
+          .from("cook_applications")
+          .select("status, submitted_at, reviewed_at")
+          .eq("user_id", session.user.id)
+          .maybeSingle(),
         marketplaceDb.from("cook_profiles").select("*").eq("cook_id", session.user.id).maybeSingle(),
         marketplaceDb
           .from("cook_account_limits")
@@ -469,6 +477,7 @@
       ]);
 
     return {
+      application,
       items: items || [],
       limit: limit || { menu_item_limit: 10, membership_tier: "starter" },
       profile,
@@ -476,10 +485,15 @@
     };
   };
 
-  const renderShop = ({ items, limit, profile, windows }) => {
+  const renderShop = ({ application, items, limit, profile, windows }) => {
     const profileForm = document.querySelector("[data-shop-profile-form]");
     const itemsList = document.querySelector("[data-menu-items]");
     const windowsList = document.querySelector("[data-pickup-windows]");
+    const reviewNotice = document.querySelector("[data-shop-review-notice]");
+
+    if (reviewNotice) {
+      reviewNotice.hidden = application?.status === "approved";
+    }
 
     setText(
       "[data-menu-limit]",
@@ -495,6 +509,17 @@
       profileForm.elements.order_notes.value = profile.order_notes || "";
       profileForm.elements.is_public.checked = Boolean(profile.is_public);
       profileForm.dataset.currentImage = profile.profile_image_url || "";
+    }
+
+    if (profileForm) {
+      const isPublicInput = profileForm.elements.is_public;
+      if (isPublicInput) {
+        const isApproved = application?.status === "approved";
+        isPublicInput.disabled = !isApproved;
+        if (!isApproved) {
+          isPublicInput.checked = false;
+        }
+      }
     }
 
     if (itemsList) {
@@ -573,7 +598,17 @@
       return;
     }
 
-    if (!(await getIsApprovedCook(session.user.id))) {
+    let application;
+
+    try {
+      application = await getCookApplication(session.user.id);
+    } catch (error) {
+      shopPage.hidden = true;
+      setText("[data-status]", error.message || "Could not load cook application status.");
+      return;
+    }
+
+    if (!application || !["submitted", "approved"].includes(application.status)) {
       shopPage.hidden = true;
       setText("[data-status]", "Apply to sell food before opening your shop.");
       return;
@@ -615,7 +650,8 @@
           pickup_zip_code: clean(formData.get("pickup_zip_code"), 12),
           preorder_cutoff_hours: Number(formData.get("preorder_cutoff_hours") || 24),
           order_notes: clean(formData.get("order_notes"), 800),
-          is_public: formData.get("is_public") === "yes",
+          is_public:
+            application?.status === "approved" && formData.get("is_public") === "yes",
         });
 
         if (error) {

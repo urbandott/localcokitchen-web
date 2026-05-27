@@ -362,7 +362,7 @@ begin
     select 1
     from lck_marketplace.cook_applications app
     where app.user_id = auth.uid()
-      and app.status = 'approved'
+      and app.status in ('submitted', 'approved')
   ) then
     new.is_public := false;
   end if;
@@ -547,7 +547,7 @@ create policy "Cooks manage their own profile"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_profiles.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   )
   with check (
@@ -556,7 +556,7 @@ create policy "Cooks manage their own profile"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_profiles.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -615,7 +615,7 @@ create policy "Cooks manage their pickup windows"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_pickup_windows.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   )
   with check (
@@ -624,7 +624,7 @@ create policy "Cooks manage their pickup windows"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_pickup_windows.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -660,7 +660,7 @@ create policy "Cooks manage their menu items"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_menu_items.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   )
   with check (
@@ -669,7 +669,7 @@ create policy "Cooks manage their menu items"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = cook_menu_items.cook_id
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -805,7 +805,7 @@ create policy "Cooks upload profile images"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = (select auth.uid())
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -825,7 +825,7 @@ create policy "Cooks update profile images"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = (select auth.uid())
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -848,7 +848,7 @@ create policy "Cooks upload menu images"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = (select auth.uid())
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 
@@ -868,7 +868,7 @@ create policy "Cooks update menu images"
       select 1
       from lck_marketplace.cook_applications app
       where app.user_id = (select auth.uid())
-        and app.status = 'approved'
+        and app.status in ('submitted', 'approved')
     )
   );
 

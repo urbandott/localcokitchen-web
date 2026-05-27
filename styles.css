@@ -1937,6 +1937,30 @@ h1 span {
   gap: 1rem;
 }
 
+.shop-review-notice {
+  display: grid;
+  gap: 0.35rem;
+  padding: 1rem 1.1rem;
+  border: 1px solid rgba(31, 104, 75, 0.2);
+  border-radius: 8px;
+  color: #24362d;
+  background: #f1f8f0;
+}
+
+.shop-review-notice[hidden] {
+  display: none;
+}
+
+.shop-review-notice strong {
+  font-size: 0.98rem;
+}
+
+.shop-review-notice p {
+  margin: 0;
+  color: #516158;
+  line-height: 1.55;
+}
+
 .shop-dashboard .auth-card {
   max-width: none;
   width: 100%;

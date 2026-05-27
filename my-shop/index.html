@@ -7,6 +7,10 @@
       <section class="page-hero"><p class="eyebrow">Cook tools</p><h1>My shop</h1><p class="lede">Set up your storefront, pickup windows, and menu items. Starter shops can publish up to 10 active menu items.</p></section>
       <p class="auth-message" data-status aria-live="polite"></p>
       <section class="shop-dashboard" data-shop-page>
+        <aside class="shop-review-notice" data-shop-review-notice>
+          <strong>Application under review</strong>
+          <p>We are reviewing your cook application and uploaded documents. You can set up your storefront, add menu items, and configure pickup windows now, but your shop will only go live after an admin approves your profile.</p>
+        </aside>
         <form class="auth-card shop-form" data-shop-profile-form>
           <h2>Storefront</h2>
           <div class="form-row"><div class="field-stack"><label for="display-name">Display name</label><input id="display-name" name="display_name" required maxlength="120"></div><div class="field-stack"><label for="cuisine-type">Cuisine type</label><input id="cuisine-type" name="cuisine_type" maxlength="80" placeholder="Pakistani, Tex-Mex, Bakery"></div></div>
@@ -14,7 +18,7 @@
           <div class="field-stack"><label for="shop-description">Description</label><textarea id="shop-description" name="description" rows="7" maxlength="3500" placeholder="Tell customers about your food, background, and pickup expectations."></textarea><p class="field-hint">500 words max.</p></div>
           <div class="form-row"><div class="field-stack"><label for="shop-zip">Pickup zip code</label><input id="shop-zip" name="pickup_zip_code" maxlength="12"></div><div class="field-stack"><label for="cutoff">Order cutoff, hours before pickup</label><input id="cutoff" name="preorder_cutoff_hours" type="number" min="1" max="168" value="24"></div></div>
           <div class="field-stack"><label for="order-notes">Order notes</label><textarea id="order-notes" name="order_notes" rows="4" maxlength="800" placeholder="Example: Pickup only. Address unlocks close to pickup."></textarea></div>
-          <label class="checkbox-field"><input type="checkbox" name="is_public" value="yes"><span>Make my shop visible after setup.</span></label>
+          <label class="checkbox-field"><input type="checkbox" name="is_public" value="yes"><span>Make my shop visible after admin approval.</span></label>
           <button class="auth-submit" type="submit">Save storefront</button>
         </form>
 

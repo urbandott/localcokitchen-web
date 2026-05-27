@@ -59,7 +59,7 @@
     });
   };
 
-  const getIsCook = async (userId) => {
+  const getHasShopAccess = async (userId) => {
     if (!userId) {
       return false;
     }
@@ -68,7 +68,7 @@
       .from("cook_applications")
       .select("status")
       .eq("user_id", userId)
-      .eq("status", "approved")
+      .in("status", ["submitted", "approved"])
       .maybeSingle();
 
     return !error && Boolean(data);
@@ -107,7 +107,7 @@
   };
 
   const renderSignedIn = async (user) => {
-    const [isCook, isAdmin] = await Promise.all([getIsCook(user?.id), getIsAdmin()]);
+    const [hasShopAccess, isAdmin] = await Promise.all([getHasShopAccess(user?.id), getIsAdmin()]);
 
     authLinks.forEach((link) => {
       const parent = link.parentElement;
@@ -150,7 +150,7 @@
       profileLink.textContent = "My profile";
       menu.append(profileLink);
 
-      if (isCook) {
+      if (hasShopAccess) {
         const shopLink = document.createElement("a");
         shopLink.href = "/my-shop/";
         shopLink.setAttribute("role", "menuitem");

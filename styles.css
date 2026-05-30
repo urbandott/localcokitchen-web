@@ -2753,7 +2753,7 @@ h1 span {
   color: #fff;
   background:
     linear-gradient(135deg, rgba(31, 42, 36, 0.78), rgba(23, 135, 91, 0.72)),
-    url("/images/mission-community-table.jpg") center / cover;
+    url("/images/mission-quote-table.jpg") center / cover;
 }
 
 .mission-quote blockquote {

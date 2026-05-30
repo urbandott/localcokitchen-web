@@ -40,7 +40,7 @@
     >
     <link rel="stylesheet" href="/styles.css?v=20260530">
   </head>
-  <body>
+  <body class="home-body">
     <header class="top-nav">
       <a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home">
         <img src="/images/logo.svg" alt="LocalCoKitchen">
@@ -69,115 +69,153 @@
       </nav>
     </header>
 
-    <main>
-      <section class="home-hero" aria-labelledby="page-title">
+    <main class="home-page">
+      <section class="home-hero home-hero--shef" aria-labelledby="page-title">
+        <div class="home-hero-video" aria-hidden="true">
+          <img src="/images/home-cooking-frame-1.jpg" alt="">
+          <img src="/images/home-cooking-frame-2.jpg" alt="">
+          <img src="/images/home-cooking-frame-3.jpg" alt="">
+          <img src="/images/home-cooking-frame-4.jpg" alt="">
+        </div>
         <div class="home-hero__copy">
           <p class="eyebrow">Texas-first homemade food marketplace</p>
-          <h1 id="page-title">Find meals made by cooks in your community.</h1>
+          <h1 id="page-title">Homemade meals from cooks near you.</h1>
           <p class="lede">
-            LocalCoKitchen connects customers with independent home cooks for
-            authentic meals, snacks, and cultural favorites through clear menus,
-            secure checkout, and scheduled local pickups.
+            Discover small-batch dishes, family recipes, and local favorites from
+            approved independent cooks. Order ahead and pick up when it works for
+            your schedule.
           </p>
-          <div class="hero-actions">
-            <a class="primary-action" href="/find-a-meal/">Find a meal</a>
-            <a class="secondary-action" href="/sell-your-food/">Sell your food</a>
+          <form class="zip-search" action="/find-a-meal/" method="get" aria-label="Find meals by ZIP code">
+            <label class="sr-only" for="hero-zip">ZIP code</label>
+            <input id="hero-zip" name="zip" inputmode="numeric" autocomplete="postal-code" pattern="[0-9]{5}" maxlength="5" placeholder="Enter your ZIP code">
+            <button type="submit">Find food</button>
+          </form>
+          <div class="flavor-tags" aria-label="Popular local categories">
+            <span>Texas BBQ</span>
+            <span>Tamales</span>
+            <span>Family trays</span>
+            <span>Fresh baked</span>
           </div>
         </div>
 
-        <div class="meal-preview" aria-label="Featured meal preview">
-          <div class="meal-preview__image">
-            <div class="plate-art plate-art--large" aria-hidden="true"></div>
-          </div>
-          <div class="meal-preview__body">
-            <span class="status-pill">Pickup window today</span>
-            <h2>Smoked brisket plate</h2>
-            <p>Placeholder listing from an approved Texas cook.</p>
-            <div class="meal-meta">
-              <span>4.9 rating</span>
-              <span>75206</span>
-              <span>Allergens listed</span>
-            </div>
-          </div>
-        </div>
       </section>
 
-      <section class="section-grid" aria-label="Marketplace highlights">
+      <section class="home-color-band" aria-label="Marketplace highlights">
         <article>
-          <span class="section-kicker">Customers</span>
-          <h2>Search by dish, cuisine, distance, rating, and dietary needs.</h2>
-          <p>
-            Discover nearby cooks without chasing social posts or group chats.
-            Menu details, pickup windows, and sold-out states are visible before
-            you order.
-          </p>
+          <strong>Order ahead</strong>
+          <span>Cooks publish limited menu drops with pickup windows and inventory.</span>
         </article>
         <article>
-          <span class="section-kicker">Cooks</span>
-          <h2>Turn a trusted kitchen into a repeat customer base.</h2>
-          <p>
-            Approved cooks can publish menus, set preorder cutoffs, control
-            inventory, collect online payments, and manage pickup availability.
-          </p>
+          <strong>Made nearby</strong>
+          <span>Find food by ZIP code as LocalCoKitchen opens across Texas.</span>
         </article>
         <article>
-          <span class="section-kicker">Trust</span>
-          <h2>Built around verification, disclosure, and marketplace review.</h2>
-          <p>
-            LocalCoKitchen is designed for cook approval, ingredient visibility,
-            allergen tags, verified-buyer reviews, and privacy-aware pickup
-            instructions.
-          </p>
+          <strong>Reviewed cooks</strong>
+          <span>Cook applications, training proof, and shop details are reviewed.</span>
         </article>
       </section>
 
-      <section class="wide-band" aria-labelledby="pickup-title">
-        <div>
-          <p class="eyebrow">How pickup works</p>
-          <h2 id="pickup-title">Order ahead. Get the address when it matters.</h2>
-        </div>
-        <div class="timeline">
-          <article>
-            <strong>Browse</strong>
-            <span>Find local cooks and placeholder menu drops by proximity.</span>
-          </article>
-          <article>
-            <strong>Order</strong>
-            <span>Pay online and respect the cook's preorder cutoff.</span>
-          </article>
-          <article>
-            <strong>Pickup</strong>
-            <span>Exact pickup details unlock close to the pickup window.</span>
-          </article>
-        </div>
-      </section>
-
-      <section class="menu-strip" aria-labelledby="menu-title">
+      <section class="home-category-strip home-section-white" aria-labelledby="categories-title">
         <div class="section-heading">
-          <p class="eyebrow">Currently available</p>
-          <h2 id="menu-title">Placeholder menu items</h2>
+          <div>
+            <p class="eyebrow">Explore homemade food</p>
+            <h2 id="categories-title">Start with what sounds good.</h2>
+          </div>
           <a class="text-link" href="/menu/">View menu</a>
         </div>
-        <div class="meal-card-grid">
-          <article class="meal-card">
+        <div class="home-category-grid">
+          <a href="/menu/">
             <div class="plate-art plate-art--brisket" aria-hidden="true"></div>
-            <h3>Smoked brisket plate</h3>
-            <p>Oak-smoked brisket, potato salad, pickles.</p>
-            <span>$18</span>
-          </article>
-          <article class="meal-card">
+            <span>BBQ plates</span>
+          </a>
+          <a href="/menu/">
             <div class="plate-art plate-art--tamales" aria-hidden="true"></div>
-            <h3>Tamales dozen</h3>
-            <p>Red chile pork tamales, salsa roja, pickup only.</p>
-            <span>$24</span>
-          </article>
-          <article class="meal-card">
-            <div class="plate-art plate-art--baklava" aria-hidden="true"></div>
-            <h3>Baklava box</h3>
-            <p>Walnut pastry squares with honey syrup.</p>
-            <span>$18</span>
-          </article>
+            <span>Tamales</span>
+          </a>
+          <a href="/menu/">
+            <div class="plate-art plate-art--curry" aria-hidden="true"></div>
+            <span>Weeknight dinners</span>
+          </a>
+          <a href="/menu/">
+            <div class="plate-art plate-art--cookies" aria-hidden="true"></div>
+            <span>Baked goods</span>
+          </a>
         </div>
+      </section>
+
+      <section class="home-story-feature" aria-labelledby="story-title">
+        <figure>
+          <img src="/images/home-cooking-frame-4.jpg" width="1536" height="864" alt="A home cook plating brisket and sides into pickup containers">
+        </figure>
+        <div>
+          <p class="eyebrow">More personal than takeout</p>
+          <h2 id="story-title">Food with a cook, a kitchen, and a story behind it.</h2>
+          <p>
+            LocalCoKitchen is built for the meals people usually find through
+            neighbors, group chats, and family recommendations. Browse dishes
+            with clear pickup windows, allergen notes, and cook details before
+            you order.
+          </p>
+          <p>
+            Cooks manage their own menus, inventory, pricing, and availability,
+            while LocalCoKitchen handles the marketplace flow around discovery,
+            approval, and customer trust.
+          </p>
+        </div>
+      </section>
+
+      <section class="home-how-grid home-how-grid--color" aria-label="How LocalCoKitchen works">
+        <article>
+          <span>1</span>
+          <h2>Enter your ZIP</h2>
+          <p>See nearby menu drops and pickup options as LocalCoKitchen opens across Texas.</p>
+        </article>
+        <article>
+          <span>2</span>
+          <h2>Order ahead</h2>
+          <p>Review ingredients, allergens, inventory, and pickup windows before checkout.</p>
+        </article>
+        <article>
+          <span>3</span>
+          <h2>Pick up locally</h2>
+          <p>Get pickup details at the right time and support independent cooks near you.</p>
+        </article>
+      </section>
+
+      <section class="home-video-stories" aria-labelledby="video-stories-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Cook stories</p>
+            <h2 id="video-stories-title">Every dish starts with a person.</h2>
+          </div>
+          <a class="text-link" href="/mission/">Our mission</a>
+        </div>
+        <div class="home-video-stories__grid">
+          <figure class="story-video">
+            <img src="/images/home-cooking-frame-1.jpg" width="1536" height="864" alt="A home cook preparing food in a bright kitchen">
+            <figcaption><span aria-hidden="true">▶</span><strong>From batch to menu</strong></figcaption>
+          </figure>
+          <figure class="story-video">
+            <img src="/images/home-cooking-frame-3.jpg" width="1536" height="864" alt="Homemade food being packed for local pickup">
+            <figcaption><span aria-hidden="true">▶</span><strong>Behind the pickup</strong></figcaption>
+          </figure>
+          <figure class="story-video">
+            <img src="/images/home-cooking-frame-2.jpg" width="1536" height="864" alt="A home baker preparing pastries in a bright kitchen">
+            <figcaption><span aria-hidden="true">▶</span><strong>Food with history</strong></figcaption>
+          </figure>
+        </div>
+      </section>
+
+      <section class="home-cook-cta home-cook-cta--green" aria-labelledby="cook-cta-title">
+        <div>
+          <p class="eyebrow">Cook with LocalCoKitchen</p>
+          <h2 id="cook-cta-title">Have a dish people already ask for?</h2>
+          <p>
+            Apply to sell pickup-only menu drops, upload required training proof,
+            and prepare your shop while your cook application is reviewed.
+          </p>
+        </div>
+        <a class="primary-action" href="/sell-your-food/">Become a cook</a>
       </section>
 
       <section class="waitlist-panel" aria-labelledby="waitlist-title">

@@ -4,13 +4,70 @@
   <body>
     <header class="top-nav"><a class="brand nav-brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a><nav class="nav-actions" aria-label="Primary navigation"><a class="nav-icon-link" href="/menu/" aria-label="Open available menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="m21 21-4.35-4.35"></path><circle cx="11" cy="11" r="7"></circle></svg><span>Menu</span></a><a class="nav-button is-auth-loading" href="/signin/" data-auth-nav>Sign in</a><div class="nav-more"><button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div></nav></header>
     <main class="content-page">
-      <section class="page-hero"><p class="eyebrow">FAQ</p><h1>Common questions</h1><p class="lede">Answers based on the current LocalCoKitchen MVP product direction.</p></section>
-      <section class="faq-list">
-        <article><h2>Where is LocalCoKitchen launching?</h2><p>LocalCoKitchen is Texas-first, starting with Dallas-area marketplace operations and room to expand into other Texas cities.</p></article>
-        <article><h2>Who can sell food?</h2><p>Independent home cooks can apply. LocalCoKitchen admins review identity, profile details, and applicable permits or certifications before activation.</p></article>
-        <article><h2>How are allergens handled?</h2><p>Cooks provide ingredient lists, accurate food descriptions, and allergen disclosures such as milk, eggs, fish, shellfish, tree nuts, peanuts, wheat, and soy.</p></article>
-        <article><h2>Can customers pay cash?</h2><p>No. The PRD states all MVP payments are processed inside LocalCoKitchen.</p></article>
-        <article><h2>When is the pickup address shown?</h2><p>The PRD model shows zip code first. The exact address is visible from two hours before pickup through two hours after pickup completion.</p></article>
+      <section class="page-hero"><p class="eyebrow">FAQ</p><h1>Common questions</h1><p class="lede">How LocalCoKitchen works for customers, cooks, pickup, food details, and launch access.</p></section>
+      <section class="faq-collection" aria-label="Frequently asked questions">
+        <div class="faq-category">
+          <p class="eyebrow">Customers</p>
+          <h2>Ordering homemade food</h2>
+          <details open>
+            <summary>How does LocalCoKitchen work?</summary>
+            <p>Enter your ZIP code, browse nearby menu drops, review dish details, order ahead, and pick up from the cook during the listed pickup window.</p>
+          </details>
+          <details>
+            <summary>Is LocalCoKitchen delivery or pickup?</summary>
+            <p>LocalCoKitchen is currently built around scheduled local pickup. Menu pages show pickup availability so customers can plan before ordering.</p>
+          </details>
+          <details>
+            <summary>Where is LocalCoKitchen launching?</summary>
+            <p>LocalCoKitchen is Texas-first, starting with Dallas-area marketplace operations and room to expand into other Texas cities.</p>
+          </details>
+          <details>
+            <summary>Can I search by cuisine, dish, or dietary needs?</summary>
+            <p>The marketplace is designed for discovery by dish, cuisine, distance, rating, dietary preferences, and allergen information as more approved cooks add menus.</p>
+          </details>
+        </div>
+
+        <div class="faq-category">
+          <p class="eyebrow">Food and pickup</p>
+          <h2>Before you order</h2>
+          <details>
+            <summary>How are allergens handled?</summary>
+            <p>Cooks provide ingredient lists, accurate descriptions, and allergen disclosures such as milk, eggs, fish, shellfish, tree nuts, peanuts, wheat, and soy.</p>
+          </details>
+          <details>
+            <summary>When is the exact pickup address shown?</summary>
+            <p>Customers see the cook's ZIP code first. Exact pickup details are shown closer to the pickup window so cook privacy is protected until the order is near fulfillment.</p>
+          </details>
+          <details>
+            <summary>Are meals ready to eat?</summary>
+            <p>Each cook controls their dish details. Review the listing for serving notes, storage guidance, pickup timing, and whether the item is intended to be eaten immediately or reheated.</p>
+          </details>
+          <details>
+            <summary>Can customers pay cash?</summary>
+            <p>No. LocalCoKitchen is designed for in-platform ordering and payments so orders, pickup details, and customer records stay tied to the marketplace flow.</p>
+          </details>
+        </div>
+
+        <div class="faq-category">
+          <p class="eyebrow">Cooks</p>
+          <h2>Selling on LocalCoKitchen</h2>
+          <details>
+            <summary>Who can sell food?</summary>
+            <p>Independent cooks can apply. LocalCoKitchen reviews submitted profile details, training proof, and any applicable permit or certification documents before activation.</p>
+          </details>
+          <details>
+            <summary>What do I need to apply as a cook?</summary>
+            <p>You need a customer account, legal name, US phone number, pickup address, ZIP code, proof of basic food handler training, and optional permit or certification files if they apply.</p>
+          </details>
+          <details>
+            <summary>Can I build my shop before approval?</summary>
+            <p>After submitting a cook application, My shop appears in your account menu so you can prepare storefront details, pickup windows, and menu items while your documents are reviewed.</p>
+          </details>
+          <details>
+            <summary>Who controls menu pricing and availability?</summary>
+            <p>Cooks control their own menu items, pricing, inventory, pickup windows, preorder timing, and fulfillment operations.</p>
+          </details>
+        </div>
       </section>
     </main>
 

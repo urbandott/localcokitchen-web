@@ -5,14 +5,14 @@
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-D7X7B5TY2J"></script>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="description" content="Apply to sell homemade food through LocalCoKitchen as an independent cook.">
+    <meta name="description" content="Apply to sell homemade food through LocalCoKitchen as an independent cook with menu, pickup, and shop tools.">
     <link rel="canonical" href="https://localcokitchen.com/sell-your-food/">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
-    <title>Sell your Food | LocalCoKitchen</title>
+    <title>Sell Your Food | LocalCoKitchen</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css?v=20260526">
+    <link rel="stylesheet" href="/styles.css?v=20260530">
   </head>
   <body>
     <header class="top-nav">
@@ -24,29 +24,112 @@
       </nav>
     </header>
 
-    <main class="content-page">
-      <section class="page-hero">
-        <p class="eyebrow">Sell your Food</p>
-        <h1>Apply to become a LocalCoKitchen cook.</h1>
-        <p class="lede">
-          Start as a customer account, then apply here. Cooks must complete a
-          basic food handler training course and upload proof before creating a
-          shop and menu.
-        </p>
+    <main class="sell-page">
+      <section class="sell-hero" aria-labelledby="sell-page-title">
+        <div class="sell-hero__copy">
+          <p class="eyebrow">Cook with LocalCoKitchen</p>
+          <h1 id="sell-page-title">Earn from the food people already ask you to make.</h1>
+          <p class="lede">
+            Apply to become an independent LocalCoKitchen cook, publish pickup-only
+            menu drops, and build a repeat customer base in your community.
+          </p>
+          <div class="hero-actions cook-signup-actions">
+            <button class="auth-submit compact-action" type="button" data-open-cook-application hidden>Start cook signup</button>
+            <button class="secondary-action compact-action" type="button" data-cook-application-complete disabled hidden>Signup complete</button>
+            <a class="secondary-action" href="/signin/" data-cook-signin>Sign in first</a>
+          </div>
+          <p class="auth-message" data-status aria-live="polite"></p>
+        </div>
+        <figure class="sell-hero__visual">
+          <img src="/images/sell-your-food-hero.jpg" width="1672" height="941" alt="A home cook packing fresh homemade meals for pickup">
+          <figcaption>
+            <strong>You cook on your schedule.</strong>
+            <span>Set pickup windows, inventory, pricing, and preorder details.</span>
+          </figcaption>
+        </figure>
       </section>
 
-      <section class="feature-list">
-        <article><h2>Training proof required</h2><p>Upload proof that you completed a basic food handler training course. PDF, PNG, JPG, or WebP files up to 5 MB are accepted.</p></article>
-        <article><h2>Independent seller model</h2><p>You control your menu, pricing, inventory, pickup availability, and fulfillment operations.</p></article>
-        <article><h2>Shop tools after submission</h2><p>After you submit your application, My shop appears in your account menu so you can prepare storefront details, pickup windows, and menu items while admins review your documents.</p></article>
+      <section class="seller-stats" aria-label="Cook marketplace highlights">
+        <article>
+          <strong>Menu drops</strong>
+          <span>Offer limited batches, weekly specials, or recurring favorites.</span>
+        </article>
+        <article>
+          <strong>Pickup only</strong>
+          <span>Keep fulfillment focused with scheduled local pickup windows.</span>
+        </article>
+        <article>
+          <strong>Review first</strong>
+          <span>Submit training proof and documents before your shop goes live.</span>
+        </article>
       </section>
 
-      <p class="auth-message" data-status aria-live="polite"></p>
+      <section class="sell-section sell-section--split" aria-labelledby="cook-steps-title">
+        <div>
+          <p class="eyebrow">How it works</p>
+          <h2 id="cook-steps-title">From application to your first pickup.</h2>
+        </div>
+        <div class="seller-flow">
+          <article>
+            <span>1</span>
+            <h3>Apply as a cook</h3>
+            <p>Create or sign in to your account, add your legal details, pickup ZIP code, and food handler training proof.</p>
+          </article>
+          <article>
+            <span>2</span>
+            <h3>Prepare your shop</h3>
+            <p>After submission, My shop appears so you can draft your storefront, pickup windows, and menu items while documents are reviewed.</p>
+          </article>
+          <article>
+            <span>3</span>
+            <h3>Publish approved menus</h3>
+            <p>Once approved, control what you sell, how much is available, pricing, allergens, and customer pickup instructions.</p>
+          </article>
+        </div>
+      </section>
 
-      <div class="button-row cook-signup-actions">
-        <button class="auth-submit compact-action" type="button" data-open-cook-application hidden>Start cook signup</button>
-        <button class="secondary-action compact-action" type="button" data-cook-application-complete disabled hidden>Signup complete</button>
-      </div>
+      <section class="seller-toolkit" aria-labelledby="tools-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">Cook tools</p>
+            <h2 id="tools-title">Built for small-batch home food businesses.</h2>
+          </div>
+        </div>
+        <div class="feature-list">
+          <article><h3>Flexible menus</h3><p>Sell one signature dish, a weekend tray, baked goods, snacks, or rotating specials without committing to restaurant hours.</p></article>
+          <article><h3>Clear ordering</h3><p>Use inventory counts, pickup windows, sold-out states, and menu details so customers know exactly what they are ordering.</p></article>
+          <article><h3>Local trust</h3><p>Build confidence with cook approval, document review, ingredient details, allergen notes, and verified customer activity.</p></article>
+        </div>
+      </section>
+
+      <section class="sell-section requirements-band" aria-labelledby="requirements-title">
+        <div>
+          <p class="eyebrow">Before you apply</p>
+          <h2 id="requirements-title">What you need for cook signup.</h2>
+          <p>
+            LocalCoKitchen is designed around independent sellers. You are
+            responsible for your food operation, local requirements, availability,
+            and fulfillment.
+          </p>
+        </div>
+        <ul class="requirement-list">
+          <li>Completed basic food handler training proof.</li>
+          <li>Legal name, US phone number, pickup address, and 5-digit ZIP code.</li>
+          <li>Optional permit or certification upload if it applies to your food business.</li>
+          <li>PDF, PNG, JPG, or WebP documents up to 5 MB.</li>
+        </ul>
+      </section>
+
+      <section class="seller-cta" aria-labelledby="seller-cta-title">
+        <div>
+          <p class="eyebrow">Ready to start</p>
+          <h2 id="seller-cta-title">Turn your next batch into a LocalCoKitchen menu.</h2>
+        </div>
+        <div class="button-row cook-signup-actions">
+          <button class="auth-submit compact-action" type="button" data-open-cook-application hidden>Start cook signup</button>
+          <button class="secondary-action compact-action" type="button" data-cook-application-complete disabled hidden>Signup complete</button>
+        </div>
+      </section>
 
       <dialog class="menu-item-dialog" data-cook-application-modal>
         <form class="shop-subform menu-item-modal-form cook-application-form" data-cook-application hidden>
@@ -93,6 +176,40 @@
         </form>
       </dialog>
     </main>
+
+    <footer class="site-footer" aria-labelledby="footer-title">
+      <div class="site-footer__inner">
+        <div class="site-footer__brand">
+          <a class="brand" href="/" aria-label="LocalCoKitchen home"><img src="/images/logo.svg" alt="LocalCoKitchen"></a>
+          <p id="footer-title">LocalCoKitchen connects customers with trusted independent cooks for homemade meals and scheduled local pickups.</p>
+        </div>
+        <nav class="site-footer__group" aria-label="Explore LocalCoKitchen">
+          <h2>Explore</h2>
+          <a href="/menu/">Menu</a>
+          <a href="/find-a-meal/">Find a meal</a>
+          <a href="/how-it-works/">How it works</a>
+          <a href="/mission/">Mission</a>
+        </nav>
+        <nav class="site-footer__group" aria-label="Cook resources">
+          <h2>Cook</h2>
+          <a href="/sell-your-food/">Sell your food</a>
+          <a href="/my-shop/">My shop</a>
+          <a href="/signup/">Create account</a>
+          <a href="/signin/">Sign in</a>
+        </nav>
+        <nav class="site-footer__group" aria-label="Support and legal">
+          <h2>Support</h2>
+          <a href="/faq/">FAQ</a>
+          <a href="/contact-us/">Contact us</a>
+          <a href="/privacy-policy/">Privacy policy</a>
+          <a href="/terms-and-conditions/">Terms</a>
+        </nav>
+      </div>
+      <div class="site-footer__bottom">
+        <span>&copy; 2026 LocalCoKitchen. All rights reserved.</span>
+        <span>Texas-first homemade food marketplace.</span>
+      </div>
+    </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="/js/supabase-config.js" defer></script>

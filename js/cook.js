@@ -229,6 +229,29 @@
   const getPublicUrl = (bucket, path) =>
     client.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 
+  const getStoragePathFromPublicUrl = (bucket, url) => {
+    const marker = `/storage/v1/object/public/${bucket}/`;
+    const markerIndex = String(url || "").indexOf(marker);
+
+    if (markerIndex === -1) {
+      return "";
+    }
+
+    return decodeURIComponent(String(url).slice(markerIndex + marker.length));
+  };
+
+  const removeStorageObject = async (bucket, path) => {
+    if (!path) {
+      return;
+    }
+
+    const { error } = await client.storage.from(bucket).remove([path]);
+
+    if (error) {
+      throw error;
+    }
+  };
+
   const uploadFile = async ({ bucket, file, maxBytes, path, types }) => {
     if (!file) {
       return "";
@@ -379,8 +402,14 @@
     }
 
     const modal = document.querySelector("[data-cook-application-modal]");
-    const openButton = document.querySelector("[data-open-cook-application]");
-    const completeButton = document.querySelector("[data-cook-application-complete]");
+    const openButtons = document.querySelectorAll("[data-open-cook-application]");
+    const completeButtons = document.querySelectorAll("[data-cook-application-complete]");
+    const signinLinks = document.querySelectorAll("[data-cook-signin]");
+    const setButtonsHidden = (buttons, hidden) => {
+      buttons.forEach((button) => {
+        button.hidden = hidden;
+      });
+    };
 
     const closeModal = () => {
       if (modal?.open) {
@@ -388,12 +417,14 @@
       }
     };
 
-    openButton?.addEventListener("click", () => {
-      if (typeof modal?.showModal === "function") {
-        modal.showModal();
-      } else {
-        modal?.setAttribute("open", "");
-      }
+    openButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        if (typeof modal?.showModal === "function") {
+          modal.showModal();
+        } else {
+          modal?.setAttribute("open", "");
+        }
+      });
     });
 
     document.querySelectorAll("[data-close-cook-application]").forEach((button) => {
@@ -409,8 +440,13 @@
     const session = await getSession();
 
     if (!session) {
+      setButtonsHidden(openButtons, true);
+      setButtonsHidden(completeButtons, true);
+      setButtonsHidden(signinLinks, false);
       return;
     }
+
+    setButtonsHidden(signinLinks, true);
 
     const { data: application } = await marketplaceDb
       .from("cook_applications")
@@ -420,23 +456,15 @@
 
     if (application) {
       form.hidden = true;
-      if (openButton) {
-        openButton.hidden = true;
-      }
-      if (completeButton) {
-        completeButton.hidden = false;
-      }
+      setButtonsHidden(openButtons, true);
+      setButtonsHidden(completeButtons, false);
       return;
     }
 
     setupCookApplicationFormatting(form);
     form.hidden = false;
-    if (openButton) {
-      openButton.hidden = false;
-    }
-    if (completeButton) {
-      completeButton.hidden = true;
-    }
+    setButtonsHidden(openButtons, false);
+    setButtonsHidden(completeButtons, true);
 
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
@@ -452,12 +480,8 @@
           window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
           form.reset();
           form.hidden = true;
-          if (openButton) {
-            openButton.hidden = true;
-          }
-          if (completeButton) {
-            completeButton.hidden = false;
-          }
+          setButtonsHidden(openButtons, true);
+          setButtonsHidden(completeButtons, false);
           closeModal();
         }
       } catch (error) {
@@ -1116,13 +1140,16 @@
         }
 
         let imageUrl = currentImageUrl;
+        let replacementImagePath = "";
+        const previousImagePath = getStoragePathFromPublicUrl("cook-menu-images", currentImageUrl);
 
         if (image instanceof File && image.size) {
+          replacementImagePath = filePath(session.user.id, "menu-item", image);
           imageUrl = await uploadFile({
             bucket: "cook-menu-images",
             file: image,
             maxBytes: maxMenuImageBytes,
-            path: filePath(session.user.id, "menu-item", image),
+            path: replacementImagePath,
             types: imageTypes,
           });
         }
@@ -1156,6 +1183,10 @@
 
         if (error) {
           throw error;
+        }
+
+        if (isEdit && replacementImagePath && previousImagePath) {
+          await removeStorageObject("cook-menu-images", previousImagePath);
         }
 
         closeMenuItemModal();

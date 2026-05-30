@@ -4,7 +4,7 @@
   const publicKey = "5UfHbfEdu2nuA3dVM";
   const serviceID = "default_service";
   const templateID = "template_f26aocx";
-  const allowedInterests = new Set(["customer", "home-cook", "both"]);
+  const allowedInterests = new Set(["customer", "home-cook"]);
 
   const cleanTextValue = (value, maxLength = 254) =>
     String(value || "")
@@ -56,7 +56,7 @@
       });
 
       note.textContent =
-        interest.includes("cook") || interest === "both"
+        interest.includes("cook")
           ? "You are on the cook waitlist. We will email you before launch."
           : "You are on the waitlist. We will email you when LocalCoKitchen goes live.";
       form.reset();

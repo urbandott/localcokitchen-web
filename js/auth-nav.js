@@ -172,7 +172,7 @@
             const shopLink = document.createElement("a");
             shopLink.href = "/my-shop/";
             shopLink.setAttribute("role", "menuitem");
-            shopLink.textContent = "My shop";
+            shopLink.textContent = "My Kitchen";
             menu.insertBefore(shopLink, signOutButton);
           }
 

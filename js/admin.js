@@ -18,10 +18,15 @@
     if (el) {
       el.textContent = text;
     }
+  };
 
-    if (selector === "[data-status]" && text) {
-      window.LocalCoKitchenToast?.show(text);
-    }
+  const clearStatus = () => {
+    setText("[data-status]", "");
+  };
+
+  const showToast = (message) => {
+    clearStatus();
+    window.LocalCoKitchenToast?.show(message);
   };
 
   const redirectHome = () => {
@@ -162,7 +167,7 @@
         return;
       }
 
-      setText("[data-status]", `Application ${status}.`);
+      showToast(`Application ${status}.`);
       await loadApplications();
     });
 

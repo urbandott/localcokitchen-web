@@ -175,15 +175,19 @@
 
   const setText = (selector, text) => {
     const el = document.querySelector(selector);
-    const visibleShopPage = document.querySelector("[data-shop-page]:not([hidden])");
 
     if (el) {
-      el.textContent = selector === "[data-status]" && visibleShopPage ? "" : text;
+      el.textContent = text;
     }
+  };
 
-    if (selector === "[data-status]" && text) {
-      window.LocalCoKitchenToast?.show(text);
-    }
+  const clearStatus = () => {
+    setText("[data-status]", "");
+  };
+
+  const showToast = (message) => {
+    clearStatus();
+    window.LocalCoKitchenToast?.show(message);
   };
 
   const redirectHome = () => {
@@ -483,6 +487,7 @@
           setButtonsHidden(openButtons, true);
           setButtonsHidden(completeButtons, false);
           closeModal();
+          showToast("Cook application submitted.");
         }
       } catch (error) {
         setText("[data-status]", error.message || "Could not submit application.");
@@ -564,7 +569,7 @@
         }
 
         window.dispatchEvent(new CustomEvent("localcokitchen:profile-updated"));
-        setText("[data-status]", "Profile picture updated.");
+        showToast("Profile picture updated.");
       } catch (error) {
         setText("[data-status]", error.message || "Could not update profile picture.");
       }
@@ -596,7 +601,7 @@
         currentAvatarPath = "";
         renderProfileAvatar(avatar, session.user, "");
         window.dispatchEvent(new CustomEvent("localcokitchen:profile-updated"));
-        setText("[data-status]", "Profile picture removed.");
+        showToast("Profile picture removed.");
       });
   };
 
@@ -894,7 +899,7 @@
           });
 
           if (saved) {
-            setText("[data-status]", "Application updates saved. We will review the latest details before your shop goes live.");
+            showToast("Application updates saved. We will review the latest details before your shop goes live.");
             window.dispatchEvent(new CustomEvent("localcokitchen:cook-status-changed"));
             await refresh();
           }
@@ -995,7 +1000,7 @@
           throw error;
         }
 
-        setText("[data-status]", "Shop profile saved.");
+        showToast("Shop profile saved.");
         await refresh();
       } catch (error) {
         setText("[data-status]", error.message || "Could not save shop profile.");
@@ -1190,7 +1195,7 @@
         }
 
         closeMenuItemModal();
-        setText("[data-status]", isEdit ? "Menu item updated." : "Menu item added.");
+        showToast(isEdit ? "Menu item updated." : "Menu item added.");
         await refresh();
       } catch (error) {
         setText("[data-status]", error.message || "Could not save menu item.");
@@ -1279,7 +1284,7 @@
         }
       }
 
-      setText("[data-status]", "Pickup windows saved.");
+      showToast("Pickup windows saved.");
       await refresh();
     });
 
@@ -1303,7 +1308,11 @@
         .eq("id", button.dataset.deleteItem)
         .eq("cook_id", session.user.id);
 
-      setText("[data-status]", error ? error.message : "Menu item removed.");
+      if (error) {
+        setText("[data-status]", error.message);
+      } else {
+        showToast("Menu item removed.");
+      }
       await refresh();
     });
   };

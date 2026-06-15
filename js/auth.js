@@ -13,10 +13,26 @@
     if (statusEl) {
       statusEl.textContent = message;
     }
+  };
 
+  const showToast = (message) => {
+    setStatus("");
+    window.LocalCoKitchenToast?.show(message);
+  };
+
+  const setBlockingStatus = (message) => {
+    setStatus(message);
+  };
+
+  const setProgressStatus = (message) => {
+    setStatus(message);
+  };
+
+  const redirectWithToast = (message, url) => {
     if (message) {
-      window.LocalCoKitchenToast?.show(message);
+      showToast(message);
     }
+    window.location.assign(url);
   };
 
   const getRedirectUrl = () => {
@@ -147,7 +163,7 @@
     !config.publishableKey.includes("YOUR_SUPABASE");
 
   if (!window.supabase || !hasConfig) {
-    setStatus(
+    setBlockingStatus(
       "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
     );
   }
@@ -159,7 +175,7 @@
 
   client?.auth.getSession().then(({ data }) => {
     if (data.session && window.location.pathname.startsWith("/signin")) {
-      setStatus("You are signed in. Redirecting...");
+      setProgressStatus("You are signed in. Redirecting...");
       window.location.assign(getRedirectUrl());
     }
   });
@@ -175,7 +191,7 @@
     const emailInput = form.querySelector('input[name="email"]');
 
     if (emailInput && !emailInput.validity.valid) {
-      setStatus("Please enter a valid email address.");
+      setBlockingStatus("Please enter a valid email address.");
       return;
     }
 
@@ -183,7 +199,7 @@
       submitButton.disabled = true;
     }
 
-    setStatus(
+    setProgressStatus(
       mode === "signup"
         ? "Creating your account..."
         : mode === "forgot-password"
@@ -194,7 +210,7 @@
     try {
       if (mode === "forgot-password") {
         if (!client) {
-          setStatus(
+          setBlockingStatus(
             "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
           );
           return;
@@ -208,14 +224,14 @@
           throw error;
         }
 
-        setStatus("If an account exists for that email, a reset link has been sent.");
+        showToast("If an account exists for that email, a reset link has been sent.");
         form.reset();
         return;
       }
 
       if (mode === "reset-password") {
         if (!client) {
-          setStatus(
+          setBlockingStatus(
             "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
           );
           return;
@@ -227,8 +243,7 @@
           throw error;
         }
 
-        setStatus("Password updated. Redirecting to sign in...");
-        window.location.assign("/signin/");
+        redirectWithToast("Password updated. Redirecting to sign in...", "/signin/");
         return;
       }
 
@@ -238,17 +253,17 @@
         updateSignupPasswordUi();
 
         if (!passwordState.allRulesMet) {
-          setStatus("Password must meet every listed requirement.");
+          setBlockingStatus("Password must meet every listed requirement.");
           return;
         }
 
         if (!passwordState.passwordsMatch) {
-          setStatus("Passwords must match.");
+          setBlockingStatus("Passwords must match.");
           return;
         }
 
         if (!client) {
-          setStatus(
+          setBlockingStatus(
             "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
           );
           return;
@@ -261,7 +276,7 @@
         const accountStatus = await getSignupAccountStatus(email);
 
         if (accountStatus === "active") {
-          setStatus(genericSignupStatus);
+          showToast(genericSignupStatus);
           return;
         }
 
@@ -281,7 +296,7 @@
         });
 
         if (isAlreadyRegisteredError(error) || isDuplicateConfirmedSignup(data)) {
-          setStatus(genericSignupStatus);
+          showToast(genericSignupStatus);
           return;
         }
 
@@ -289,13 +304,13 @@
           throw error;
         }
 
-        setStatus(genericSignupStatus);
+        showToast(genericSignupStatus);
         form.reset();
         return;
       }
 
       if (!client) {
-        setStatus(
+        setBlockingStatus(
           "Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js."
         );
         return;
@@ -310,10 +325,9 @@
         throw error;
       }
 
-      setStatus("Signed in. Redirecting...");
-      window.location.assign(getRedirectUrl());
+      redirectWithToast("Signed in. Redirecting...", getRedirectUrl());
     } catch (error) {
-      setStatus(error.message || "Authentication failed. Please try again.");
+      setBlockingStatus(error.message || "Authentication failed. Please try again.");
     } finally {
       if (submitButton) {
         submitButton.disabled = false;

@@ -306,7 +306,10 @@ h1 span {
 }
 
 .email-row input {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   min-height: 54px;
   padding: 0 1rem;
   border: 1px solid var(--line);
@@ -708,6 +711,7 @@ h1 span {
 .field-stack {
   display: grid;
   gap: 0.85rem;
+  min-width: 0;
 }
 
 .form-row {
@@ -728,7 +732,10 @@ h1 span {
 }
 
 .field-stack input {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   min-height: 52px;
   padding: 0 0.95rem;
   border: 1px solid var(--line);
@@ -741,6 +748,7 @@ h1 span {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   align-items: stretch;
+  min-width: 0;
 }
 
 .password-input input {
@@ -892,6 +900,7 @@ h1 span {
   font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .auth-message:empty {
@@ -917,6 +926,7 @@ h1 span {
   font-size: 0.92rem;
   font-weight: 800;
   line-height: 1.45;
+  overflow-wrap: anywhere;
   opacity: 0;
   transform: translateY(10px);
   transition: opacity 0.2s ease, transform 0.2s ease;
@@ -1505,6 +1515,7 @@ h1 span {
 .nav-profile__menu a,
 .nav-profile__menu button {
   width: 100%;
+  min-width: 0;
   padding: 0.72rem 0.8rem;
   border: 0;
   border-radius: 6px;
@@ -1513,6 +1524,7 @@ h1 span {
   font: inherit;
   font-size: 0.92rem;
   font-weight: 800;
+  overflow-wrap: anywhere;
   text-align: left;
   text-decoration: none;
   cursor: pointer;
@@ -1636,6 +1648,27 @@ h1 span {
 .contact-panel p {
   color: var(--muted);
   line-height: 1.62;
+}
+
+.menu-attribute-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0.35rem 0 0.5rem;
+}
+
+.menu-attribute-tags span {
+  display: inline-flex;
+  max-width: 100%;
+  padding: 0.22rem 0.5rem;
+  border: 1px solid rgba(31, 104, 75, 0.16);
+  border-radius: 999px;
+  color: #24543f;
+  background: #eef8ef;
+  font-size: 0.76rem;
+  font-weight: 850;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
 }
 
 .status-pill,
@@ -2911,11 +2944,51 @@ h1 span {
   grid-template-columns: 180px minmax(0, 1fr);
   gap: 1rem;
   align-items: center;
+  min-width: 0;
   padding: 1rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.82);
   box-shadow: 0 14px 32px rgba(50, 38, 25, 0.08);
+}
+
+.menu-item img {
+  width: 180px;
+  max-width: 100%;
+  aspect-ratio: 1 / 0.78;
+  border-radius: 8px;
+  object-fit: cover;
+  background: #fff1d0;
+}
+
+.menu-item__body {
+  min-width: 0;
+}
+
+.menu-item-details {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.8rem 0;
+}
+
+.menu-item-details div {
+  display: grid;
+  grid-template-columns: minmax(88px, auto) minmax(0, 1fr);
+  gap: 0.5rem;
+}
+
+.menu-item-details dt {
+  color: #324137;
+  font-size: 0.82rem;
+  font-weight: 900;
+}
+
+.menu-item-details dd {
+  min-width: 0;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
 }
 
 .numbered-flow article {
@@ -3187,13 +3260,52 @@ h1 span {
 .field-stack textarea,
 .field-stack select,
 .field-stack input[type="file"] {
+  box-sizing: border-box;
+  width: 100%;
   min-width: 0;
+  max-width: 100%;
   padding: 0.85rem 0.95rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   color: var(--ink);
   background: #fff;
   font: inherit;
+}
+
+.field-stack textarea {
+  resize: vertical;
+  overflow-wrap: anywhere;
+}
+
+.field-stack input[type="file"] {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tag-picker {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.tag-picker__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-height: 0;
+}
+
+.tag-picker__chip {
+  max-width: 100%;
+  padding: 0.28rem 0.55rem;
+  border: 1px solid rgba(31, 104, 75, 0.2);
+  border-radius: 999px;
+  color: #24543f;
+  background: #eef8ef;
+  font-size: 0.78rem;
+  font-weight: 850;
+  overflow-wrap: anywhere;
+  cursor: pointer;
 }
 
 .field-stack select {
@@ -3205,6 +3317,7 @@ h1 span {
   color: var(--muted);
   font-size: 0.82rem;
   line-height: 1.45;
+  overflow-wrap: anywhere;
 }
 
 .shop-dashboard {
@@ -3322,37 +3435,59 @@ h1 span {
   grid-template-columns: 108px minmax(0, 1fr) auto;
   gap: 0.85rem;
   align-items: center;
+  min-width: 0;
   padding: 0.8rem;
   border: 1px solid var(--line);
   border-radius: 8px;
   background: #fff;
+  overflow: hidden;
 }
 
 .shop-list-item img {
+  min-width: 0;
   width: 108px;
+  max-width: 100%;
   aspect-ratio: 1 / 0.78;
   border-radius: 8px;
   object-fit: cover;
   background: #fff1d0;
 }
 
+.shop-list-item__body {
+  min-width: 0;
+}
+
 .shop-list-item h3 {
   margin: 0 0 0.25rem;
   font-size: 1rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .shop-list-item p {
   margin: 0 0 0.35rem;
   color: var(--muted);
   line-height: 1.45;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.shop-list-item__description {
+  margin-top: 0.2rem;
+}
+
+.shop-list-item__meta {
+  font-size: 0.85rem;
 }
 
 .shop-list-item strong,
 .shop-list-item span {
   display: inline-flex;
+  max-width: 100%;
   margin-right: 0.5rem;
   color: #324137;
   font-size: 0.86rem;
+  overflow-wrap: anywhere;
 }
 
 .shop-list-item button {
@@ -3371,6 +3506,7 @@ h1 span {
   flex-wrap: wrap;
   justify-content: flex-end;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .pickup-window-row {
@@ -3441,11 +3577,15 @@ h1 span {
 .admin-review-card h2 {
   margin: 0 0 0.25rem;
   font-size: 1.2rem;
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-review-card p {
   margin: 0;
   color: var(--muted);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 .admin-detail-list {
@@ -3458,6 +3598,7 @@ h1 span {
 .admin-detail-list dt {
   color: #324137;
   font-weight: 850;
+  overflow-wrap: anywhere;
 }
 
 .admin-detail-list dd {
@@ -3694,7 +3835,9 @@ h1 span {
     grid-template-columns: 1fr;
   }
 
-  .menu-item .plate-art {
+  .menu-item .plate-art,
+  .menu-item img {
+    width: min(100%, 240px);
     max-width: 240px;
   }
 }

@@ -153,7 +153,7 @@
           <p>
             LocalCoKitchen is built for the meals people usually find through
             neighbors, group chats, and family recommendations. Browse dishes
-            with clear pickup windows, allergen notes, and cook details before
+            with clear pickup windows, dietary tags, and cook details before
             you order.
           </p>
           <p>
@@ -173,7 +173,7 @@
         <article>
           <span>2</span>
           <h2>Order ahead</h2>
-          <p>Review ingredients, allergens, inventory, and pickup windows before checkout.</p>
+          <p>Review ingredients, dietary tags, inventory, and pickup windows before checkout.</p>
         </article>
         <article>
           <span>3</span>
@@ -239,7 +239,7 @@
           <p class="hidden-field">
             <label>
               Do not fill this out:
-              <input name="company" tabindex="-1" autocomplete="off">
+              <input name="company" tabindex="-1" autocomplete="off" maxlength="120">
             </label>
           </p>
           <div class="role-toggle" role="radiogroup" aria-label="I am interested as a">
@@ -260,6 +260,7 @@
               type="email"
               inputmode="email"
               autocomplete="email"
+              maxlength="254"
               placeholder="you@example.com"
               required
             >

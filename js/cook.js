@@ -166,7 +166,59 @@
     return /^(?:0\.(?:0[1-9]|[1-9]\d?)|[1-9]\d*(?:\.\d{1,2})?)$/.test(text);
   };
 
+  const parseListField = (value, { itemMaxLength = 40, maxItems = 5 } = {}) =>
+    String(value || "")
+      .split(",")
+      .map((item) => clean(item, itemMaxLength))
+      .filter(Boolean)
+      .slice(0, maxItems);
+
   const maxMenuPriceCents = 10000000;
+  const spiceLevels = new Set(["Not spicy", "Mild", "Medium", "Hot", "Extra hot"]);
+  const categoryTagOptions = [
+    "Breakfast",
+    "Lunch",
+    "Dinner",
+    "Dessert",
+    "Snack",
+    "Bakery",
+    "BBQ",
+    "Comfort Food",
+    "Pasta",
+    "Seafood",
+    "Soup",
+    "Salad",
+    "Curry",
+    "Rice Bowl",
+    "Tacos",
+    "Tamales",
+    "Family Meal",
+    "Party Tray",
+    "Drinks",
+    "Sides",
+  ];
+  const dietaryTagOptions = [
+    "Dairy Free",
+    "Gluten Free",
+    "Nut Free",
+    "Peanut Free",
+    "Tree Nut Free",
+    "Egg Free",
+    "Soy Free",
+    "Wheat Free",
+    "Sesame Free",
+    "Shellfish Free",
+    "Fish Free",
+    "Milk Free",
+    "Corn Free",
+    "Coconut Free",
+    "Vegan",
+    "Vegetarian",
+    "Halal",
+    "Kosher",
+    "Low Sodium",
+    "No Added Sugar",
+  ];
 
   const cleanZipCode = (value) =>
     String(value || "")
@@ -305,6 +357,97 @@
     }
 
     preview.textContent = "LC";
+  };
+
+  const setupTagPicker = ({
+    form,
+    fieldName,
+    inputSelector,
+    chipsSelector,
+    datalistSelector,
+    options,
+    maxItems,
+    maxLength,
+    limitMessage,
+  }) => {
+    const hiddenInput = form?.elements[fieldName];
+    const textInput = form?.querySelector(inputSelector);
+    const chips = form?.querySelector(chipsSelector);
+    const datalist = form?.querySelector(datalistSelector);
+
+    if (!hiddenInput || !textInput || !chips || !datalist) {
+      return null;
+    }
+
+    const selected = [];
+
+    options.forEach((tag) => {
+      const option = document.createElement("option");
+      option.value = tag;
+      datalist.append(option);
+    });
+
+    const sync = () => {
+      hiddenInput.value = selected.join(", ");
+      clearChildren(chips);
+
+      selected.forEach((tag) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "tag-picker__chip";
+        chip.textContent = tag;
+        chip.setAttribute("aria-label", `Remove ${tag}`);
+        chip.addEventListener("click", () => {
+          const index = selected.indexOf(tag);
+
+          if (index !== -1) {
+            selected.splice(index, 1);
+            sync();
+          }
+        });
+        chips.append(chip);
+      });
+    };
+
+    const addTag = (value) => {
+      const tag = clean(value, maxLength);
+
+      if (!tag || selected.includes(tag)) {
+        textInput.value = "";
+        return;
+      }
+
+      if (selected.length >= maxItems) {
+        setText("[data-status]", limitMessage);
+        return;
+      }
+
+      selected.push(tag);
+      textInput.value = "";
+      sync();
+    };
+
+    textInput.addEventListener("keydown", (event) => {
+      if (event.key === "Enter" || event.key === ",") {
+        event.preventDefault();
+        addTag(textInput.value);
+      }
+    });
+
+    textInput.addEventListener("change", () => {
+      addTag(textInput.value);
+    });
+
+    return {
+      commitCurrent() {
+        addTag(textInput.value);
+      },
+      setTags(tags) {
+        selected.splice(0, selected.length, ...tags.map((tag) => clean(tag, maxLength)).filter(Boolean).slice(0, maxItems));
+        textInput.value = "";
+        sync();
+      },
+    };
   };
 
   const validateCookApplicationFields = ({ form, legalName, phone, pickupAddress, pickupZipCode }) => {
@@ -749,15 +892,53 @@
         image.alt = "";
 
         const body = document.createElement("div");
+        body.className = "shop-list-item__body";
         const title = document.createElement("h3");
         title.textContent = item.name;
+        const tagRow = document.createElement("div");
+        tagRow.className = "menu-attribute-tags";
+        [
+          ...(item.category_tags?.length ? item.category_tags : item.category ? [item.category] : []),
+          ...(item.dietary_tags || []),
+          item.spice_level || "",
+        ]
+          .filter(Boolean)
+          .slice(0, 8)
+          .forEach((tag) => {
+            const badge = document.createElement("span");
+            badge.textContent = tag;
+            tagRow.append(badge);
+          });
         const description = document.createElement("p");
         description.textContent = item.description;
         const price = document.createElement("strong");
         price.textContent = `$${(item.price_cents / 100).toFixed(2)}`;
         const quantity = document.createElement("span");
         quantity.textContent = `${item.quantity_available} available${item.is_sold_out ? " - sold out" : ""}`;
-        body.append(title, description, price, quantity);
+        body.append(title);
+
+        if (tagRow.childElementCount) {
+          body.append(tagRow);
+        }
+
+        description.className = "shop-list-item__description";
+        body.append(description);
+
+        if (item.portion_serves) {
+          const portion = document.createElement("p");
+          portion.className = "shop-list-item__meta";
+          portion.textContent = `Serves ${item.portion_serves}`;
+          body.append(portion);
+        }
+
+        if ((item.main_ingredients || []).length) {
+          const ingredients = document.createElement("p");
+          ingredients.className = "shop-list-item__meta";
+          ingredients.textContent = `Main ingredients: ${item.main_ingredients.join(", ")}`;
+          body.append(ingredients);
+        }
+
+        body.append(price, quantity);
 
         const actions = document.createElement("div");
         actions.className = "shop-list-item__actions";
@@ -1013,6 +1194,28 @@
     const menuImageHint = menuItemForm?.querySelector("[data-menu-image-hint]");
     const menuModalTitle = document.querySelector("[data-menu-item-modal-title]");
     const menuSubmitButton = document.querySelector("[data-menu-item-submit]");
+    const categoryTagPicker = setupTagPicker({
+      form: menuItemForm,
+      fieldName: "category_tags",
+      inputSelector: "[data-category-tag-input]",
+      chipsSelector: "[data-category-tag-chips]",
+      datalistSelector: "#category-tag-options",
+      options: categoryTagOptions,
+      maxItems: 5,
+      maxLength: 15,
+      limitMessage: "Use 5 or fewer category tags.",
+    });
+    const dietaryTagPicker = setupTagPicker({
+      form: menuItemForm,
+      fieldName: "dietary_tags",
+      inputSelector: "[data-dietary-tag-input]",
+      chipsSelector: "[data-dietary-tag-chips]",
+      datalistSelector: "#dietary-tag-options",
+      options: dietaryTagOptions,
+      maxItems: 10,
+      maxLength: 40,
+      limitMessage: "Use 10 or fewer dietary tags.",
+    });
 
     const closeMenuItemModal = () => {
       menuItemForm?.reset();
@@ -1033,6 +1236,8 @@
       if (menuSubmitButton) {
         menuSubmitButton.textContent = "Add menu item";
       }
+      categoryTagPicker?.setTags([]);
+      dietaryTagPicker?.setTags([]);
 
       if (menuItemModal?.open) {
         menuItemModal.close();
@@ -1051,17 +1256,23 @@
         menuItemForm.dataset.itemId = item.id;
         menuItemForm.dataset.currentImage = item.image_url || "";
         menuItemForm.elements.name.value = item.name || "";
-        menuItemForm.elements.category.value = item.category || "";
         menuItemForm.elements.description.value = item.description || "";
         menuItemForm.elements.price.value = (item.price_cents / 100).toFixed(2);
         menuItemForm.elements.quantity_available.value = item.quantity_available || 1;
-        menuItemForm.elements.allergens.value = (item.allergens || []).join(", ");
-        menuItemForm.elements.dietary_tags.value = (item.dietary_tags || []).join(", ");
+        menuItemForm.elements.portion_serves.value = item.portion_serves || 1;
+        menuItemForm.elements.spice_level.value = item.spice_level || "Not spicy";
+        categoryTagPicker?.setTags(item.category_tags?.length ? item.category_tags : item.category ? [item.category] : []);
+        dietaryTagPicker?.setTags(item.dietary_tags || []);
+        menuItemForm.elements.main_ingredients.value = (item.main_ingredients || []).join(", ");
         menuItemForm.elements.is_sold_out.checked = Boolean(item.is_sold_out);
       } else {
         delete menuItemForm.dataset.itemId;
         delete menuItemForm.dataset.currentImage;
         menuItemForm.elements.quantity_available.value = 1;
+        menuItemForm.elements.portion_serves.value = 1;
+        menuItemForm.elements.spice_level.value = "Not spicy";
+        categoryTagPicker?.setTags([]);
+        dietaryTagPicker?.setTags([]);
       }
 
       if (menuImageInput) {
@@ -1103,16 +1314,32 @@
     menuItemForm?.addEventListener("submit", async (event) => {
       event.preventDefault();
       const form = event.currentTarget;
+      categoryTagPicker?.commitCurrent();
+      dietaryTagPicker?.commitCurrent();
       const formData = new FormData(form);
       const image = formData.get("image");
       const isEdit = form.dataset.mode === "edit";
       const currentImageUrl = form.dataset.currentImage || "";
       const name = clean(formData.get("name"), 120);
-      const category = clean(formData.get("category"), 80);
+      const categoryTags = parseListField(formData.get("category_tags"), {
+        itemMaxLength: 15,
+        maxItems: 5,
+      });
+      const category = categoryTags[0] || "";
       const description = clean(formData.get("description"), 1200);
       const price = String(formData.get("price") || "").trim();
       const priceCents = moneyToCents(price);
       const quantityAvailable = Number(formData.get("quantity_available"));
+      const portionServes = Number(formData.get("portion_serves"));
+      const spiceLevel = clean(formData.get("spice_level"), 20);
+      const dietaryTags = parseListField(formData.get("dietary_tags"), {
+        itemMaxLength: 40,
+        maxItems: 10,
+      });
+      const mainIngredients = parseListField(formData.get("main_ingredients"), {
+        itemMaxLength: 60,
+        maxItems: 20,
+      });
 
       try {
         if (!form.checkValidity()) {
@@ -1125,7 +1352,7 @@
         }
 
         if (!category) {
-          throw new Error("Category is required.");
+          throw new Error("Add at least one category tag.");
         }
 
         if (!isEdit && (!(image instanceof File) || !image.size)) {
@@ -1142,6 +1369,22 @@
 
         if (!isWholeNumberInRange(quantityAvailable, 1, 10000)) {
           throw new Error("Quantity available must be a whole number from 1 to 10000.");
+        }
+
+        if (!isWholeNumberInRange(portionServes, 1, 50)) {
+          throw new Error("Serves must be a whole number from 1 to 50.");
+        }
+
+        if (!spiceLevels.has(spiceLevel)) {
+          throw new Error("Choose a spice level.");
+        }
+
+        if (String(formData.get("category_tags") || "").split(",").filter((item) => clean(item, 15)).length > 5) {
+          throw new Error("Use 5 or fewer category tags.");
+        }
+
+        if (String(formData.get("dietary_tags") || "").split(",").filter((item) => clean(item, 40)).length > 10) {
+          throw new Error("Use 10 or fewer dietary tags.");
         }
 
         let imageUrl = currentImageUrl;
@@ -1167,14 +1410,11 @@
           price_cents: priceCents,
           quantity_available: quantityAvailable,
           category,
-          allergens: clean(formData.get("allergens"), 300)
-            .split(",")
-            .map((item) => clean(item, 40))
-            .filter(Boolean),
-          dietary_tags: clean(formData.get("dietary_tags"), 300)
-            .split(",")
-            .map((item) => clean(item, 40))
-            .filter(Boolean),
+          category_tags: categoryTags,
+          dietary_tags: dietaryTags,
+          main_ingredients: mainIngredients,
+          portion_serves: portionServes,
+          spice_level: spiceLevel,
           is_sold_out: formData.get("is_sold_out") === "yes",
         };
 

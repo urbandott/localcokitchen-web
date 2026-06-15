@@ -28,7 +28,7 @@
       <section class="page-hero">
         <p class="eyebrow">Menu</p>
         <h1>Items currently available</h1>
-        <p class="lede">These are placeholder listings for the LocalCoKitchen marketplace experience. Live listings will show cook approval status, pickup windows, allergens, inventory, and preorder cutoffs.</p>
+        <p class="lede">These are placeholder listings for the LocalCoKitchen marketplace experience. Live listings will show cook approval status, pickup windows, dietary tags, inventory, and preorder cutoffs.</p>
       </section>
       <section class="menu-layout" aria-label="Available menu items">
         <aside class="filter-panel">
@@ -39,12 +39,10 @@
           <span>Vegetarian</span>
           <span>Nut-free</span>
         </aside>
-        <div class="menu-list">
-          <article class="menu-item"><div class="plate-art plate-art--brisket" aria-hidden="true"></div><div><span class="status-pill">12 left</span><h2>Smoked brisket plate</h2><p>Oak-smoked brisket, potato salad, pickles, and barbecue sauce. Contains egg.</p><strong>$18</strong></div></article>
-          <article class="menu-item"><div class="plate-art plate-art--tamales" aria-hidden="true"></div><div><span class="status-pill">Preorder</span><h2>Tamales dozen</h2><p>Red chile pork tamales with salsa roja. Pickup window set by the cook.</p><strong>$24</strong></div></article>
-          <article class="menu-item"><div class="plate-art plate-art--baklava" aria-hidden="true"></div><div><span class="status-pill">8 boxes</span><h2>Baklava box</h2><p>Honey walnut pastry squares. Contains tree nuts and wheat.</p><strong>$18</strong></div></article>
-          <article class="menu-item"><div class="plate-art plate-art--curry" aria-hidden="true"></div><div><span class="status-pill">Sold soon</span><h2>Paneer curry bowl</h2><p>Tomato cream curry, paneer, rice, and cilantro. Vegetarian placeholder item.</p><strong>$14</strong></div></article>
-          <article class="menu-item"><div class="plate-art plate-art--cookies" aria-hidden="true"></div><div><span class="status-pill">Fresh batch</span><h2>Brown butter cookies</h2><p>Six cookie box with allergen details supplied by the cook.</p><strong>$12</strong></div></article>
+        <div class="menu-list" data-public-menu-items>
+          <article class="menu-item"><div class="plate-art plate-art--brisket" aria-hidden="true"></div><div><span class="status-pill">12 left</span><h2>Smoked brisket plate</h2><div class="menu-attribute-tags"><span>BBQ</span><span>Dinner</span><span>Gluten Free</span><span>Mild</span></div><p>Oak-smoked brisket, potato salad, pickles, and barbecue sauce.</p><dl class="menu-item-details"><div><dt>Serves</dt><dd>1 person</dd></div><div><dt>Main ingredients</dt><dd>Brisket, potato, pickles</dd></div></dl><strong>$18</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--tamales" aria-hidden="true"></div><div><span class="status-pill">Preorder</span><h2>Tamales dozen</h2><div class="menu-attribute-tags"><span>Tamales</span><span>Family Meal</span><span>Dairy Free</span><span>Medium</span></div><p>Red chile pork tamales with salsa roja. Pickup window set by the cook.</p><dl class="menu-item-details"><div><dt>Serves</dt><dd>4 people</dd></div><div><dt>Main ingredients</dt><dd>Corn masa, pork, chile</dd></div></dl><strong>$24</strong></div></article>
+          <article class="menu-item"><div class="plate-art plate-art--baklava" aria-hidden="true"></div><div><span class="status-pill">8 boxes</span><h2>Baklava box</h2><div class="menu-attribute-tags"><span>Dessert</span><span>Bakery</span><span>Vegetarian</span><span>Nut Free</span></div><p>Honey pastry squares.</p><dl class="menu-item-details"><div><dt>Serves</dt><dd>2 people</dd></div><div><dt>Main ingredients</dt><dd>Phyllo, honey, spices</dd></div></dl><strong>$18</strong></div></article>
         </div>
       </section>
     </main>
@@ -85,5 +83,6 @@
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
     <script src="/js/supabase-config.js" defer></script>
     <script src="/js/auth-nav.js" defer></script>
+    <script src="/js/menu.js" defer></script>
   </body>
 </html>

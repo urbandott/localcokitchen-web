@@ -106,9 +106,7 @@
     });
   };
 
-  const renderSignedIn = async (user) => {
-    const [hasShopAccess, isAdmin] = await Promise.all([getHasShopAccess(user?.id), getIsAdmin()]);
-
+  const renderSignedIn = (user) => {
     authLinks.forEach((link) => {
       const parent = link.parentElement;
 
@@ -150,22 +148,6 @@
       profileLink.textContent = "My profile";
       menu.append(profileLink);
 
-      if (hasShopAccess) {
-        const shopLink = document.createElement("a");
-        shopLink.href = "/my-shop/";
-        shopLink.setAttribute("role", "menuitem");
-        shopLink.textContent = "My shop";
-        menu.append(shopLink);
-      }
-
-      if (isAdmin) {
-        const adminLink = document.createElement("a");
-        adminLink.href = "/admin/cook-applications/";
-        adminLink.setAttribute("role", "menuitem");
-        adminLink.textContent = "Admin";
-        menu.append(adminLink);
-      }
-
       const signOutButton = document.createElement("button");
       signOutButton.type = "button";
       signOutButton.setAttribute("role", "menuitem");
@@ -179,6 +161,32 @@
 
       profileMenu.append(button, menu);
       parent.insertBefore(profileMenu, link.nextSibling);
+
+      Promise.all([getHasShopAccess(user?.id), getIsAdmin()])
+        .then(([hasShopAccess, isAdmin]) => {
+          if (!profileMenu.isConnected) {
+            return;
+          }
+
+          if (hasShopAccess && !menu.querySelector('[href="/my-shop/"]')) {
+            const shopLink = document.createElement("a");
+            shopLink.href = "/my-shop/";
+            shopLink.setAttribute("role", "menuitem");
+            shopLink.textContent = "My shop";
+            menu.insertBefore(shopLink, signOutButton);
+          }
+
+          if (isAdmin && !menu.querySelector('[href="/admin/cook-applications/"]')) {
+            const adminLink = document.createElement("a");
+            adminLink.href = "/admin/cook-applications/";
+            adminLink.setAttribute("role", "menuitem");
+            adminLink.textContent = "Admin";
+            menu.insertBefore(adminLink, signOutButton);
+          }
+        })
+        .catch(() => {
+          // Keep the core account menu available if optional role lookups fail.
+        });
     });
 
     setupDropdownToggles();
@@ -192,7 +200,7 @@
       return;
     }
 
-    await renderSignedIn(sessionUser);
+    renderSignedIn(sessionUser);
   };
 
   client.auth.getSession().then(({ data }) => {

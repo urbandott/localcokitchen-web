@@ -1419,7 +1419,14 @@ h1 span {
 }
 
 .is-auth-loading {
+  animation: auth-loading-fallback 1ms step-end 4s forwards;
   visibility: hidden;
+}
+
+@keyframes auth-loading-fallback {
+  to {
+    visibility: visible;
+  }
 }
 
 .nav-more:focus-within .nav-more__menu,

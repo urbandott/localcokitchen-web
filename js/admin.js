@@ -29,8 +29,9 @@
     window.LocalCoKitchenToast?.show(message);
   };
 
-  const redirectHome = () => {
-    window.location.replace("/");
+  const redirectToAdminSignIn = () => {
+    const next = encodeURIComponent(window.location.pathname);
+    window.location.replace(`/admin/signin/?next=${next}`);
   };
 
   const revealAuthRequiredPage = () => {
@@ -188,10 +189,10 @@
       return;
     }
 
-    const { data: sessionData } = await client.auth.getSession();
+    const { data: userData, error: userError } = await client.auth.getUser();
 
-    if (!sessionData.session) {
-      redirectHome();
+    if (userError || !userData.user) {
+      redirectToAdminSignIn();
       return;
     }
 
@@ -200,9 +201,8 @@
     const { data: isAdmin, error: adminError } = await identityDb.rpc("current_user_is_admin");
 
     if (adminError || isAdmin !== true) {
-      clearChildren(container);
-      container.hidden = false;
-      setText("[data-status]", "You do not have admin access.");
+      await client.auth.signOut();
+      redirectToAdminSignIn();
       return;
     }
 
@@ -225,7 +225,7 @@
     }
 
     for (const application of data) {
-      await renderApplication(container, application, sessionData.session.user.id);
+      await renderApplication(container, application, userData.user.id);
     }
   };
 

@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Restricted access | LocalCoKitchen</title>
+    <link rel="stylesheet" href="/styles.css?v=20260619">
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/admin-auth.js" defer></script>
+  </head>
+  <body>
+    <main class="auth-shell">
+      <section class="auth-panel" aria-labelledby="admin-signin-title">
+        <div class="auth-copy">
+          <p class="eyebrow">Restricted access</p>
+          <h1 id="admin-signin-title">Administrator sign in</h1>
+          <p>Authorized LocalCoKitchen administrators only.</p>
+        </div>
+        <div class="auth-card">
+          <form class="auth-form" data-admin-password-form>
+            <div class="field-stack">
+              <label for="admin-email">Email address</label>
+              <input id="admin-email" name="email" type="email" autocomplete="username" maxlength="254" required>
+            </div>
+            <div class="field-stack">
+              <label for="admin-password">Password</label>
+              <input id="admin-password" name="password" type="password" autocomplete="current-password" maxlength="128" required>
+            </div>
+            <button class="auth-submit" type="submit">Continue</button>
+          </form>
+          <div data-admin-mfa-enrollment hidden>
+            <p class="auth-note">Authenticator setup is required for admin access.</p>
+            <img class="admin-mfa-qr" data-admin-mfa-qr alt="Authenticator setup QR code">
+          </div>
+          <form class="auth-form" data-admin-mfa-form hidden>
+            <div class="field-stack">
+              <label for="admin-code">Authenticator code</label>
+              <input id="admin-code" name="code" type="text" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required>
+            </div>
+            <button class="auth-submit" type="submit">Verify</button>
+          </form>
+          <p class="auth-message" data-admin-auth-status aria-live="polite"></p>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>

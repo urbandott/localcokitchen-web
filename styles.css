@@ -3558,6 +3558,20 @@ h1 span {
   gap: 1rem;
 }
 
+.admin-mfa-qr {
+  display: block;
+  width: min(240px, 100%);
+  margin: 1rem auto;
+  border: 8px solid #fff;
+}
+
+.admin-dashboard-link {
+  display: inline-block;
+  width: auto;
+  margin-top: 1rem;
+  text-decoration: none;
+}
+
 .admin-review-card {
   display: grid;
   gap: 1rem;

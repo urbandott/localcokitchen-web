@@ -176,9 +176,9 @@
             menu.insertBefore(shopLink, signOutButton);
           }
 
-          if (isAdmin && !menu.querySelector('[href="/admin/cook-applications/"]')) {
+          if (isAdmin && !menu.querySelector('[href="/admin/"]')) {
             const adminLink = document.createElement("a");
-            adminLink.href = "/admin/cook-applications/";
+            adminLink.href = "/admin/";
             adminLink.setAttribute("role", "menuitem");
             adminLink.textContent = "Admin";
             menu.insertBefore(adminLink, signOutButton);

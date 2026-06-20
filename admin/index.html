@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Admin portal | LocalCoKitchen</title>
+    <link rel="stylesheet" href="/styles.css?v=20260619">
+  </head>
+  <body>
+    <main class="content-page" data-auth-required hidden>
+      <section class="page-hero">
+        <p class="eyebrow">Administration</p>
+        <h1>Admin portal</h1>
+        <p class="lede">Secure operational tools for LocalCoKitchen.</p>
+      </section>
+      <p class="auth-message" data-status aria-live="polite"></p>
+      <section class="admin-review-list" data-admin-dashboard hidden>
+        <article class="admin-review-card">
+          <h2>Cook applications</h2>
+          <p>Review submitted cook credentials and approve marketplace access.</p>
+          <a class="auth-submit admin-dashboard-link" href="/admin/cook-applications/">Open applications</a>
+        </article>
+        <button class="secondary-action" type="button" data-admin-signout>Sign out</button>
+      </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/admin-portal.js" defer></script>
+  </body>
+</html>

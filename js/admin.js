@@ -56,6 +56,17 @@
     summary.hidden = false;
   };
 
+  const deliverPendingReviewNotifications = async () => {
+    if (!client) {
+      return false;
+    }
+
+    const { data, error } = await client.functions.invoke("send-cook-review-notifications", {
+      body: {},
+    });
+    return !error && Number(data?.failed || 0) === 0;
+  };
+
   const createEl = (tag, className, text) => {
     const el = document.createElement(tag);
 
@@ -86,7 +97,7 @@
     return data.signedUrl;
   };
 
-  const renderApplication = async (container, application, sessionUserId) => {
+  const renderApplication = async (container, application, reviews, sessionUserId) => {
     const card = createEl("article", "admin-review-card");
     const header = createEl("div", "admin-review-card__header");
     const title = createEl("div");
@@ -129,6 +140,46 @@
     }
     card.append(documents);
 
+    const history = createEl("details", "admin-review-history");
+    const historySummary = createEl(
+      "summary",
+      "",
+      `Review history (${reviews.length})`
+    );
+    history.append(historySummary);
+
+    if (!reviews.length) {
+      history.append(createEl("p", "", "No previous decisions recorded."));
+    } else {
+      const historyList = createEl("ol", "admin-review-history__list");
+      reviews.forEach((review) => {
+        const item = createEl("li");
+        item.append(
+          createEl("strong", "", review.decision === "approved" ? "Approved" : "Rejected"),
+          createEl(
+            "span",
+            "",
+            `${new Date(review.reviewed_at).toLocaleString()} by ${review.reviewer_name}`
+          )
+        );
+
+        if (review.review_notes) {
+          item.append(createEl("p", "", review.review_notes));
+        }
+
+        item.append(
+          createEl(
+            "small",
+            "",
+            `Email: ${review.notification_status}`
+          )
+        );
+        historyList.append(item);
+      });
+      history.append(historyList);
+    }
+    card.append(history);
+
     const form = createEl("form", "admin-review-actions");
     form.dataset.applicationId = application.user_id;
     const notesLabel = createEl("label", "field-stack");
@@ -161,6 +212,15 @@
         return;
       }
 
+      const actionLabel = status === "approved" ? "Approve" : "Reject";
+      const consequence = status === "approved"
+        ? "This grants cook access. The kitchen remains private until the cook publishes it."
+        : "This removes active cook access but preserves all kitchen data for possible reconsideration.";
+
+      if (!window.confirm(`${actionLabel} ${application.legal_name}?\n\n${consequence}`)) {
+        return;
+      }
+
       submitter.disabled = true;
       setText("[data-status]", `${status === "approved" ? "Approving" : "Rejecting"} application...`);
 
@@ -180,7 +240,15 @@
         return;
       }
 
+      const notificationDelivered = await deliverPendingReviewNotifications();
       showToast(`Application ${status}.`);
+
+      if (!notificationDelivered) {
+        setText(
+          "[data-status]",
+          "The decision was saved. Its email notification is queued and will be retried."
+        );
+      }
       await loadApplications();
     });
 
@@ -218,15 +286,23 @@
       return;
     }
 
-    const { data, error } = await marketplaceDb
-      .from("cook_applications")
-      .select("*")
-      .order("submitted_at", { ascending: false });
+    const [applicationsResult, reviewsResult] = await Promise.all([
+      marketplaceDb
+        .from("cook_applications")
+        .select("*")
+        .order("submitted_at", { ascending: false }),
+      identityDb.rpc("get_cook_application_review_history"),
+    ]);
+    const { data, error } = applicationsResult;
 
-    if (error) {
-      setText("[data-status]", error.message);
+    if (error || reviewsResult.error) {
+      setText("[data-status]", error?.message || reviewsResult.error.message);
       return;
     }
+
+    deliverPendingReviewNotifications().catch(() => {
+      // Delivery stays queued in the database for the next admin visit.
+    });
 
     clearChildren(container);
     container.hidden = false;
@@ -238,7 +314,10 @@
     }
 
     for (const application of data) {
-      await renderApplication(container, application, userData.user.id);
+      const applicationReviews = (reviewsResult.data || []).filter(
+        (review) => review.user_id === application.user_id
+      );
+      await renderApplication(container, application, applicationReviews, userData.user.id);
     }
   };
 

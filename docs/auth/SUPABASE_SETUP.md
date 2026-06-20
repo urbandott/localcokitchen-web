@@ -147,3 +147,19 @@ on conflict do nothing;
 ```
 
 Use `super_admin` only for trusted owner-level accounts.
+
+## Cook Review Notification Email
+
+Cook approval and rejection emails are delivered by the
+`send-cook-review-notifications` Edge Function through Resend. Configure the
+provider secret and a verified sender before deploying the function:
+
+```sh
+supabase secrets set RESEND_API_KEY=YOUR_RESEND_API_KEY
+supabase secrets set 'COOK_REVIEW_FROM_EMAIL=LocalCoKitchen <notifications@localcokitchen.com>'
+supabase functions deploy send-cook-review-notifications
+```
+
+Do not put the Resend API key in browser JavaScript or commit it to the repo.
+Failed delivery attempts remain in the private review outbox and are retried on
+later admin visits, up to five attempts.

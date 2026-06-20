@@ -13,7 +13,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="/styles.css?v=20260530">
+    <link rel="stylesheet" href="/styles.css?v=20260620">
   </head>
   <body>
     <header class="top-nav">
@@ -24,6 +24,12 @@
         <div class="nav-more"><button class="nav-more__button nav-more__button--icon" type="button" aria-haspopup="true" aria-expanded="false" aria-label="Open navigation menu"><svg aria-hidden="true" viewBox="0 0 24 24"><path d="M4 7h16"></path><path d="M4 12h16"></path><path d="M4 17h16"></path></svg></button><div class="nav-more__menu" role="menu"><a href="/" role="menuitem">Home</a><a href="/find-a-meal/" role="menuitem">Find a meal</a><a href="/sell-your-food/" role="menuitem">Sell your Food</a><a href="/how-it-works/" role="menuitem">How it works</a><a href="/mission/" role="menuitem">Mission</a><a href="/faq/" role="menuitem">FAQ</a><a href="/contact-us/" role="menuitem">Contact us</a></div></div>
       </nav>
     </header>
+
+    <nav class="admin-tabs" aria-label="Admin portal sections">
+      <a href="/admin/">Overview</a>
+      <a href="/admin/metrics/">Metrics</a>
+      <a href="/admin/cook-applications/" aria-current="page">Cook applications</a>
+    </nav>
 
     <main class="content-page" data-auth-required hidden>
       <section class="page-hero">

@@ -3558,6 +3558,40 @@ h1 span {
   gap: 1rem;
 }
 
+.admin-tabs {
+  display: flex;
+  gap: 0.35rem;
+  width: min(100% - 48px, 1180px);
+  margin: 1rem auto 0;
+  padding: 0.35rem;
+  overflow-x: auto;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 10px 24px rgba(50, 38, 25, 0.06);
+  scrollbar-width: thin;
+}
+
+.admin-tabs a {
+  flex: 0 0 auto;
+  padding: 0.7rem 1rem;
+  border-radius: 8px;
+  color: #324137;
+  font-weight: 800;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.admin-tabs a:hover,
+.admin-tabs a:focus-visible {
+  background: #f1eee6;
+}
+
+.admin-tabs a[aria-current="page"] {
+  color: #fff;
+  background: var(--leaf);
+}
+
 .admin-mfa-qr {
   display: block;
   width: min(240px, 100%);
@@ -3570,6 +3604,79 @@ h1 span {
   width: auto;
   margin-top: 1rem;
   text-decoration: none;
+}
+
+.admin-metrics-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.admin-metrics-grid--compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-metric-card {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+  min-height: 180px;
+  padding: clamp(1rem, 2vw, 1.4rem);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 14px 32px rgba(50, 38, 25, 0.07);
+}
+
+.admin-metric-card--primary {
+  border-color: rgba(42, 107, 74, 0.4);
+  background: linear-gradient(145deg, #e9f5e9, #fffdf7);
+}
+
+.admin-metric-card p,
+.admin-metric-card span {
+  margin: 0;
+}
+
+.admin-metric-card p {
+  color: #324137;
+  font-weight: 800;
+}
+
+.admin-metric-card strong {
+  color: var(--leaf);
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(2.4rem, 5vw, 4rem);
+  line-height: 1;
+}
+
+.admin-metric-card span {
+  color: var(--muted);
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+
+.admin-metrics-section {
+  margin-top: clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.admin-section-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.admin-section-heading h2 {
+  margin: 0.25rem 0 0;
+}
+
+.admin-metrics-updated {
+  margin: 1.5rem 0 0;
+  color: var(--muted);
+  font-size: 0.9rem;
+  text-align: right;
 }
 
 .admin-review-card {
@@ -3648,6 +3755,11 @@ h1 span {
     grid-template-columns: 1fr;
   }
 
+  .admin-metrics-grid,
+  .admin-metrics-grid--compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .home-hero h1,
   .page-hero h1,
   .sell-hero h1,
@@ -3695,6 +3807,20 @@ h1 span {
 }
 
 @media (max-width: 680px) {
+  .admin-tabs {
+    width: min(100% - 28px, 1180px);
+  }
+
+  .admin-metrics-grid,
+  .admin-metrics-grid--compact {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-section-heading {
+    align-items: start;
+    flex-direction: column;
+  }
+
   .admin-review-card__header {
     display: grid;
   }

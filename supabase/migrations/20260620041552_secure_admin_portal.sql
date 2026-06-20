@@ -44,24 +44,10 @@ create trigger revoke_changed_bootstrap_admin_role
   after update of email, email_confirmed_at on auth.users
   for each row execute function lck_private.revoke_changed_bootstrap_admin_role();
 
--- Fail closed unless the mailbox owner has already created and confirmed the
--- Auth account. This prevents accidental promotion when email confirmation is
--- disabled in a Supabase project.
-do $$
-begin
-  if not exists (
-    select 1
-    from auth.users auth_user
-    where lower(btrim(auth_user.email)) = 'localcokitchen@gmail.com'
-      and auth_user.email_confirmed_at is not null
-  ) then
-    raise exception using
-      message = 'Confirmed Auth account localcokitchen@gmail.com must exist before applying this migration.',
-      errcode = 'P0001';
-  end if;
-end;
-$$;
-
+-- Provision the owner when the confirmed Auth account already exists. This is
+-- intentionally conditional so migrations remain replayable on clean local and
+-- shadow databases. If the account is created later, run these two inserts as
+-- a tracked follow-up migration after its email has been confirmed.
 insert into lck_identity.user_roles (user_id, role)
 select auth_user.id, 'super_admin'::lck_identity.user_role
 from auth.users auth_user
@@ -124,6 +110,7 @@ as $$
 $$;
 
 revoke all on function lck_identity.current_user_has_admin_role() from public, anon, authenticated;
+grant execute on function lck_identity.current_user_has_admin_role() to authenticated;
 
 create or replace function lck_identity.current_user_is_admin()
 returns boolean

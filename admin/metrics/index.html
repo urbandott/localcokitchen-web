@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Marketplace metrics | LocalCoKitchen Admin</title>
+    <link rel="stylesheet" href="/styles.css?v=20260620">
+  </head>
+  <body>
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/admin/" aria-label="LocalCoKitchen admin portal">
+        <img src="/images/logo.svg" alt="LocalCoKitchen">
+      </a>
+      <nav class="nav-actions" aria-label="Admin navigation">
+        <button class="secondary-action" type="button" data-admin-signout>Sign out</button>
+      </nav>
+    </header>
+    <nav class="admin-tabs" aria-label="Admin portal sections">
+      <a href="/admin/">Overview</a>
+      <a href="/admin/metrics/" aria-current="page">Metrics</a>
+      <a href="/admin/cook-applications/">Cook applications</a>
+    </nav>
+
+    <main class="content-page" data-auth-required hidden>
+      <section class="page-hero">
+        <p class="eyebrow">Administration</p>
+        <h1>Marketplace metrics</h1>
+        <p class="lede">A current operational view of cook onboarding and customer-visible marketplace supply.</p>
+      </section>
+
+      <p class="auth-message" data-status aria-live="polite">Loading metrics...</p>
+
+      <section data-admin-metrics hidden>
+        <div class="admin-metrics-grid">
+          <article class="admin-metric-card admin-metric-card--primary">
+            <p>Live kitchens</p>
+            <strong data-metric="live_kitchens">—</strong>
+            <span>Approved cooks whose kitchens are public to customers.</span>
+          </article>
+          <article class="admin-metric-card">
+            <p>Inactive cook pipeline</p>
+            <strong data-metric="inactive_cook_pipeline">—</strong>
+            <span>Cook applicants without a customer-visible kitchen.</span>
+          </article>
+          <article class="admin-metric-card">
+            <p>Total cook applicants</p>
+            <strong data-metric="total_cook_applicants">—</strong>
+            <span>Everyone who has submitted a cook application.</span>
+          </article>
+          <article class="admin-metric-card">
+            <p>Applications in last 7 days</p>
+            <strong data-metric="applications_last_7_days">—</strong>
+            <span>New cook applications created during the last week.</span>
+          </article>
+        </div>
+
+        <section class="admin-metrics-section" aria-labelledby="onboarding-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="eyebrow">Cook pipeline</p>
+              <h2 id="onboarding-title">Onboarding status</h2>
+            </div>
+            <a class="secondary-action" href="/admin/cook-applications/">Review applications</a>
+          </div>
+          <div class="admin-metrics-grid admin-metrics-grid--compact">
+            <article class="admin-metric-card"><p>Pending review</p><strong data-metric="pending_applications">—</strong></article>
+            <article class="admin-metric-card"><p>Approved, not live</p><strong data-metric="approved_not_live">—</strong></article>
+            <article class="admin-metric-card"><p>Rejected</p><strong data-metric="rejected_applications">—</strong></article>
+            <article class="admin-metric-card"><p>Suspended</p><strong data-metric="suspended_cooks">—</strong></article>
+          </div>
+        </section>
+
+        <section class="admin-metrics-section" aria-labelledby="supply-title">
+          <div class="admin-section-heading">
+            <div>
+              <p class="eyebrow">Marketplace supply</p>
+              <h2 id="supply-title">Customer-visible inventory</h2>
+            </div>
+          </div>
+          <div class="admin-metrics-grid admin-metrics-grid--compact">
+            <article class="admin-metric-card"><p>Visible menu items</p><strong data-metric="customer_visible_menu_items">—</strong></article>
+            <article class="admin-metric-card"><p>Sold-out items</p><strong data-metric="sold_out_menu_items">—</strong></article>
+            <article class="admin-metric-card"><p>Active pickup windows</p><strong data-metric="live_pickup_windows">—</strong></article>
+          </div>
+        </section>
+
+        <p class="admin-metrics-updated">Updated <time data-metrics-generated-at>—</time></p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/admin-metrics.js" defer></script>
+  </body>
+</html>

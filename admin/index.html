@@ -6,9 +6,22 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
     <title>Admin portal | LocalCoKitchen</title>
-    <link rel="stylesheet" href="/styles.css?v=20260619">
+    <link rel="stylesheet" href="/styles.css?v=20260620">
   </head>
   <body>
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/admin/" aria-label="LocalCoKitchen admin portal">
+        <img src="/images/logo.svg" alt="LocalCoKitchen">
+      </a>
+      <nav class="nav-actions" aria-label="Admin navigation">
+        <button class="secondary-action" type="button" data-admin-signout>Sign out</button>
+      </nav>
+    </header>
+    <nav class="admin-tabs" aria-label="Admin portal sections">
+      <a href="/admin/" aria-current="page">Overview</a>
+      <a href="/admin/metrics/">Metrics</a>
+      <a href="/admin/cook-applications/">Cook applications</a>
+    </nav>
     <main class="content-page" data-auth-required hidden>
       <section class="page-hero">
         <p class="eyebrow">Administration</p>
@@ -18,11 +31,15 @@
       <p class="auth-message" data-status aria-live="polite"></p>
       <section class="admin-review-list" data-admin-dashboard hidden>
         <article class="admin-review-card">
+          <h2>Marketplace metrics</h2>
+          <p>Monitor live kitchens, inactive cook onboarding, applications, menus, and pickup capacity.</p>
+          <a class="auth-submit admin-dashboard-link" href="/admin/metrics/">View metrics</a>
+        </article>
+        <article class="admin-review-card">
           <h2>Cook applications</h2>
           <p>Review submitted cook credentials and approve marketplace access.</p>
           <a class="auth-submit admin-dashboard-link" href="/admin/cook-applications/">Open applications</a>
         </article>
-        <button class="secondary-action" type="button" data-admin-signout>Sign out</button>
       </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>

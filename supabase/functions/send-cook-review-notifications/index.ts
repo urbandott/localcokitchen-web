@@ -15,14 +15,17 @@ const allowedOrigins = new Set([
   "https://www.localcokitchen.com",
   "http://127.0.0.1:4174",
   "http://localhost:4174",
+  "http://0.0.0.0:4174",
+  "http://[::1]:4174",
 ]);
 
 const corsHeaders = (req: Request) => {
   const origin = req.headers.get("Origin") ?? "";
   return {
-    "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info",
+    "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-supabase-api-version",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
     "Access-Control-Allow-Origin": allowedOrigins.has(origin) ? origin : "https://localcokitchen.com",
+    "Access-Control-Max-Age": "86400",
     "Content-Type": "application/json",
     "Vary": "Origin",
   };
@@ -46,7 +49,15 @@ Deno.serve(async (req) => {
   }
 
   const verified = await getVerifiedUser(req);
-  if (verified.error) return verified.error;
+  if (verified.error) {
+    return new Response(await verified.error.text(), {
+      headers: {
+        ...Object.fromEntries(verified.error.headers.entries()),
+        ...headers,
+      },
+      status: verified.error.status,
+    });
+  }
 
   const authorization = req.headers.get("Authorization") ?? "";
   const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";

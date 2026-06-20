@@ -10,24 +10,13 @@ type ReviewNotification = {
   review_notes: string | null;
 };
 
-const allowedOrigins = new Set([
-  "https://localcokitchen.com",
-  "https://www.localcokitchen.com",
-  "http://127.0.0.1:4174",
-  "http://localhost:4174",
-  "http://0.0.0.0:4174",
-  "http://[::1]:4174",
-]);
-
-const corsHeaders = (req: Request) => {
-  const origin = req.headers.get("Origin") ?? "";
+const corsHeaders = () => {
   return {
     "Access-Control-Allow-Headers": "authorization, apikey, content-type, x-client-info, x-supabase-api-version",
     "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Origin": allowedOrigins.has(origin) ? origin : "https://localcokitchen.com",
+    "Access-Control-Allow-Origin": "*",
     "Access-Control-Max-Age": "86400",
     "Content-Type": "application/json",
-    "Vary": "Origin",
   };
 };
 
@@ -41,7 +30,7 @@ const escapeHtml = (value: string) =>
   })[character] ?? character);
 
 Deno.serve(async (req) => {
-  const headers = corsHeaders(req);
+  const headers = corsHeaders();
 
   if (req.method === "OPTIONS") return new Response(null, { headers, status: 204 });
   if (req.method !== "POST") {

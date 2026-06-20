@@ -61,8 +61,17 @@
       return false;
     }
 
+    const { data: sessionData, error: sessionError } = await client.auth.getSession();
+
+    if (sessionError || !sessionData.session?.access_token) {
+      return false;
+    }
+
     const { data, error } = await client.functions.invoke("send-cook-review-notifications", {
       body: {},
+      headers: {
+        Authorization: `Bearer ${sessionData.session.access_token}`,
+      },
     });
     return !error && Number(data?.failed || 0) === 0;
   };

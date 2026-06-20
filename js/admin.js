@@ -44,6 +44,18 @@
     }
   };
 
+  const updatePendingSummary = (applications) => {
+    const summary = document.querySelector("[data-pending-summary]");
+    const count = applications.filter((application) => application.status === "submitted").length;
+
+    if (!summary) {
+      return;
+    }
+
+    setText("[data-pending-application-count]", String(count));
+    summary.hidden = false;
+  };
+
   const createEl = (tag, className, text) => {
     const el = document.createElement(tag);
 
@@ -218,6 +230,7 @@
 
     clearChildren(container);
     container.hidden = false;
+    updatePendingSummary(data);
 
     if (!data.length) {
       container.append(createEl("p", "", "No cook applications yet."));

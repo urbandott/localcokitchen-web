@@ -15,6 +15,12 @@
   const maxMenuImageBytes = 3 * 1024 * 1024;
   const imageTypes = new Set(["image/jpeg", "image/png", "image/webp"]);
   const documentTypes = new Set([...imageTypes, "application/pdf"]);
+  const fileExtensions = new Map([
+    ["image/jpeg", "jpg"],
+    ["image/png", "png"],
+    ["image/webp", "webp"],
+    ["application/pdf", "pdf"],
+  ]);
   let currentMenuItems = [];
   let currentPickupWindows = [];
   const dayNames = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -219,6 +225,18 @@
     "Low Sodium",
     "No Added Sugar",
   ];
+  const allergenTagOptions = [
+    "Milk",
+    "Eggs",
+    "Fish",
+    "Shellfish",
+    "Tree nuts",
+    "Peanuts",
+    "Wheat",
+    "Soy",
+    "Sesame",
+    "None declared",
+  ];
 
   const cleanZipCode = (value) =>
     String(value || "")
@@ -285,15 +303,25 @@
   const getPublicUrl = (bucket, path) =>
     client.storage.from(bucket).getPublicUrl(path).data.publicUrl;
 
-  const getStoragePathFromPublicUrl = (bucket, url) => {
-    const marker = `/storage/v1/object/public/${bucket}/`;
-    const markerIndex = String(url || "").indexOf(marker);
+  const getStoragePath = (bucket, value) => {
+    const source = String(value || "").trim();
+    if (!source) return "";
+    if (!source.includes("://")) return source.replace(/^\/+/, "");
 
-    if (markerIndex === -1) {
-      return "";
-    }
+    const markers = [
+      `/storage/v1/object/public/${bucket}/`,
+      `/storage/v1/object/sign/${bucket}/`,
+    ];
+    const marker = markers.find((candidate) => source.includes(candidate));
+    if (!marker) return "";
+    return decodeURIComponent(source.slice(source.indexOf(marker) + marker.length).split("?")[0]);
+  };
 
-    return decodeURIComponent(String(url).slice(markerIndex + marker.length));
+  const getSignedStorageUrl = async (bucket, value) => {
+    const path = getStoragePath(bucket, value);
+    if (!path) return "";
+    const { data, error } = await client.storage.from(bucket).createSignedUrl(path, 3600);
+    return error ? "" : data.signedUrl;
   };
 
   const removeStorageObject = async (bucket, path) => {
@@ -305,6 +333,15 @@
 
     if (error) {
       throw error;
+    }
+  };
+
+  const removeStorageObjectQuietly = async (bucket, path) => {
+    if (!path) return;
+    try {
+      await removeStorageObject(bucket, path);
+    } catch (_error) {
+      // Best-effort rollback. Storage lifecycle monitoring should alert on orphans.
     }
   };
 
@@ -330,12 +367,16 @@
       throw error;
     }
 
-    return bucket === "cook-documents" ? path : getPublicUrl(bucket, path);
+    return bucket === "profile-images" ? getPublicUrl(bucket, path) : path;
   };
 
   const filePath = (userId, label, file) => {
-    const extension = file.name.split(".").pop()?.toLowerCase() || "bin";
-    return `${userId}/${label}-${Date.now()}.${extension}`;
+    const extension = fileExtensions.get(file.type);
+    if (!extension) {
+      throw new Error("Unsupported file type.");
+    }
+    const uniqueId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+    return `${userId}/${label}-${uniqueId}.${extension}`;
   };
 
   const renderShopImagePreview = (form, imageUrl) => {
@@ -490,55 +531,68 @@
       return false;
     }
 
-    let proofPath = existingApplication?.food_handler_certificate_url || "";
-    let permitPath = existingApplication?.permit_or_certification_url || "";
+    const previousProofPath = existingApplication?.food_handler_certificate_url || "";
+    const previousPermitPath = existingApplication?.permit_or_certification_url || "";
+    let proofPath = previousProofPath;
+    let permitPath = previousPermitPath;
+    const uploadedPaths = [];
 
-    if (proof instanceof File && proof.size) {
-      proofPath = await uploadFile({
-        bucket: "cook-documents",
-        file: proof,
-        maxBytes: maxProofBytes,
-        path: filePath(session.user.id, "food-handler-training", proof),
-        types: documentTypes,
-      });
-    }
+    try {
+      if (proof instanceof File && proof.size) {
+        proofPath = await uploadFile({
+          bucket: "cook-documents",
+          file: proof,
+          maxBytes: maxProofBytes,
+          path: filePath(session.user.id, "food-handler-training", proof),
+          types: documentTypes,
+        });
+        uploadedPaths.push(proofPath);
+      }
 
-    if (permit instanceof File && permit.size) {
-      permitPath = await uploadFile({
-        bucket: "cook-documents",
-        file: permit,
-        maxBytes: maxProofBytes,
-        path: filePath(session.user.id, "permit", permit),
-        types: documentTypes,
-      });
-    }
+      if (permit instanceof File && permit.size) {
+        permitPath = await uploadFile({
+          bucket: "cook-documents",
+          file: permit,
+          maxBytes: maxProofBytes,
+          path: filePath(session.user.id, "permit", permit),
+          types: documentTypes,
+        });
+        uploadedPaths.push(permitPath);
+      }
 
-    const payload = {
-      user_id: session.user.id,
-      legal_name: legalName,
-      phone,
-      pickup_address: pickupAddress,
-      pickup_zip_code: pickupZipCode,
-      food_handler_training_completed:
-        formData.get("food_handler_training_completed") === "yes",
-      food_handler_certificate_url: proofPath,
-      permit_or_certification_url: permitPath || null,
-      status: "submitted",
-      submitted_at: new Date().toISOString(),
-    };
+      const payload = {
+        user_id: session.user.id,
+        legal_name: legalName,
+        phone,
+        pickup_address: pickupAddress,
+        pickup_zip_code: pickupZipCode,
+        food_handler_training_completed:
+          formData.get("food_handler_training_completed") === "yes",
+        food_handler_certificate_url: proofPath,
+        permit_or_certification_url: permitPath || null,
+        status: "submitted",
+        submitted_at: new Date().toISOString(),
+      };
 
-    const { error } = existingApplication
-      ? await marketplaceDb
-          .from("cook_applications")
-          .update(payload)
-          .eq("user_id", session.user.id)
-      : await marketplaceDb.from("cook_applications").insert(payload);
+      const { error } = existingApplication
+        ? await marketplaceDb
+            .from("cook_applications")
+            .update(payload)
+            .eq("user_id", session.user.id)
+        : await marketplaceDb.from("cook_applications").insert(payload);
+      if (error) throw error;
 
-    if (error) {
+      if (proofPath !== previousProofPath) {
+        await removeStorageObjectQuietly("cook-documents", previousProofPath);
+      }
+      if (permitPath !== previousPermitPath) {
+        await removeStorageObjectQuietly("cook-documents", previousPermitPath);
+      }
+      return true;
+    } catch (error) {
+      await Promise.all(uploadedPaths.map((path) => removeStorageObjectQuietly("cook-documents", path)));
       throw error;
     }
-
-    return true;
   };
 
   const setupCookApplication = async () => {
@@ -679,8 +733,9 @@
         return;
       }
 
+      let avatarPath = "";
       try {
-        const avatarPath = filePath(session.user.id, "account-profile", image);
+        avatarPath = filePath(session.user.id, "account-profile", image);
         const avatarUrl = await uploadFile({
           bucket: "profile-images",
           file: image,
@@ -699,12 +754,15 @@
           throw error;
         }
 
+        const committedAvatarPath = avatarPath;
+        avatarPath = "";
+
         if (currentAvatarPath) {
-          await removeProfileImageObject(currentAvatarPath);
+          await removeStorageObjectQuietly("profile-images", currentAvatarPath);
         }
 
         currentAvatarUrl = avatarUrl;
-        currentAvatarPath = avatarPath;
+        currentAvatarPath = committedAvatarPath;
         renderProfileAvatar(avatar, session.user, currentAvatarUrl);
 
         if (profilePictureInput) {
@@ -714,6 +772,7 @@
         window.dispatchEvent(new CustomEvent("localcokitchen:profile-updated"));
         showToast("Profile picture updated.");
       } catch (error) {
+        await removeStorageObjectQuietly("profile-images", avatarPath);
         setText("[data-status]", error.message || "Could not update profile picture.");
       }
     });
@@ -853,7 +912,12 @@
       profileForm.elements.order_notes.value = profile.order_notes || "";
       profileForm.elements.is_public.checked = Boolean(profile.is_public);
       profileForm.dataset.currentImage = profile.profile_image_url || "";
-      renderShopImagePreview(profileForm, profile.profile_image_url || "");
+      renderShopImagePreview(profileForm, "");
+      getSignedStorageUrl("cook-profile-images", profile.profile_image_url).then((url) => {
+        if (profileForm.dataset.currentImage === (profile.profile_image_url || "")) {
+          renderShopImagePreview(profileForm, url);
+        }
+      });
     }
 
     if (profileForm) {
@@ -891,8 +955,10 @@
         article.className = "shop-list-item";
 
         const image = document.createElement("img");
-        image.src = item.image_url;
-        image.alt = "";
+        image.alt = item.name;
+        getSignedStorageUrl("cook-menu-images", item.image_url).then((url) => {
+          if (url) image.src = url;
+        });
 
         const body = document.createElement("div");
         body.className = "shop-list-item__body";
@@ -1176,13 +1242,16 @@
         return;
       }
 
+      let uploadedProfilePath = "";
+      const previousProfilePath = getStoragePath("cook-profile-images", imageUrl);
       try {
         if (image instanceof File && image.size) {
+          uploadedProfilePath = filePath(session.user.id, "profile", image);
           imageUrl = await uploadFile({
             bucket: "cook-profile-images",
             file: image,
             maxBytes: maxProfileImageBytes,
-            path: filePath(session.user.id, "profile", image),
+            path: uploadedProfilePath,
             types: imageTypes,
           });
         }
@@ -1204,9 +1273,16 @@
           throw error;
         }
 
+        const committedProfilePath = uploadedProfilePath;
+        uploadedProfilePath = "";
+        if (committedProfilePath && previousProfilePath) {
+          await removeStorageObjectQuietly("cook-profile-images", previousProfilePath);
+        }
+
         showToast("Shop profile saved.");
         await refresh();
       } catch (error) {
+        await removeStorageObjectQuietly("cook-profile-images", uploadedProfilePath);
         setText("[data-status]", error.message || "Could not save shop profile.");
       }
     });
@@ -1239,6 +1315,17 @@
       maxLength: 40,
       limitMessage: "Use 10 or fewer dietary tags.",
     });
+    const allergenTagPicker = setupTagPicker({
+      form: menuItemForm,
+      fieldName: "allergens",
+      inputSelector: "[data-allergen-tag-input]",
+      chipsSelector: "[data-allergen-tag-chips]",
+      datalistSelector: "#allergen-tag-options",
+      options: allergenTagOptions,
+      maxItems: 12,
+      maxLength: 40,
+      limitMessage: "Use 12 or fewer allergen disclosures.",
+    });
 
     const closeMenuItemModal = () => {
       menuItemForm?.reset();
@@ -1261,6 +1348,7 @@
       }
       categoryTagPicker?.setTags([]);
       dietaryTagPicker?.setTags([]);
+      allergenTagPicker?.setTags([]);
 
       if (menuItemModal?.open) {
         menuItemModal.close();
@@ -1286,6 +1374,7 @@
         menuItemForm.elements.spice_level.value = item.spice_level || "Not spicy";
         categoryTagPicker?.setTags(item.category_tags?.length ? item.category_tags : item.category ? [item.category] : []);
         dietaryTagPicker?.setTags(item.dietary_tags || []);
+        allergenTagPicker?.setTags(item.allergens || []);
         menuItemForm.elements.main_ingredients.value = (item.main_ingredients || []).join(", ");
         menuItemForm.elements.is_sold_out.checked = Boolean(item.is_sold_out);
       } else {
@@ -1296,6 +1385,7 @@
         menuItemForm.elements.spice_level.value = "Not spicy";
         categoryTagPicker?.setTags([]);
         dietaryTagPicker?.setTags([]);
+        allergenTagPicker?.setTags([]);
       }
 
       if (menuImageInput) {
@@ -1339,6 +1429,7 @@
       const form = event.currentTarget;
       categoryTagPicker?.commitCurrent();
       dietaryTagPicker?.commitCurrent();
+      allergenTagPicker?.commitCurrent();
       const formData = new FormData(form);
       const image = formData.get("image");
       const isEdit = form.dataset.mode === "edit";
@@ -1363,7 +1454,12 @@
         itemMaxLength: 60,
         maxItems: 20,
       });
+      const allergens = parseListField(formData.get("allergens"), {
+        itemMaxLength: 40,
+        maxItems: 12,
+      });
 
+      let replacementImagePath = "";
       try {
         if (!form.checkValidity()) {
           form.reportValidity();
@@ -1384,6 +1480,18 @@
 
         if (!description) {
           throw new Error("Description is required.");
+        }
+
+        if (!mainIngredients.length) {
+          throw new Error("Add at least one main ingredient.");
+        }
+
+        if (!allergens.length) {
+          throw new Error("Select applicable allergens or None declared.");
+        }
+
+        if (allergens.includes("None declared") && allergens.length > 1) {
+          throw new Error("None declared cannot be combined with other allergens.");
         }
 
         if (!isMoneyAmount(price) || priceCents <= 0 || priceCents > maxMenuPriceCents) {
@@ -1411,8 +1519,7 @@
         }
 
         let imageUrl = currentImageUrl;
-        let replacementImagePath = "";
-        const previousImagePath = getStoragePathFromPublicUrl("cook-menu-images", currentImageUrl);
+        const previousImagePath = getStoragePath("cook-menu-images", currentImageUrl);
 
         if (image instanceof File && image.size) {
           replacementImagePath = filePath(session.user.id, "menu-item", image);
@@ -1436,6 +1543,7 @@
           category_tags: categoryTags,
           dietary_tags: dietaryTags,
           main_ingredients: mainIngredients,
+          allergens,
           portion_serves: portionServes,
           spice_level: spiceLevel,
           is_sold_out: formData.get("is_sold_out") === "yes",
@@ -1453,14 +1561,18 @@
           throw error;
         }
 
-        if (isEdit && replacementImagePath && previousImagePath) {
-          await removeStorageObject("cook-menu-images", previousImagePath);
+        const committedReplacementPath = replacementImagePath;
+        replacementImagePath = "";
+
+        if (isEdit && committedReplacementPath && previousImagePath) {
+          await removeStorageObjectQuietly("cook-menu-images", previousImagePath);
         }
 
         closeMenuItemModal();
         showToast(isEdit ? "Menu item updated." : "Menu item added.");
         await refresh();
       } catch (error) {
+        await removeStorageObjectQuietly("cook-menu-images", replacementImagePath);
         setText("[data-status]", error.message || "Could not save menu item.");
       }
     });
@@ -1510,41 +1622,18 @@
         });
       }
 
-      for (const update of updates) {
-        const payload = {
-          cook_id: session.user.id,
+      const { error } = await marketplaceDb.rpc("save_own_pickup_windows", {
+        p_windows: updates.map((update) => ({
           day_of_week: update.dayIndex,
           start_time: update.startTime || "09:00",
           end_time: update.endTime || "17:00",
           is_active: update.isActive,
-        };
+        })),
+      });
 
-        if (update.existingWindow?.id) {
-          const { error: deactivateError } = await marketplaceDb
-            .from("cook_pickup_windows")
-            .update({ is_active: false })
-            .eq("cook_id", session.user.id)
-            .eq("day_of_week", update.dayIndex);
-
-          if (deactivateError) {
-            setText("[data-status]", deactivateError.message);
-            return;
-          }
-        }
-
-        const query = update.existingWindow?.id
-          ? marketplaceDb
-              .from("cook_pickup_windows")
-              .update(payload)
-              .eq("id", update.existingWindow.id)
-              .eq("cook_id", session.user.id)
-          : marketplaceDb.from("cook_pickup_windows").insert(payload);
-        const { error } = await query;
-
-        if (error) {
-          setText("[data-status]", error.message);
-          return;
-        }
+      if (error) {
+        setText("[data-status]", "Pickup windows could not be saved. Check the times and try again.");
+        return;
       }
 
       showToast("Pickup windows saved.");

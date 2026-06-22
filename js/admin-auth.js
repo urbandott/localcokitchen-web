@@ -35,12 +35,18 @@
     return !error && data === true;
   };
 
+  const finishAdminSignIn = async () => {
+    const { error } = await identityDb.rpc("record_admin_login");
+    if (error) throw error;
+    window.location.replace(getDestination());
+  };
+
   const beginMfa = async () => {
     const assurance = await client.auth.mfa.getAuthenticatorAssuranceLevel();
     if (assurance.error) throw assurance.error;
 
     if (assurance.data.currentLevel === "aal2") {
-      window.location.replace(getDestination());
+      await finishAdminSignIn();
       return;
     }
 
@@ -112,7 +118,7 @@
       if (verified.error) throw verified.error;
       const { data: isAdmin, error } = await identityDb.rpc("current_user_is_admin");
       if (error || isAdmin !== true) throw error || new Error("Access denied");
-      window.location.replace(getDestination());
+      await finishAdminSignIn();
     } catch (_error) {
       setStatus(enrollment
         ? "That code was not accepted. Check the authenticator app and try again."

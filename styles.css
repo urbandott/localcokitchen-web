@@ -1439,7 +1439,6 @@ h1 span {
   }
 }
 
-.nav-more:focus-within .nav-more__menu,
 .nav-more.is-open .nav-more__menu {
   opacity: 1;
   pointer-events: auto;
@@ -1505,7 +1504,6 @@ h1 span {
   transition: opacity 150ms ease, transform 150ms ease;
 }
 
-.nav-profile:focus-within .nav-profile__menu,
 .nav-profile.is-open .nav-profile__menu {
   opacity: 1;
   pointer-events: auto;

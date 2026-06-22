@@ -1,4 +1,4 @@
-import { createClient, type User } from "jsr:@supabase/supabase-js@2";
+import { createClient, type User } from "jsr:@supabase/supabase-js@2.106.2";
 
 type VerifiedUserResult =
   | {

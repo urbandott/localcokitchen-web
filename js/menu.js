@@ -13,6 +13,25 @@
 
   const client = window.supabase.createClient(config.url, config.publishableKey);
   const marketplaceDb = client.schema("lck_marketplace");
+  const getStoragePath = (value) => {
+    const source = String(value || "").trim();
+    if (!source) return "";
+    if (!source.includes("://")) return source.replace(/^\/+/, "");
+    const marker = "/storage/v1/object/public/cook-menu-images/";
+    const markerIndex = source.indexOf(marker);
+    return markerIndex === -1
+      ? ""
+      : decodeURIComponent(source.slice(markerIndex + marker.length).split("?")[0]);
+  };
+
+  const getMenuImageUrl = async (value) => {
+    const path = getStoragePath(value);
+    if (!path) return "";
+    const { data, error } = await client.storage
+      .from("cook-menu-images")
+      .createSignedUrl(path, 3600);
+    return error ? "" : data.signedUrl;
+  };
   const clearChildren = (element) => {
     while (element.firstChild) {
       element.firstChild.remove();
@@ -45,12 +64,14 @@
     list.append(row);
   };
 
-  const renderMenuItem = (item) => {
+  const renderMenuItem = async (item) => {
     const article = createEl("article", "menu-item");
 
     const image = document.createElement("img");
-    image.src = item.image_url;
-    image.alt = "";
+    const imageUrl = await getMenuImageUrl(item.image_url);
+    if (imageUrl) image.src = imageUrl;
+    else image.hidden = true;
+    image.alt = item.name;
     article.append(image);
 
     const body = document.createElement("div");
@@ -79,6 +100,7 @@
     const details = createEl("dl", "menu-item-details");
     appendDetail(details, "Serves", item.portion_serves ? `${item.portion_serves} people` : "");
     appendDetail(details, "Main ingredients", item.main_ingredients);
+    appendDetail(details, "Allergens", item.allergens);
 
     if (details.childElementCount) {
       body.append(details);
@@ -96,14 +118,22 @@
     .eq("is_active", true)
     .order("created_at", { ascending: false })
     .limit(24)
-    .then(({ data, error }) => {
-      if (error || !data?.length) {
+    .then(async ({ data, error }) => {
+      clearChildren(container);
+      if (error) {
+        container.append(createEl("p", "auth-message", "Available items could not be loaded. Please try again later."));
+        return;
+      }
+      if (!data?.length) {
+        container.append(createEl("p", "", "No menu items are available right now. Please check back soon."));
         return;
       }
 
+      const cards = await Promise.all(data.map(renderMenuItem));
+      container.append(...cards);
+    })
+    .catch(() => {
       clearChildren(container);
-      data.forEach((item) => {
-        container.append(renderMenuItem(item));
-      });
+      container.append(createEl("p", "auth-message", "Available items could not be loaded. Please try again later."));
     });
 })();

@@ -67,22 +67,6 @@
     return Array.isArray(user.identities) && user.identities.length === 0;
   };
 
-  const getSignupAccountStatus = async (email) => {
-    if (!client) {
-      return "unknown";
-    }
-
-    const { data, error } = await client.rpc("lck_get_signup_account_status", {
-      email_input: email,
-    });
-
-    if (error) {
-      return "unknown";
-    }
-
-    return data || "unknown";
-  };
-
   const setupPasswordToggles = () => {
     document.querySelectorAll("[data-password-toggle]").forEach((button) => {
       const input = document.getElementById(button.dataset.passwordToggle);
@@ -237,6 +221,12 @@
           return;
         }
 
+        const resetPasswordState = passwordPolicy.validatePassword(password, password);
+        if (!resetPasswordState.allRulesMet) {
+          setBlockingStatus("Password must meet every listed requirement.");
+          return;
+        }
+
         const { error } = await client.auth.updateUser({ password });
 
         if (error) {
@@ -273,13 +263,6 @@
         const lastName = cleanTextValue(formData.get("last_name"), 80);
         const fullName = [firstName, lastName].filter(Boolean).join(" ");
         const marketingOptIn = formData.get("marketing_opt_in") === "yes";
-        const accountStatus = await getSignupAccountStatus(email);
-
-        if (accountStatus === "active") {
-          showToast(genericSignupStatus);
-          return;
-        }
-
         const { data, error } = await client.auth.signUp({
           email,
           password,

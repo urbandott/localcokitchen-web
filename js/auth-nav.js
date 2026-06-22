@@ -140,17 +140,14 @@
 
       const menu = document.createElement("div");
       menu.className = "nav-profile__menu";
-      menu.setAttribute("role", "menu");
 
       const profileLink = document.createElement("a");
       profileLink.href = "/profile/";
-      profileLink.setAttribute("role", "menuitem");
       profileLink.textContent = "My profile";
       menu.append(profileLink);
 
       const signOutButton = document.createElement("button");
       signOutButton.type = "button";
-      signOutButton.setAttribute("role", "menuitem");
       signOutButton.textContent = "Sign out";
       signOutButton.addEventListener("click", async () => {
         signOutButton.disabled = true;
@@ -171,7 +168,6 @@
           if (hasShopAccess && !menu.querySelector('[href="/my-shop/"]')) {
             const shopLink = document.createElement("a");
             shopLink.href = "/my-shop/";
-            shopLink.setAttribute("role", "menuitem");
             shopLink.textContent = "My Kitchen";
             menu.insertBefore(shopLink, signOutButton);
           }
@@ -179,7 +175,6 @@
           if (isAdmin && !menu.querySelector('[href="/admin/"]')) {
             const adminLink = document.createElement("a");
             adminLink.href = "/admin/";
-            adminLink.setAttribute("role", "menuitem");
             adminLink.textContent = "Admin";
             menu.insertBefore(adminLink, signOutButton);
           }
@@ -234,7 +229,11 @@
 
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") {
+      const activeMenu = document.activeElement?.closest?.(".nav-more, .nav-profile");
       closeOpenDropdowns();
+      activeMenu
+        ?.querySelector(".nav-more__button, .nav-profile__button")
+        ?.focus();
     }
   });
 })();

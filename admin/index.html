@@ -6,7 +6,7 @@
     <meta name="robots" content="noindex, nofollow, noarchive">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
     <title>Admin portal | LocalCoKitchen</title>
-    <link rel="stylesheet" href="/styles.css?v=20260620">
+    <link rel="stylesheet" href="/styles.css?v=20260622">
   </head>
   <body>
     <header class="top-nav">
@@ -20,6 +20,7 @@
     <nav class="admin-tabs" aria-label="Admin portal sections">
       <a href="/admin/" aria-current="page">Overview</a>
       <a href="/admin/metrics/">Metrics</a>
+      <a href="/admin/cooks/">Cooks</a>
       <a href="/admin/cook-applications/">Cook applications</a>
     </nav>
     <main class="content-page" data-auth-required hidden>
@@ -30,6 +31,11 @@
       </section>
       <p class="auth-message" data-status aria-live="polite"></p>
       <section class="admin-review-list" data-admin-dashboard hidden>
+        <article class="admin-review-card">
+          <h2>Cook directory</h2>
+          <p>Search all cooks and inspect account, application, kitchen, menu, and pickup details.</p>
+          <a class="auth-submit admin-dashboard-link" href="/admin/cooks/">View cooks</a>
+        </article>
         <article class="admin-review-card">
           <h2>Marketplace metrics</h2>
           <p>Monitor live kitchens, inactive cook onboarding, applications, menus, and pickup capacity.</p>

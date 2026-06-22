@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex, nofollow, noarchive">
+    <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
+    <title>Cooks | LocalCoKitchen Admin</title>
+    <link rel="stylesheet" href="/styles.css?v=20260622">
+  </head>
+  <body>
+    <header class="top-nav">
+      <a class="brand nav-brand" href="/admin/" aria-label="LocalCoKitchen admin portal"><img src="/images/logo.svg" alt="LocalCoKitchen"></a>
+      <nav class="nav-actions" aria-label="Admin navigation"><button class="secondary-action" type="button" data-admin-signout>Sign out</button></nav>
+    </header>
+    <nav class="admin-tabs" aria-label="Admin portal sections">
+      <a href="/admin/">Overview</a>
+      <a href="/admin/metrics/">Metrics</a>
+      <a href="/admin/cooks/" aria-current="page">Cooks</a>
+      <a href="/admin/cook-applications/">Cook applications</a>
+    </nav>
+
+    <main class="content-page" data-auth-required hidden>
+      <section class="page-hero">
+        <p class="eyebrow">Administration</p>
+        <h1>Cook directory</h1>
+        <p class="lede">Search and inspect cook accounts, kitchens, applications, menus, and pickup availability.</p>
+      </section>
+
+      <p class="auth-message" data-status aria-live="polite">Loading cooks...</p>
+
+      <section data-cook-directory hidden>
+        <form class="admin-cook-filters" data-cook-filters role="search">
+          <label class="field-stack admin-cook-search"><span>Search cooks</span><input type="search" name="search" maxlength="100" placeholder="Email, name, phone, zip, cuisine"></label>
+          <label class="field-stack"><span>Application</span><select name="application_status"><option value="all">All statuses</option><option value="submitted">Submitted</option><option value="approved">Approved</option><option value="rejected">Rejected</option><option value="suspended">Suspended</option><option value="draft">Draft</option></select></label>
+          <label class="field-stack"><span>Kitchen</span><select name="kitchen_visibility"><option value="all">All kitchens</option><option value="live">Live</option><option value="not_live">Not live</option></select></label>
+          <label class="field-stack"><span>Cook access</span><select name="account_state"><option value="all">All access</option><option value="active">Active</option><option value="inactive">Inactive</option></select></label>
+          <button class="auth-submit" type="submit">Apply</button>
+          <button class="secondary-action" type="reset">Clear</button>
+        </form>
+
+        <div class="admin-cook-results-heading"><strong data-cook-count>0 cooks</strong><span>Select a cook to view full details.</span></div>
+        <div class="admin-cook-table-wrap">
+          <table class="admin-cook-table">
+            <thead><tr><th scope="col">Cook</th><th scope="col">Application</th><th scope="col">Kitchen</th><th scope="col">Access</th><th scope="col">Menu</th><th scope="col"><span class="visually-hidden">Action</span></th></tr></thead>
+            <tbody data-cook-rows></tbody>
+          </table>
+        </div>
+        <p class="admin-cook-empty" data-cook-empty hidden>No cooks match these filters.</p>
+        <nav class="admin-cook-pagination" aria-label="Cook directory pages"><button class="secondary-action" type="button" data-page-previous>Previous</button><span data-page-status>Page 1</span><button class="secondary-action" type="button" data-page-next>Next</button></nav>
+      </section>
+
+      <dialog class="admin-cook-dialog" data-cook-dialog aria-labelledby="cook-detail-title">
+        <div class="admin-cook-dialog__header"><div><p class="eyebrow">Cook details</p><h2 id="cook-detail-title" data-detail-title>Cook</h2></div><button class="modal-close" type="button" data-close-dialog aria-label="Close cook details">×</button></div>
+        <div data-cook-detail></div>
+      </dialog>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2" defer></script>
+    <script src="/js/supabase-config.js" defer></script>
+    <script src="/js/toast.js" defer></script>
+    <script src="/js/admin-cooks.js?v=20260622" defer></script>
+  </body>
+</html>

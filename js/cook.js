@@ -861,15 +861,18 @@
       const visibilityNote = profileForm.querySelector("[data-storefront-toggle-note]");
       if (isPublicInput) {
         const isApproved = application?.status === "approved";
+        const isModeratorDisabled = Boolean(profile?.moderator_disabled_at);
         isPublicInput.disabled = !isApproved;
-        if (!isApproved) {
+        if (!isApproved || isModeratorDisabled) {
           isPublicInput.checked = false;
         }
 
         if (visibilityNote) {
-          visibilityNote.textContent = isApproved
-            ? "Use this toggle to control whether customers can see your approved storefront."
-            : "This will become available once your profile is approved by an admin.";
+          visibilityNote.textContent = isModeratorDisabled
+            ? "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information."
+            : isApproved
+              ? "Use this toggle to control whether customers can see your approved storefront."
+              : "This will become available once your profile is approved by an admin.";
         }
       }
     }
@@ -1056,9 +1059,11 @@
     shopPage.hidden = false;
 
     let currentApplication = application;
+    let currentProfile = null;
     const refresh = async () => {
       const shopData = await loadShop(session);
       currentApplication = shopData.application;
+      currentProfile = shopData.profile;
       renderShop(shopData);
     };
     await refresh();
@@ -1095,6 +1100,15 @@
     const shopProfileForm = document.querySelector("[data-shop-profile-form]");
     if (shopProfileForm) {
       setupCookApplicationFormatting(shopProfileForm);
+      shopProfileForm.elements.is_public?.addEventListener("change", (event) => {
+        if (event.currentTarget.checked && currentProfile?.moderator_disabled_at) {
+          event.currentTarget.checked = false;
+          setText(
+            "[data-status]",
+            "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information."
+          );
+        }
+      });
       shopProfileForm.elements.profile_image?.addEventListener("change", (event) => {
         const input = event.currentTarget;
         input.setCustomValidity("");
@@ -1117,6 +1131,15 @@
       const description = clean(formData.get("description"), 3500);
       const pickupZipCode = cleanZipCode(formData.get("pickup_zip_code"));
       const preorderCutoffHours = Number(formData.get("preorder_cutoff_hours"));
+
+      if (formData.get("is_public") === "yes" && currentProfile?.moderator_disabled_at) {
+        form.elements.is_public.checked = false;
+        setText(
+          "[data-status]",
+          "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information."
+        );
+        return;
+      }
 
       if (!form.checkValidity()) {
         form.reportValidity();
@@ -1174,7 +1197,7 @@
           preorder_cutoff_hours: preorderCutoffHours,
           order_notes: clean(formData.get("order_notes"), 800),
           is_public:
-            application?.status === "approved" && formData.get("is_public") === "yes",
+            currentApplication?.status === "approved" && formData.get("is_public") === "yes",
         });
 
         if (error) {

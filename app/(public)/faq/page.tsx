@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AppChrome } from "@/components/app-chrome";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = createMetadata({
@@ -24,19 +25,21 @@ const faqs = [
 
 export default function FaqPage() {
   return (
-    <div className="content-page next-page-grid">
-      <section className="page-hero">
-        <p className="eyebrow">FAQ</p>
-        <h1>Frequently asked questions</h1>
-      </section>
-      <section className="next-section">
-        {faqs.map(([question, answer]) => (
-          <article className="next-card" key={question}>
-            <h2>{question}</h2>
-            <p>{answer}</p>
-          </article>
-        ))}
-      </section>
-    </div>
+    <AppChrome>
+      <div className="content-page next-page-grid">
+        <section className="page-hero">
+          <p className="eyebrow">FAQ</p>
+          <h1>Frequently asked questions</h1>
+        </section>
+        <section className="next-section">
+          {faqs.map(([question, answer]) => (
+            <article className="next-card" key={question}>
+              <h2>{question}</h2>
+              <p>{answer}</p>
+            </article>
+          ))}
+        </section>
+      </div>
+    </AppChrome>
   );
 }

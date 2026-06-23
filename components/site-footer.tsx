@@ -1,45 +1,85 @@
-import Image from "next/image";
 import Link from "next/link";
+import { ChefHat } from "lucide-react";
 
 export function SiteFooter() {
+  const columns = [
+    { title: "Eat", links: ["Browse cooks", "Popular categories", "Gift cards", "How it works"] },
+    { title: "Cook", links: ["Become a cook", "Cook resources", "Safety standards", "Community"] },
+    { title: "Company", links: ["Mission", "FAQ", "Contact", "Careers"] },
+    { title: "Legal", links: ["Privacy", "Terms", "Trust & safety"] },
+  ];
+
   return (
-    <footer className="site-footer" aria-labelledby="footer-title">
-      <div className="site-footer__inner">
-        <div className="site-footer__brand">
-          <Link className="brand" href="/" aria-label="LocalCoKitchen home">
-            <Image src="/images/logo.svg" width={1500} height={1379} alt="LocalCoKitchen" />
-          </Link>
-          <p id="footer-title">
-            Great food made closer to home. LocalCoKitchen connects customers with trusted
-            independent cooks for homemade meals and scheduled local pickups.
-          </p>
+    <footer className="border-t border-border bg-surface" aria-labelledby="footer-title">
+      <div className="container-page py-14">
+        <div className="grid gap-10 lg:grid-cols-[1.4fr_2fr]">
+          <div>
+            <Link className="flex items-center gap-2" href="/" aria-label="LocalCoKitchen home">
+              <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+                <ChefHat className="h-5 w-5" />
+              </span>
+              <span className="text-[17px] font-bold tracking-tight">
+                localco<span className="text-primary">kitchen</span>
+              </span>
+            </Link>
+            <p
+              id="footer-title"
+              className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground"
+            >
+              Great food made closer to home. LocalCoKitchen connects customers with trusted
+              independent cooks for homemade meals and scheduled local pickups.
+            </p>
+          </div>
+          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
+            {columns.map((column) => (
+              <nav key={column.title} aria-label={column.title}>
+                <p className="text-sm font-semibold text-foreground">{column.title}</p>
+                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
+                  {column.links.map((link) => (
+                    <li key={link}>
+                      <Link
+                        href={footerHref(link)}
+                        className="transition-colors hover:text-foreground"
+                      >
+                        {link}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </nav>
+            ))}
+          </div>
         </div>
-        <nav className="site-footer__group" aria-label="Explore LocalCoKitchen">
-          <h2>Explore</h2>
-          <Link href="/menu/">Menu</Link>
-          <Link href="/find-a-meal/">Find a meal</Link>
-          <Link href="/how-it-works/">How it works</Link>
-          <Link href="/mission/">Mission</Link>
-        </nav>
-        <nav className="site-footer__group" aria-label="Cook resources">
-          <h2>Cook</h2>
-          <Link href="/sell-your-food/">Sell your food</Link>
-          <Link href="/my-shop/">My Kitchen</Link>
-          <Link href="/signup/">Create account</Link>
-          <Link href="/signin/">Sign in</Link>
-        </nav>
-        <nav className="site-footer__group" aria-label="Support and legal">
-          <h2>Support</h2>
-          <Link href="/faq/">FAQ</Link>
-          <Link href="/contact-us/">Contact us</Link>
-          <Link href="/privacy-policy/">Privacy policy</Link>
-          <Link href="/terms-and-conditions/">Terms</Link>
-        </nav>
-      </div>
-      <div className="site-footer__bottom">
-        <span>&copy; 2026 LocalCoKitchen. All rights reserved.</span>
-        <span>Great food made closer to home.</span>
+        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
+          <p>© 2026 localcokitchen. Made with care for local cooks.</p>
+          <div className="flex gap-5">
+            <Link href="/privacy-policy/" className="hover:text-foreground">
+              Privacy
+            </Link>
+            <Link href="/terms-and-conditions/" className="hover:text-foreground">
+              Terms
+            </Link>
+            <Link href="/faq/" className="hover:text-foreground">
+              Help
+            </Link>
+          </div>
+        </div>
       </div>
     </footer>
   );
+}
+
+function footerHref(label: string) {
+  const routes: Record<string, string> = {
+    "Become a cook": "/sell-your-food/",
+    "Browse cooks": "/search/",
+    "How it works": "/how-it-works/",
+    Mission: "/mission/",
+    FAQ: "/faq/",
+    Contact: "/contact-us/",
+    Privacy: "/privacy-policy/",
+    Terms: "/terms-and-conditions/",
+    "Trust & safety": "/#trust",
+  };
+  return routes[label] ?? "/search/";
 }

@@ -1,72 +1,64 @@
-import Image from "next/image";
 import Link from "next/link";
-import { getCurrentUser, currentUserIsAdmin } from "@/lib/auth/session";
+import { ChefHat, Menu } from "lucide-react";
 
 const navLinks = [
-  { href: "/menu/", label: "Menu" },
-  { href: "/find-a-meal/", label: "Find a meal" },
-  { href: "/sell-your-food/", label: "Sell your food" },
+  { href: "/search/", label: "Browse cooks" },
   { href: "/how-it-works/", label: "How it works" },
-  { href: "/mission/", label: "Mission" },
+  { href: "/sell-your-food/", label: "Become a cook" },
   { href: "/faq/", label: "FAQ" },
 ];
 
-export async function SiteHeader() {
-  const [user, isAdmin] = await Promise.all([getCurrentUser(), currentUserIsAdmin()]);
-
+export function SiteHeader() {
   return (
-    <header className="top-nav">
-      <Link className="brand nav-brand" href="/" aria-label="LocalCoKitchen home">
-        <Image src="/images/logo.svg" width={1500} height={1379} alt="LocalCoKitchen" priority />
-      </Link>
-      <nav className="nav-actions" aria-label="Primary navigation">
-        <Link className="nav-icon-link" href="/menu/" aria-label="Open available menu">
-          <svg aria-hidden="true" viewBox="0 0 24 24">
-            <path d="m21 21-4.35-4.35" />
-            <circle cx="11" cy="11" r="7" />
-          </svg>
-          <span>Menu</span>
+    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
+      <div className="container-page flex h-16 items-center justify-between gap-4">
+        <Link href="/" className="flex items-center gap-2" aria-label="LocalCoKitchen home">
+          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
+            <ChefHat className="h-5 w-5" />
+          </span>
+          <span className="text-[17px] font-bold tracking-tight">
+            localco<span className="text-primary">kitchen</span>
+          </span>
         </Link>
-        {user ? (
-          <>
-            <Link className="nav-button" href="/profile/">
-              Profile
+        <nav
+          className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex"
+          aria-label="Primary navigation"
+        >
+          {navLinks.map((link) => (
+            <Link
+              className="transition-colors hover:text-foreground"
+              href={link.href}
+              key={link.href}
+            >
+              {link.label}
             </Link>
-            {isAdmin ? (
-              <Link className="nav-button" href="/admin/">
-                Admin
-              </Link>
-            ) : null}
-          </>
-        ) : (
-          <Link className="nav-button" href="/signin/">
+          ))}
+          <Link className="transition-colors hover:text-foreground" href="/contact-us/">
+            Contact
+          </Link>
+        </nav>
+        <div className="flex items-center gap-2">
+          <Link
+            href="/signin/"
+            className="hidden h-10 items-center rounded-full px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:inline-flex"
+          >
             Sign in
           </Link>
-        )}
-        <div className="nav-more">
-          <button
-            className="nav-more__button nav-more__button--icon"
-            type="button"
-            aria-expanded="false"
-            aria-label="Open navigation menu"
+          <Link
+            href="/signup/"
+            className="inline-flex h-10 items-center rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
           >
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M4 7h16" />
-              <path d="M4 12h16" />
-              <path d="M4 17h16" />
-            </svg>
+            Get started
+          </Link>
+          <button
+            aria-label="Open menu"
+            className="grid h-10 w-10 place-items-center rounded-full border border-border md:hidden"
+            type="button"
+          >
+            <Menu className="h-5 w-5" />
           </button>
-          <div className="nav-more__menu">
-            <Link href="/">Home</Link>
-            {navLinks.map((link) => (
-              <Link key={link.href} href={link.href}>
-                {link.label}
-              </Link>
-            ))}
-            <Link href="/contact-us/">Contact us</Link>
-          </div>
         </div>
-      </nav>
+      </div>
     </header>
   );
 }

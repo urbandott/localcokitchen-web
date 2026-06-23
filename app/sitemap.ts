@@ -3,6 +3,7 @@ import { siteUrl } from "@/lib/seo/metadata";
 
 const publicRoutes = [
   "/",
+  "/search/",
   "/menu/",
   "/find-a-meal/",
   "/sell-your-food/",

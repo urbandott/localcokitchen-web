@@ -1,7 +1,5 @@
 import type { Metadata, Viewport } from "next";
 import "@/app/globals.css";
-import { SiteFooter } from "@/components/site-footer";
-import { SiteHeader } from "@/components/site-header";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = createMetadata({
@@ -22,9 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <SiteHeader />
         <main id="main-content">{children}</main>
-        <SiteFooter />
       </body>
     </html>
   );

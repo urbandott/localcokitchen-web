@@ -6,7 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="robots" content="index, follow">
-    <meta name="description" content="Browse placeholder LocalCoKitchen menu items currently available from local cooks.">
+    <meta name="description" content="Browse available LocalCoKitchen menu items from approved local cooks. Search, filter, view cook details, and build your cart.">
     <link rel="canonical" href="https://localcokitchen.com/menu/">
     <link rel="icon" href="/images/logo.svg" type="image/svg+xml">
     <title>Available Menu | LocalCoKitchen</title>
@@ -30,16 +30,76 @@
         <h1>Items currently available</h1>
         <p class="lede">Browse currently published food from approved LocalCoKitchen cooks.</p>
       </section>
-      <section class="menu-layout" aria-label="Available menu items">
-        <aside class="filter-panel">
-          <h2>Availability</h2>
-          <span>Approved cooks</span>
-          <span>Active listings</span>
-          <span>Local pickup</span>
+      <section class="customer-menu-shell" aria-label="Available menu items">
+        <aside class="filter-panel" aria-labelledby="menu-filter-title">
+          <div class="filter-panel__heading">
+            <h2 id="menu-filter-title">Search and filters</h2>
+            <button class="text-button" type="button" data-menu-reset-filters>Reset</button>
+          </div>
+          <div class="form-field">
+            <label for="menu-search">Search menu</label>
+            <input id="menu-search" type="search" autocomplete="off" inputmode="search" placeholder="Dish, cook, cuisine, ingredient" data-menu-search>
+          </div>
+          <div class="form-field">
+            <label for="menu-category-filter">Category</label>
+            <select id="menu-category-filter" data-menu-filter="category">
+              <option value="">All categories</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-dietary-filter">Dietary tag</label>
+            <select id="menu-dietary-filter" data-menu-filter="dietary">
+              <option value="">Any dietary tag</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-allergen-filter">Exclude allergen</label>
+            <select id="menu-allergen-filter" data-menu-filter="allergen">
+              <option value="">No allergen filter</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-cuisine-filter">Cuisine</label>
+            <select id="menu-cuisine-filter" data-menu-filter="cuisine">
+              <option value="">All cuisines</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-spice-filter">Spice level</label>
+            <select id="menu-spice-filter" data-menu-filter="spice">
+              <option value="">Any spice level</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-cook-filter">Cook</label>
+            <select id="menu-cook-filter" data-menu-filter="cook">
+              <option value="">All cooks</option>
+            </select>
+          </div>
+          <div class="form-field">
+            <label for="menu-min-quantity">Minimum available quantity</label>
+            <input id="menu-min-quantity" type="number" min="1" max="10" step="1" value="1" data-menu-min-quantity>
+          </div>
+          <p class="filter-panel__note">Only active, in-stock items from approved public kitchens are shown.</p>
         </aside>
-        <div class="menu-list" data-public-menu-items>
-          <p data-menu-status aria-live="polite">Loading available items...</p>
+
+        <div class="menu-results-panel">
+          <div class="menu-results-toolbar" aria-live="polite">
+            <p data-menu-status>Loading available items...</p>
+            <button class="secondary-action compact-action" type="button" data-menu-load-more hidden>Load more</button>
+          </div>
+          <div class="menu-list" data-public-menu-items></div>
         </div>
+
+        <aside class="cart-panel" aria-labelledby="cart-title">
+          <div class="cart-panel__heading">
+            <h2 id="cart-title">Cart</h2>
+            <button class="text-button" type="button" data-cart-clear hidden>Clear</button>
+          </div>
+          <p class="cart-panel__note">You can add items from multiple cooks. Checkout must revalidate price, stock, cook status, and totals.</p>
+          <div class="cart-list" data-cart-items></div>
+          <div class="cart-summary" data-cart-summary aria-live="polite"></div>
+        </aside>
       </section>
     </main>
 

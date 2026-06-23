@@ -76,5 +76,5 @@ test("cook uploads use canonical MIME-derived extensions and signed private medi
   assert.match(cook, /fileExtensions\.get\(file\.type\)/);
   assert.match(cook, /createSignedUrl\(path, 3600\)/);
   assert.match(cook, /removeStorageObjectQuietly/);
-  assert.match(menu, /createSignedUrl\(path, 3600\)/);
+  assert.match(menu, /createSignedUrl\(path, SIGNED_URL_SECONDS\)/);
 });

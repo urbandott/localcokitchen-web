@@ -1,160 +1,134 @@
 # Authentication Implementation
 
-## Product Alignment
+## Product alignment
 
-The PRD requires customer and cook authentication with:
+LocalCoKitchen requires customer, cook, and admin authentication with:
 
-- Email and password signup.
-- Password reset.
+- Email/password sign-up and sign-in
+- Password reset
+- Cook application/profile access
+- Admin-only review, directory, metrics, and moderation routes
 
-Google and Apple login are deferred for a later release.
+Google and Apple login remain deferred.
 
-The system design recommends Supabase Auth, Supabase PostgreSQL, explicit
-multi-role access, and a future role model that can support narrower admin
-roles. The migration implements that foundation with:
+## Architecture
 
-- `identity.users`
-- `identity.user_roles`
-- `identity.user_role`
+The primary auth implementation is in the Next.js App Router app:
+
+- `app/(auth)/signin/page.tsx`
+- `app/(auth)/signup/page.tsx`
+- `app/(auth)/forgot-password/page.tsx`
+- `app/(auth)/reset-password/page.tsx`
+- `features/auth/actions.ts`
+- `features/auth/auth-form.tsx`
+- `lib/auth/session.ts`
+- `lib/supabase/server.ts`
+- `lib/supabase/browser.ts`
+- `proxy.ts`
+
+Supabase remains the source of truth for authentication, sessions, RLS, roles, and storage access.
 
 ## Routes
 
 ### `/signin/`
 
-The sign-in page includes:
-
-- Email/password sign in.
-- Link to `/forgot-password/` for password recovery.
-- Link to `/signup/` for users who have not signed up.
+- Email/password sign-in
+- Generic failed-login message
+- Safe local `next` redirect handling
+- Links to password reset and account creation
 
 ### `/signup/`
 
-The sign-up page includes:
-
-- Full name.
-- Email/password signup.
-- Password requirement checklist with live met/unmet states.
-- Password confirmation match validation.
-- Password preview controls.
-- Customer, cook, or both role intent.
-- Link back to `/signin/`.
-
-### `/reset-password/`
-
-The reset page accepts the Supabase password recovery session and lets the user
-set a new password with `updateUser()`.
+- Account creation
+- Strong password validation
+- Generic post-submit message to avoid account enumeration
 
 ### `/forgot-password/`
 
-The forgot-password page asks for an email address and sends a Supabase recovery
-email with `resetPasswordForEmail()`. The success message is intentionally
-generic so the UI does not reveal whether an email address has an account.
+- Accepts an email address
+- Calls Supabase password recovery
+- Always returns a generic success path so the UI does not reveal whether the email exists
 
-## Client Files
+### `/reset-password/`
 
-### `/js/supabase-config.js`
+- Lets a user with a valid recovery session set a new password
 
-Stores the public Supabase browser configuration:
+### `/profile/`
 
-```js
-window.LOCALCOKITCHEN_SUPABASE_CONFIG = {
-  url: "https://YOUR_PROJECT_REF.supabase.co",
-  publishableKey: "YOUR_SUPABASE_PUBLISHABLE_KEY",
-};
-```
+- Requires an authenticated Supabase user
+- Shows account actions and links to cook dashboard
 
-The publishable key is safe for browser use. Do not place service-role keys or
-other secrets in this file.
+### `/my-shop/`
 
-### `/js/auth.js`
+- Requires an authenticated Supabase user
+- Reads cook application/profile/menu data through RLS
+- Shows the moderator-disabled kitchen message when applicable
 
-Owns browser-side auth behavior:
+### `/admin/*`
 
-- Creates the Supabase browser client.
-- Calls `signInWithPassword()` for email/password sign in.
-- Calls `signUp()` for email/password signup.
-- Calls `resetPasswordForEmail()` on `/forgot-password/` for password recovery.
-- Calls `updateUser()` on `/reset-password/` to save a new password.
-- Restricts post-sign-in redirects to same-origin URLs.
+- Requires authenticated user plus admin database role/RPC authorization
+- Admin sign-in redirects through the normal sign-in route with `next=/admin/`
 
-### `/js/auth-nav.js`
+## Database behavior
 
-Owns the homepage sign-in/sign-out control:
+Current application schemas:
 
-- Calls `getSession()` to decide whether the header action should show
-  `Sign in` or `Sign out`.
-- Calls `signOut()` without a local-only scope so Supabase revokes the
-  server-side session instead of only clearing browser storage.
+- `lck_identity`
+- `lck_marketplace`
+- `lck_private`
 
-## Database Behavior
+Identity/profile/role rows are created and protected by migrations in `supabase/migrations/`.
 
-The migration creates an `identity.handle_new_auth_user()` trigger on
-`auth.users`. When Supabase Auth creates a user, the trigger:
+Authorization must use database tables/RPCs such as:
 
-1. Inserts a row in `identity.users`.
-2. Grants the `customer` role by default.
-3. Grants the `cook` role too when the sign-up metadata contains
-   `signup_role = cook` or `signup_role = both`.
+- `lck_identity.user_roles`
+- `lck_identity.current_user_is_admin()`
 
-## Credential Policy
+Do not use user-editable metadata for authorization decisions.
 
-Password-based authentication uses email and password only. No other password
-login identifier is collected in the auth flow or stored in the identity profile.
+## Credential policy
 
-## Password Policy
+Password-based authentication uses email and password only. No other password login identifier is collected or supported.
 
-Signup passwords must satisfy every rule before the app calls Supabase:
+Password requirements:
 
-- At least 10 characters.
-- At least one lowercase letter.
-- At least one uppercase letter.
-- At least one digit.
-- At least one symbol.
-- Password and confirmation fields must match.
+- At least 10 characters
+- Lowercase letter
+- Uppercase letter
+- Digit
+- Symbol
 
-Mirror these requirements in Supabase Auth password settings where available so
-server-side validation matches the browser-side experience.
+Mirror these in Supabase Auth settings and keep the UI/server validation aligned.
 
 ## Redirects
 
-The client uses:
+Allowed local auth URLs for Next.js development:
 
-- Email confirmation redirect: `/signin/?verified=1`
-- Forgot-password page: `/forgot-password/`
-- Password reset redirect: `/reset-password/`
-Configure these URLs in Supabase Auth URL settings before testing production
-email confirmations and password recovery.
+```text
+http://127.0.0.1:3000/
+http://127.0.0.1:3000/signin/
+http://127.0.0.1:3000/signup/
+http://127.0.0.1:3000/forgot-password/
+http://127.0.0.1:3000/reset-password/
+```
 
-## Security Notes
+Production URLs should use the same paths under `https://localcokitchen.com` and `https://www.localcokitchen.com`.
 
-- `_headers` sends a strict Content Security Policy for static hosting. Inline
-  executable scripts are not allowed; the only inline scripts permitted are the
-  hashed JSON-LD blocks on the homepage.
-- Browser code never renders user-provided values with `innerHTML`; status
-  messages use `textContent`.
-- Signup and waitlist inputs are normalized and constrained to expected role and
-  interest values before being sent to Supabase or EmailJS.
-- RLS is enabled for `identity.users` and `identity.user_roles`.
-- Users can read and update their own identity profile.
-- Users can read their own roles.
-- Admin-role users can read all identity profiles and roles.
-- Public browser code only uses the Supabase publishable key.
-- Service-role operations, admin role grants, payments, ordering, profile
-  changes beyond the current Supabase Auth forms, and other sensitive actions
-  must be implemented server-side. Use `supabase.auth.getUser()` on the server
-  for request authentication, or validate the JWT `session_id` against
-  `auth.sessions` when an action needs immediate logout/revocation guarantees.
-- Future Supabase Edge Functions can import
-  `supabase/functions/_shared/auth.ts` and call `getVerifiedUser(req)` before
-  performing sensitive work.
+## Security notes
 
-## Supabase References
+- Next.js uses secure headers from `next.config.ts`.
+- Private route groups are marked `noindex`.
+- `proxy.ts` refreshes Supabase sessions and adds private-route `X-Robots-Tag`.
+- Browser/client code does not use service-role keys.
+- Auth server actions validate inputs with Zod.
+- Redirects are constrained to local paths.
+- Public menu data must not expose private cook fields.
+- Admin authorization is checked server-side before admin data/actions.
+- RLS remains the primary row-level data boundary.
 
-- JavaScript email/password sign in:
-  <https://supabase.com/docs/reference/javascript/auth-signinwithpassword>
-- JavaScript sign up:
-  <https://supabase.com/docs/reference/javascript/auth-signup>
-- Password reset email:
-  <https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail>
-- Password update:
-  <https://supabase.com/docs/reference/javascript/auth-updateuser>
+## Supabase references
+
+- Email/password sign in: <https://supabase.com/docs/reference/javascript/auth-signinwithpassword>
+- Sign up: <https://supabase.com/docs/reference/javascript/auth-signup>
+- Password reset email: <https://supabase.com/docs/reference/javascript/auth-resetpasswordforemail>
+- Password update: <https://supabase.com/docs/reference/javascript/auth-updateuser>

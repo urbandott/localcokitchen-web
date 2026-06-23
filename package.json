@@ -3,7 +3,44 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "test": "node --test",
-    "test:watch": "node --watch --test"
+    "dev": "next dev -H 127.0.0.1",
+    "build": "next build",
+    "start": "next start -H 127.0.0.1",
+    "lint": "eslint .",
+    "format:check": "prettier --check app components features lib types tests *.ts *.mjs package.json",
+    "typecheck": "tsc --noEmit",
+    "test": "npm run test:legacy && vitest run",
+    "test:unit": "vitest run",
+    "test:legacy": "node --test test/*.test.js",
+    "test:e2e": "playwright test",
+    "analyze": "ANALYZE=true next build"
+  },
+  "dependencies": {
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.108.2",
+    "next": "^16.2.9",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@next/bundle-analyzer": "^16.2.9",
+    "@playwright/test": "^1.61.0",
+    "@types/node": "^26.0.0",
+    "@types/react": "^19.2.17",
+    "@types/react-dom": "^19.2.3",
+    "@vitejs/plugin-react": "^6.0.2",
+    "axe-core": "^4.12.1",
+    "eslint": "^9.39.4",
+    "eslint-config-next": "^16.2.9",
+    "jsdom": "^29.1.1",
+    "playwright": "^1.61.0",
+    "postcss": "^8.5.15",
+    "prettier": "^3.8.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.9"
+  },
+  "overrides": {
+    "postcss": "^8.5.15"
   }
 }

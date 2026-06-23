@@ -1,73 +1,56 @@
 # Auth UI Styling
 
-The auth pages use the same global stylesheet as the landing page:
+Auth pages are now part of the Next.js App Router app and use the global stylesheet imported by:
 
 ```text
-styles.css
+app/globals.css
 ```
 
-The stylesheet is organized into portable blocks:
+`app/globals.css` imports the legacy `styles.css` so existing visual tokens and reusable classes can be preserved during the migration.
 
-- Design tokens in `:root`
-- Base element styles
-- Shared header and brand components
-- Landing page styles
-- Auth page styles
+## Current files
 
-## Static Page Links
+- `features/auth/auth-form.tsx` — shared auth form component
+- `app/(auth)/signin/page.tsx`
+- `app/(auth)/signup/page.tsx`
+- `app/(auth)/forgot-password/page.tsx`
+- `app/(auth)/reset-password/page.tsx`
+- `app/globals.css`
+- `styles.css`
 
-Top-level pages should link the stylesheet like this:
+## Styling rules
 
-```html
-<link rel="stylesheet" href="styles.css?v=20260524">
+- Keep form controls labeled.
+- Keep auth routes keyboard-accessible.
+- Keep error/success messages visible and announced with `aria-live` where appropriate.
+- Prefer shared classes and components over route-specific duplicated markup.
+- Avoid unsafe HTML injection.
+- Do not add third-party scripts to auth/admin routes without a security review.
+
+## Useful classes
+
+- `.content-page`
+- `.page-hero`
+- `.auth-card`
+- `.next-form`
+- `.next-alert`
+- `.primary-action`
+- `.secondary-action`
+- `.text-button`
+
+## Legacy static pages
+
+Legacy static auth pages still exist during migration and may still link `styles.css` directly. They are not the primary implementation. Validate current auth UX through:
+
+```sh
+npm run dev
 ```
 
-Nested static pages should use a relative parent path:
-
-```html
-<link rel="stylesheet" href="../styles.css?v=20260524">
-```
-
-This works when previewing files locally, serving with a static server, and
-deploying at the domain root. The `v` query string is a cache key; bump it when
-changing layout or auth styles.
-
-## Next.js Migration
-
-When this moves into Next.js:
-
-1. Copy `styles.css` into `app/globals.css`.
-2. Import it from `app/layout.tsx`:
-
-```tsx
-import "./globals.css";
-```
-
-3. Convert shared auth markup into reusable components:
+Then open:
 
 ```text
-components/auth/AuthShell.tsx
-components/auth/AuthCard.tsx
-components/auth/FieldStack.tsx
-components/BrandLink.tsx
+http://127.0.0.1:3000/signin/
+http://127.0.0.1:3000/signup/
+http://127.0.0.1:3000/forgot-password/
+http://127.0.0.1:3000/reset-password/
 ```
-
-4. Keep the existing class names at first. They are intentionally global and
-component-oriented, so they can be reused without CSS module rewrites.
-
-## Shared Auth Classes
-
-- `.auth-shell`: page width, viewport height, and outer spacing.
-- `.auth-header`: top brand row.
-- `.auth-panel`: responsive two-column layout.
-- `.auth-copy`: page title and supporting copy.
-- `.auth-card`: form container.
-- `.auth-form`: form layout.
-- `.field-stack`: label/input grouping.
-- `.auth-submit`: primary submit button.
-- `.auth-role-group`: signup role selector.
-- `.text-link`: low-emphasis auth action links.
-- `.auth-note`: status text and page-to-page links.
-
-The same classes are used by `/signin/`, `/signup/`, `/forgot-password/`, and
-`/reset-password/`.

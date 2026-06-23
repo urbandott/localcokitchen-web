@@ -1,98 +1,162 @@
-# LocalCoKitchen coming soon page
+# LocalCoKitchen Web
 
-Static landing page for the LocalCoKitchen waitlist.
+LocalCoKitchen is a marketplace web app where customers browse menu items from approved home cooks, cooks manage their kitchens, and admins review/moderate cooks.
 
-## Test locally
+This repository now contains a production-oriented Next.js App Router application backed by Supabase Auth, Postgres, Storage, RLS, and Edge Functions. The legacy static HTML/CSS/JS files are still present during the migration, but the local development workflow is Next.js-first.
 
-This project is a static HTML/CSS/JS site. Run it from the repo root with a
-local static server:
+## Requirements
+
+- Node.js compatible with the installed toolchain
+- npm
+- Supabase project credentials for real auth/database/storage testing
+- Supabase CLI for migration dry-runs and deployment checks
+
+## Local setup
+
+Install dependencies:
 
 ```sh
-python3 -m http.server 8000
+npm install
 ```
 
-Then open:
+Create a local env file:
 
-- Homepage: `http://localhost:8000/`
-- Sign in: `http://localhost:8000/signin/`
-- Sign up: `http://localhost:8000/signup/`
-- Forgot password: `http://localhost:8000/forgot-password/`
-- Reset password: `http://localhost:8000/reset-password/`
+```sh
+cp .env.example .env.local
+```
 
-Do not open the nested HTML files directly from Finder for auth testing. Use the
-local server so relative paths, redirects, scripts, and Supabase callback URLs
-behave like a deployed site.
-
-### Auth testing
-
-Before Supabase is configured, the auth pages should load visually and show this
-status message:
+Fill in:
 
 ```text
-Supabase is not configured yet. Add your project URL and publishable key in /js/supabase-config.js.
+NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 ```
 
-To test real sign-in/sign-up:
+Do not add a service-role key to the frontend. The Next.js app is designed to use the Supabase publishable key plus RLS/RPC authorization.
 
-1. Run the SQL migration in `supabase/migrations/`.
-2. Update `js/supabase-config.js` with your Supabase project URL and publishable key.
-3. Add the localhost redirect URLs from `docs/auth/SUPABASE_SETUP.md` in Supabase Auth URL Configuration.
-4. Enable the Email provider.
-5. Restart the local server if needed and test the auth pages again.
+## Run locally
 
-### Quick route checks
-
-With the local server running, these should return `200`:
+Start the Next.js dev server:
 
 ```sh
-curl -I http://localhost:8000/
-curl -I http://localhost:8000/signin/
-curl -I http://localhost:8000/signup/
-curl -I http://localhost:8000/forgot-password/
-curl -I http://localhost:8000/reset-password/
-curl -I 'http://localhost:8000/styles.css?v=20260524'
+npm run dev
 ```
 
-## Unit tests
+Open:
 
-Run unit tests with:
+- Home: `http://127.0.0.1:3000/`
+- Menu: `http://127.0.0.1:3000/menu/`
+- Sign in: `http://127.0.0.1:3000/signin/`
+- Sign up: `http://127.0.0.1:3000/signup/`
+- Profile: `http://127.0.0.1:3000/profile/`
+- My Kitchen: `http://127.0.0.1:3000/my-shop/`
+- Admin: `http://127.0.0.1:3000/admin/`
+
+If Supabase env vars are missing, public pages still render, but auth/database-backed sections show unavailable states or redirect as expected.
+
+## Supabase setup
+
+Supabase schema changes live in:
+
+```text
+supabase/migrations/
+```
+
+Before applying migrations to a linked remote project, always dry-run:
 
 ```sh
+supabase db push --linked --dry-run
+```
+
+Current known deployment blocker: the linked remote migration history contains versions that are not present locally:
+
+```text
+202605240001
+20260526014506
+20260526202250
+20260526210427
+20260526232914
+```
+
+Reconcile that migration history before pushing new database changes.
+
+Supabase Auth redirect URLs for local Next.js development should include:
+
+```text
+http://127.0.0.1:3000/
+http://127.0.0.1:3000/signin/
+http://127.0.0.1:3000/signup/
+http://127.0.0.1:3000/forgot-password/
+http://127.0.0.1:3000/reset-password/
+```
+
+Production redirect URLs should include the same paths under:
+
+```text
+https://localcokitchen.com
+https://www.localcokitchen.com
+```
+
+## Verification
+
+Run the normal local verification suite:
+
+```sh
+npm run typecheck
+npm run lint
+npm run format:check
 npm test
+npm run build
+npm run test:e2e
 ```
 
-The current unit tests cover the signup password policy in
-`js/password-policy.js`. See `docs/TESTING.md` for the testing strategy and the
-Next.js migration path.
+Dependency audit:
 
-## Files
-
-- `index.html` - landing page markup and waitlist form
-- `signin/index.html` - Supabase Auth sign-in page
-- `signup/index.html` - Supabase Auth sign-up page
-- `forgot-password/index.html` - Supabase Auth password recovery request page
-- `reset-password/index.html` - Supabase Auth password update page
-- `styles.css` - responsive visual design
-- `script.js` - form submission enhancement
-- `js/auth.js` - Supabase Auth browser behavior
-- `js/password-policy.js` - reusable signup password validation logic
-- `js/supabase-config.js` - public Supabase browser configuration
-- `test/` - unit tests
-- `docs/TESTING.md` - testing strategy and Next.js testing notes
-- `supabase/migrations/` - database migrations tracked in source control
-- `docs/auth/` - authentication implementation and setup notes
-- `sitemap.xml` - canonical sitemap for search crawlers
-- `robots.txt` - crawler access rules and sitemap location
-- `_headers` - security headers for static hosting, including CSP
-- `llms.txt` - concise site context for AI and LLM-based discovery
-
-## Waitlist form
-
-The form is set up with Netlify-compatible static form attributes:
-
-```html
-data-netlify="true"
+```sh
+npm audit
 ```
 
-If this is deployed somewhere else, replace the `fetch("/")` target in
-`script.js` with the waitlist endpoint for that host or backend.
+Supabase dry-run:
+
+```sh
+supabase db push --linked --dry-run
+```
+
+## Scripts
+
+- `npm run dev` — run Next.js locally on `127.0.0.1:3000`
+- `npm run build` — production build
+- `npm run start` — run production server locally
+- `npm run typecheck` — strict TypeScript check
+- `npm run lint` — ESLint
+- `npm run format:check` — Prettier check for migrated app/test/config files
+- `npm test` — legacy Node tests plus Vitest tests
+- `npm run test:e2e` — Playwright E2E tests
+- `npm run analyze` — build with bundle analyzer enabled
+
+## Project structure
+
+- `app/` — Next.js App Router pages, layouts, route handlers, sitemap, robots, errors
+- `components/` — shared UI shell components
+- `features/` — feature-owned code for auth, admin, cart, kitchen, and menu
+- `lib/` — Supabase clients, auth/session helpers, validation, security, SEO, utilities
+- `types/` — typed database/RPC contracts
+- `tests/` — Vitest and Playwright tests
+- `test/` — legacy Node regression tests
+- `public/images/` — Next.js-served static image assets
+- `supabase/migrations/` — source-controlled Supabase migrations
+- `supabase/functions/` — Supabase Edge Functions
+- `docs/` — implementation, testing, migration, and audit documentation
+
+## Legacy static preview
+
+The old static pages remain in the repository during migration. If you need to inspect them directly, run:
+
+```sh
+python3 -m http.server 4174
+```
+
+Then open `http://127.0.0.1:4174/`.
+
+Do not use the legacy static server for validating the new Next.js implementation.

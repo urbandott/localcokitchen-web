@@ -8,7 +8,7 @@ const routeFiles = [];
 
 const walk = (directory) => {
   fs.readdirSync(directory, { withFileTypes: true }).forEach((entry) => {
-    if ([".git", ".idea", "node_modules"].includes(entry.name)) return;
+    if ([".git", ".idea", ".next", "node_modules"].includes(entry.name)) return;
     const fullPath = path.join(directory, entry.name);
     if (entry.isDirectory()) walk(fullPath);
     else if (entry.name === "index.html") routeFiles.push(fullPath);

@@ -1,0 +1,102 @@
+@import "../styles.css";
+
+:root {
+  color-scheme: light;
+}
+
+body {
+  min-height: 100vh;
+}
+
+.next-page-grid {
+  display: grid;
+  gap: clamp(1.5rem, 4vw, 2.8rem);
+}
+
+.next-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.next-card {
+  padding: clamp(1rem, 3vw, 1.35rem);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 32px rgba(50, 38, 25, 0.08);
+}
+
+.next-card h2,
+.next-card h3 {
+  margin-top: 0;
+}
+
+.next-section {
+  display: grid;
+  gap: 1rem;
+}
+
+.next-form {
+  display: grid;
+  gap: 1rem;
+  max-width: 620px;
+}
+
+.next-form label {
+  display: grid;
+  gap: 0.35rem;
+  color: #324137;
+  font-weight: 850;
+}
+
+.next-form input,
+.next-form textarea,
+.next-form select {
+  min-height: 44px;
+  padding: 0.7rem 0.8rem;
+  border: 1px solid rgba(31, 42, 36, 0.16);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.next-form textarea {
+  min-height: 130px;
+  resize: vertical;
+}
+
+.next-alert {
+  padding: 0.85rem 1rem;
+  border: 1px solid rgba(161, 61, 50, 0.25);
+  border-radius: 8px;
+  color: #812f27;
+  background: #fff1ed;
+}
+
+.next-muted {
+  color: var(--muted);
+}
+
+.skip-link {
+  position: absolute;
+  z-index: 999;
+  left: 1rem;
+  top: 1rem;
+  transform: translateY(-200%);
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  background: #fff;
+  color: var(--ink);
+}
+
+.skip-link:focus {
+  transform: translateY(0);
+}
+
+@media (max-width: 900px) {
+  .next-card-grid {
+    grid-template-columns: 1fr;
+  }
+}

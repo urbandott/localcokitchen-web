@@ -1,2 +1,12 @@
-/.idea/
-/supabase/.temp/cli-latest
+node_modules/
+.idea/
+.next/
+out/
+coverage/
+test-results/
+playwright-report/
+tsconfig.tsbuildinfo
+.env
+.env*.local
+!.env.example
+supabase/.temp/

@@ -1,45 +1,58 @@
 # Supabase Setup
 
-These steps must be completed manually in Supabase before production auth works.
+These steps are required before local or production auth/database-backed flows work.
 
-## 1. Run the Migration
+## 1. Configure environment variables
 
-Run this SQL file in Supabase SQL Editor or through the Supabase CLI:
-
-```text
-supabase/migrations/202605240001_auth_identity.sql
-```
-
-Manual SQL Editor path:
-
-1. Open Supabase Dashboard.
-2. Select the LocalCoKitchen project.
-3. Go to SQL Editor.
-4. Paste the migration contents.
-5. Run the query.
-
-CLI path, if this repo is linked to the Supabase project:
+Create `.env.local` from the example:
 
 ```sh
-supabase db push
+cp .env.example .env.local
 ```
 
-## 2. Configure Browser Credentials
+Set:
 
-Open `/js/supabase-config.js` and replace:
+```text
+NEXT_PUBLIC_SITE_URL=http://127.0.0.1:3000
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
+```
 
-- `https://YOUR_PROJECT_REF.supabase.co`
-- `YOUR_SUPABASE_PUBLISHABLE_KEY`
-
-Use the project URL and publishable/anon browser key from:
+Use the project URL and publishable key from:
 
 ```text
 Supabase Dashboard > Project Settings > API
 ```
 
-Never use the service-role key in frontend code.
+Never put the service-role key in frontend code or a `NEXT_PUBLIC_*` variable.
 
-## 3. Configure URL Settings
+## 2. Run or reconcile migrations
+
+Supabase migrations are tracked in:
+
+```text
+supabase/migrations/
+```
+
+For a linked remote project, always dry-run first:
+
+```sh
+supabase db push --linked --dry-run
+```
+
+Current known blocker: the linked remote migration ledger includes versions missing locally:
+
+```text
+202605240001
+20260526014506
+20260526202250
+20260526210427
+20260526232914
+```
+
+Reconcile those before pushing. Do not use dashboard-only schema changes.
+
+## 3. Configure URL settings
 
 In Supabase Dashboard:
 
@@ -47,13 +60,13 @@ In Supabase Dashboard:
 Authentication > URL Configuration
 ```
 
-Set Site URL:
+Set production Site URL:
 
 ```text
 https://localcokitchen.com
 ```
 
-Add Redirect URLs:
+Add production redirect URLs:
 
 ```text
 https://localcokitchen.com/
@@ -66,16 +79,21 @@ https://www.localcokitchen.com/signin/
 https://www.localcokitchen.com/signup/
 https://www.localcokitchen.com/forgot-password/
 https://www.localcokitchen.com/reset-password/
-http://localhost:8000/
-http://localhost:8000/signin/
-http://localhost:8000/signup/
-http://localhost:8000/forgot-password/
-http://localhost:8000/reset-password/
 ```
 
-Use the local port that you actually run for static preview.
+Add local Next.js redirect URLs:
 
-## 4. Enable Email/Password Auth
+```text
+http://127.0.0.1:3000/
+http://127.0.0.1:3000/signin/
+http://127.0.0.1:3000/signup/
+http://127.0.0.1:3000/forgot-password/
+http://127.0.0.1:3000/reset-password/
+```
+
+If you also test the legacy static preview, add the port you actually use, for example `http://127.0.0.1:4174/`.
+
+## 4. Enable email/password auth
 
 In Supabase Dashboard:
 
@@ -83,10 +101,9 @@ In Supabase Dashboard:
 Authentication > Providers > Email
 ```
 
-Confirm that email/password auth is enabled. Hosted Supabase projects usually
-require email confirmation by default. Keep confirmation enabled for production.
+Keep email/password enabled and keep email confirmation enabled for production.
 
-Configure the password policy to match the signup UI:
+Configure the password policy:
 
 - Minimum length: `10`
 - Require lowercase letters
@@ -94,7 +111,7 @@ Configure the password policy to match the signup UI:
 - Require digits
 - Require symbols
 
-## 5. Configure Session Controls
+## 5. Configure session controls
 
 In Supabase Dashboard:
 
@@ -102,64 +119,55 @@ In Supabase Dashboard:
 Authentication > Sessions
 ```
 
-Use production session controls so stolen browser sessions have a bounded life:
+Recommended production baseline:
 
-- Keep JWT expiry at the default `1 hour`, or lower it only if you have tested
-  refresh behavior. Supabase recommends not going below `5 minutes`.
-- Enable an inactivity timeout. Start with `12 hours` for marketplace accounts.
-- Enable a time-boxed session lifetime. Start with `7 days`.
-- Consider single-session-per-user for admin accounts once an admin UI exists.
+- JWT expiry: default `1 hour`, or lower only after testing refresh behavior
+- Inactivity timeout: `12 hours`
+- Time-boxed session lifetime: `7 days`
+- Consider stricter controls for admin accounts
 
-These settings are enforced when sessions refresh, so existing sessions may not
-be terminated immediately.
+## 6. Admin role grants
 
-## 6. Deferred OAuth
+Admin access must be granted through database roles/tables, not user-editable metadata.
 
-Google and Apple OAuth are not currently exposed in the UI. When social login is
-needed, add the buttons back to the auth pages, wire `signInWithOAuth()`, and
-enable the providers in Supabase.
-
-Provider docs:
-
-- Google: <https://supabase.com/docs/guides/auth/social-login/auth-google>
-- Apple: <https://supabase.com/docs/guides/auth/social-login/auth-apple>
-
-## 7. Test Checklist
-
-After deploy:
-
-1. Open `/signin/`.
-2. Confirm the page no longer says Supabase is unconfigured.
-3. Create a new account at `/signup/`.
-4. Confirm the email, if email confirmation is enabled.
-5. Confirm a row exists in `identity.users`.
-6. Confirm `identity.user_roles` contains `customer`, and `cook` when selected.
-7. Test password reset from `/forgot-password/` through `/reset-password/`.
-
-## Manual Admin Role Grants
-
-For now, grant admin roles manually in SQL Editor after the user account exists:
+Use the current `lck_identity.user_roles` table:
 
 ```sql
-insert into identity.user_roles (user_id, role)
+insert into lck_identity.user_roles (user_id, role)
 values ('USER_UUID_HERE', 'admin')
 on conflict do nothing;
 ```
 
-Use `super_admin` only for trusted owner-level accounts.
+Use `super_admin` only for trusted owner-level accounts if supported by the current role policy.
 
-## Cook Review Notification Email
+## 7. Cook review notification email
 
-Cook approval and rejection emails are delivered by the
-`send-cook-review-notifications` Edge Function through Resend. Configure the
-provider secret and a verified sender before deploying the function:
+Cook approval/rejection email delivery uses the `send-cook-review-notifications` Edge Function and Resend.
+
+Configure secrets:
 
 ```sh
 supabase secrets set RESEND_API_KEY=YOUR_RESEND_API_KEY
 supabase secrets set 'COOK_REVIEW_FROM_EMAIL=LocalCoKitchen <notifications@localcokitchen.com>'
+```
+
+Deploy:
+
+```sh
 supabase functions deploy send-cook-review-notifications
 ```
 
 Do not put the Resend API key in browser JavaScript or commit it to the repo.
-Failed delivery attempts remain in the private review outbox and are retried on
-later admin visits, up to five attempts.
+
+## 8. Test checklist
+
+After configuration:
+
+1. Run `npm run dev`.
+2. Open `/signin/`.
+3. Create an account at `/signup/`.
+4. Confirm email if confirmation is enabled.
+5. Confirm identity/profile rows are created through the migrations/triggers.
+6. Test password reset from `/forgot-password/` through `/reset-password/`.
+7. Confirm private routes redirect when signed out.
+8. Confirm admin routes require the admin role.

@@ -116,7 +116,11 @@ begin
 end;
 $$;
 
-create or replace function lck_identity.get_admin_cook_detail(p_cook_id uuid)
+-- PostgreSQL cannot change the OUT-column shape of a table-returning function
+-- with CREATE OR REPLACE. Drop the prior version so this migration remains
+-- replayable when reconciling databases that received an earlier draft.
+drop function if exists lck_identity.get_admin_cook_detail(uuid);
+create function lck_identity.get_admin_cook_detail(p_cook_id uuid)
 returns table (
   cook_id uuid,
   email text,

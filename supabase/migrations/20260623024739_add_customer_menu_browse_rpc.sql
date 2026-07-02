@@ -5,6 +5,20 @@
 -- not public data. The function returns only customer-safe fields and uses static,
 -- parameterized SQL. Sensitive application/admin fields are not exposed.
 
+-- Earlier database revisions exposed portion_size to the application without
+-- consistently creating the backing column. Keep this migration replayable
+-- across both clean databases and reconciled environments.
+alter table lck_marketplace.cook_menu_items
+  add column if not exists portion_size text;
+
+alter table lck_marketplace.cook_menu_items
+  drop constraint if exists cook_menu_items_portion_size_length,
+  add constraint cook_menu_items_portion_size_length
+    check (
+      portion_size is null
+      or char_length(btrim(portion_size)) between 1 and 120
+    );
+
 create index if not exists cook_menu_items_public_browse_idx
   on lck_marketplace.cook_menu_items(created_at desc)
   where is_active and not is_sold_out and quantity_available > 0;

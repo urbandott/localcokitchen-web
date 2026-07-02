@@ -15,6 +15,7 @@ import {
   ShoppingBag,
   Star,
 } from "lucide-react";
+import { AppChrome } from "@/components/app-chrome";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = createMetadata({
@@ -75,64 +76,15 @@ const categories = [
 
 export default function HomePage() {
   return (
-    <div className="min-h-dvh bg-background text-foreground">
-      <Header />
-      <main>
-        <Hero />
-        <Categories />
-        <FeaturedCooks />
-        <HowItWorks />
-        <TrustSafety />
-        <Testimonials />
-        <CookCta />
-      </main>
-      <Footer />
-    </div>
-  );
-}
-
-function Header() {
-  return (
-    <header className="sticky top-0 z-40 border-b border-border/70 bg-background/85 backdrop-blur">
-      <div className="container-page flex h-16 items-center justify-between gap-4">
-        <Link href="/" className="flex items-center gap-2">
-          <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-            <ChefHat className="h-5 w-5" />
-          </span>
-          <span className="text-[17px] font-bold tracking-tight">
-            localco<span className="text-primary">kitchen</span>
-          </span>
-        </Link>
-        <nav className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex">
-          <Link href="/search/" className="transition-colors hover:text-foreground">
-            Browse cooks
-          </Link>
-          <a href="#how" className="transition-colors hover:text-foreground">
-            How it works
-          </a>
-          <a href="#trust" className="transition-colors hover:text-foreground">
-            Trust & safety
-          </a>
-          <a href="#cook-cta" className="transition-colors hover:text-foreground">
-            Become a cook
-          </a>
-        </nav>
-        <div className="flex items-center gap-2">
-          <Link
-            href="/signin/"
-            className="hidden h-10 items-center rounded-full px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:inline-flex"
-          >
-            Sign in
-          </Link>
-          <Link
-            href="/signup/"
-            className="inline-flex h-10 items-center rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
-          >
-            Get started
-          </Link>
-        </div>
-      </div>
-    </header>
+    <AppChrome>
+      <Hero />
+      <Categories />
+      <FeaturedCooks />
+      <HowItWorks />
+      <TrustSafety />
+      <Testimonials />
+      <CookCta />
+    </AppChrome>
   );
 }
 
@@ -636,66 +588,5 @@ function SectionHeader({
         </Link>
       ) : null}
     </div>
-  );
-}
-
-function Footer() {
-  const cols = [
-    { title: "Eat", links: ["Browse cooks", "Popular categories", "Gift cards", "How it works"] },
-    { title: "Cook", links: ["Become a cook", "Cook resources", "Pricing", "Success stories"] },
-    { title: "Company", links: ["About", "Careers", "Press", "Contact"] },
-    { title: "Trust", links: ["Safety", "Allergens", "Refund policy", "Terms"] },
-  ];
-  return (
-    <footer className="border-t border-border bg-surface">
-      <div className="container-page py-14">
-        <div className="grid gap-10 lg:grid-cols-[1.4fr_2fr]">
-          <div>
-            <div className="flex items-center gap-2">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-                <ChefHat className="h-5 w-5" />
-              </span>
-              <span className="text-[17px] font-bold tracking-tight">
-                localco<span className="text-primary">kitchen</span>
-              </span>
-            </div>
-            <p className="mt-4 max-w-sm text-sm leading-relaxed text-muted-foreground">
-              A neighborhood marketplace for authentic homemade food. Built to support local cooks
-              and the communities they feed.
-            </p>
-          </div>
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-            {cols.map((column) => (
-              <div key={column.title}>
-                <p className="text-sm font-semibold text-foreground">{column.title}</p>
-                <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
-                  {column.links.map((link) => (
-                    <li key={link}>
-                      <Link href="/search/" className="transition-colors hover:text-foreground">
-                        {link}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </div>
-        <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} localcokitchen. Made with care for local cooks.</p>
-          <div className="flex gap-5">
-            <Link href="/privacy-policy/" className="hover:text-foreground">
-              Privacy
-            </Link>
-            <Link href="/terms-and-conditions/" className="hover:text-foreground">
-              Terms
-            </Link>
-            <Link href="/privacy-policy/" className="hover:text-foreground">
-              Cookies
-            </Link>
-          </div>
-        </div>
-      </div>
-    </footer>
   );
 }

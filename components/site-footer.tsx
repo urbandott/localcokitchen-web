@@ -1,14 +1,8 @@
 import Link from "next/link";
 import { ChefHat } from "lucide-react";
+import { footerNavigation } from "@/lib/navigation/site-navigation";
 
 export function SiteFooter() {
-  const columns = [
-    { title: "Eat", links: ["Browse cooks", "Popular categories", "Gift cards", "How it works"] },
-    { title: "Cook", links: ["Become a cook", "Cook resources", "Safety standards", "Community"] },
-    { title: "Company", links: ["Mission", "FAQ", "Contact", "Careers"] },
-    { title: "Legal", links: ["Privacy", "Terms", "Trust & safety"] },
-  ];
-
   return (
     <footer className="border-t border-border bg-surface" aria-labelledby="footer-title">
       <div className="container-page py-14">
@@ -31,17 +25,14 @@ export function SiteFooter() {
             </p>
           </div>
           <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-            {columns.map((column) => (
+            {footerNavigation.map((column) => (
               <nav key={column.title} aria-label={column.title}>
                 <p className="text-sm font-semibold text-foreground">{column.title}</p>
                 <ul className="mt-3 space-y-2 text-sm text-muted-foreground">
                   {column.links.map((link) => (
-                    <li key={link}>
-                      <Link
-                        href={footerHref(link)}
-                        className="transition-colors hover:text-foreground"
-                      >
-                        {link}
+                    <li key={link.href}>
+                      <Link href={link.href} className="transition-colors hover:text-foreground">
+                        {link.label}
                       </Link>
                     </li>
                   ))}
@@ -51,7 +42,7 @@ export function SiteFooter() {
           </div>
         </div>
         <div className="mt-12 flex flex-col items-start justify-between gap-3 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
-          <p>© 2026 localcokitchen. Made with care for local cooks.</p>
+          <p>© {new Date().getFullYear()} localcokitchen. Made with care for local cooks.</p>
           <div className="flex gap-5">
             <Link href="/privacy-policy/" className="hover:text-foreground">
               Privacy
@@ -67,19 +58,4 @@ export function SiteFooter() {
       </div>
     </footer>
   );
-}
-
-function footerHref(label: string) {
-  const routes: Record<string, string> = {
-    "Become a cook": "/sell-your-food/",
-    "Browse cooks": "/search/",
-    "How it works": "/how-it-works/",
-    Mission: "/mission/",
-    FAQ: "/faq/",
-    Contact: "/contact-us/",
-    Privacy: "/privacy-policy/",
-    Terms: "/terms-and-conditions/",
-    "Trust & safety": "/#trust",
-  };
-  return routes[label] ?? "/search/";
 }

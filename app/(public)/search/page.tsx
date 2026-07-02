@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AppChrome } from "@/components/app-chrome";
 import { ReferenceSearchPage } from "@/features/search/reference-search-page";
 import { createMetadata } from "@/lib/seo/metadata";
 
@@ -10,5 +11,9 @@ export const metadata: Metadata = createMetadata({
 });
 
 export default function SearchPage() {
-  return <ReferenceSearchPage />;
+  return (
+    <AppChrome>
+      <ReferenceSearchPage />
+    </AppChrome>
+  );
 }

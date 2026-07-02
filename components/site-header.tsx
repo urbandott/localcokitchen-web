@@ -1,12 +1,6 @@
 import Link from "next/link";
 import { ChefHat, Menu } from "lucide-react";
-
-const navLinks = [
-  { href: "/search/", label: "Browse cooks" },
-  { href: "/how-it-works/", label: "How it works" },
-  { href: "/sell-your-food/", label: "Become a cook" },
-  { href: "/faq/", label: "FAQ" },
-];
+import { mobileUtilityNavigation, primaryNavigation } from "@/lib/navigation/site-navigation";
 
 export function SiteHeader() {
   return (
@@ -24,7 +18,7 @@ export function SiteHeader() {
           className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex"
           aria-label="Primary navigation"
         >
-          {navLinks.map((link) => (
+          {primaryNavigation.map((link) => (
             <Link
               className="transition-colors hover:text-foreground"
               href={link.href}
@@ -33,9 +27,6 @@ export function SiteHeader() {
               {link.label}
             </Link>
           ))}
-          <Link className="transition-colors hover:text-foreground" href="/contact-us/">
-            Contact
-          </Link>
         </nav>
         <div className="flex items-center gap-2">
           <Link
@@ -50,13 +41,28 @@ export function SiteHeader() {
           >
             Get started
           </Link>
-          <button
-            aria-label="Open menu"
-            className="grid h-10 w-10 place-items-center rounded-full border border-border md:hidden"
-            type="button"
-          >
-            <Menu className="h-5 w-5" />
-          </button>
+          <details className="group relative md:hidden">
+            <summary
+              aria-label="Open menu"
+              className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full border border-border [&::-webkit-details-marker]:hidden"
+            >
+              <Menu className="h-5 w-5" />
+            </summary>
+            <nav
+              aria-label="Mobile navigation"
+              className="absolute right-0 top-12 z-50 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-card"
+            >
+              {[...primaryNavigation, ...mobileUtilityNavigation].map((link) => (
+                <Link
+                  className="rounded-xl px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
+                  href={link.href}
+                  key={link.href}
+                >
+                  {link.label}
+                </Link>
+              ))}
+            </nav>
+          </details>
         </div>
       </div>
     </header>

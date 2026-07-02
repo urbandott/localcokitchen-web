@@ -20,7 +20,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <a className="skip-link" href="#main-content">
           Skip to content
         </a>
-        <main id="main-content">{children}</main>
+        {children}
       </body>
     </html>
   );

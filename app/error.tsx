@@ -8,7 +8,7 @@ export default function GlobalError({
   reset: () => void;
 }) {
   return (
-    <main className="content-page next-page-grid">
+    <main id="main-content" className="content-page next-page-grid">
       <section className="page-hero">
         <p className="eyebrow">Error</p>
         <h1>Something went wrong</h1>

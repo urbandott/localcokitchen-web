@@ -22,6 +22,16 @@ import { updateProfileAction } from "@/features/profile/actions";
 
 const initialState = { ok: false, message: "" };
 
+function pngHeader(width = 400, height = 400) {
+  const bytes = new Uint8Array(24);
+  bytes.set([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+  bytes.set([0x49, 0x48, 0x44, 0x52], 12);
+  const view = new DataView(bytes.buffer);
+  view.setUint32(16, width);
+  view.setUint32(20, height);
+  return bytes;
+}
+
 function formData(values: { firstName?: string; lastName?: string; avatar?: File }) {
   const data = new FormData();
   if (values.firstName !== undefined) data.set("firstName", values.firstName);
@@ -106,17 +116,13 @@ describe("profile update action", () => {
     );
 
     expect(result.ok).toBe(false);
-    expect(result.fieldErrors?.avatar).toMatch(/file contents/i);
+    expect(result.fieldErrors?.avatar).toMatch(/image must be valid/i);
     expect(profileMocks.upload).not.toHaveBeenCalled();
     expect(profileMocks.update).not.toHaveBeenCalled();
   });
 
   it("uploads a valid image to a generated owner path without upsert", async () => {
-    const avatar = new File(
-      [new Uint8Array([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])],
-      "untrusted-name.png",
-      { type: "image/png" },
-    );
+    const avatar = new File([pngHeader()], "untrusted-name.png", { type: "image/png" });
     const result = await updateProfileAction(
       initialState,
       formData({ firstName: "Asha", lastName: "Patel", avatar }),
@@ -134,5 +140,39 @@ describe("profile update action", () => {
         avatar_path: expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
       }),
     );
+  });
+
+  it("rejects images with abusive dimensions before upload", async () => {
+    const avatar = new File([pngHeader(5000, 100)], "large-dimensions.png", {
+      type: "image/png",
+    });
+    const result = await updateProfileAction(
+      initialState,
+      formData({ firstName: "Asha", lastName: "Patel", avatar }),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.fieldErrors?.avatar).toMatch(/4096/);
+    expect(profileMocks.upload).not.toHaveBeenCalled();
+    expect(profileMocks.update).not.toHaveBeenCalled();
+  });
+
+  it("rejects empty and oversized files before accessing Supabase", async () => {
+    const empty = new File([], "empty.png", { type: "image/png" });
+    const emptyResult = await updateProfileAction(
+      initialState,
+      formData({ firstName: "Asha", lastName: "Patel", avatar: empty }),
+    );
+    expect(emptyResult.fieldErrors?.avatar).toMatch(/non-empty/i);
+
+    const oversized = new File([new Uint8Array(2_097_153)], "oversized.png", {
+      type: "image/png",
+    });
+    const oversizedResult = await updateProfileAction(
+      initialState,
+      formData({ firstName: "Asha", lastName: "Patel", avatar: oversized }),
+    );
+    expect(oversizedResult.fieldErrors?.avatar).toMatch(/2 MB/i);
+    expect(profileMocks.createClient).not.toHaveBeenCalled();
   });
 });

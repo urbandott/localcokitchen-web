@@ -4,6 +4,10 @@ import Image from "next/image";
 import { useActionState } from "react";
 import { type ProfileActionState, updateProfileAction } from "@/features/profile/actions";
 import type { AccountProfile } from "@/features/profile/profile-data";
+import {
+  PROFILE_IMAGE_MAX_DIMENSION,
+  PROFILE_NAME_MAX_LENGTH,
+} from "@/features/profile/profile-validation";
 
 const initialState: ProfileActionState = { ok: false, message: "" };
 
@@ -28,7 +32,10 @@ export function ProfileDetailsForm({ profile }: { profile: AccountProfile }) {
         )}
         <div>
           <p className="profile-photo__title">Profile photo</p>
-          <p className="next-muted">JPG, PNG, or WebP. Maximum 2 MB.</p>
+          <p className="next-muted">
+            JPG, PNG, or WebP. Maximum 2 MB and {PROFILE_IMAGE_MAX_DIMENSION} ×{" "}
+            {PROFILE_IMAGE_MAX_DIMENSION} pixels.
+          </p>
         </div>
       </div>
 
@@ -39,7 +46,8 @@ export function ProfileDetailsForm({ profile }: { profile: AccountProfile }) {
           aria-invalid={Boolean(state.fieldErrors?.firstName)}
           autoComplete="given-name"
           defaultValue={profile.first_name ?? ""}
-          maxLength={80}
+          maxLength={PROFILE_NAME_MAX_LENGTH}
+          minLength={1}
           name="firstName"
           required
         />
@@ -57,7 +65,8 @@ export function ProfileDetailsForm({ profile }: { profile: AccountProfile }) {
           aria-invalid={Boolean(state.fieldErrors?.lastName)}
           autoComplete="family-name"
           defaultValue={profile.last_name ?? ""}
-          maxLength={80}
+          maxLength={PROFILE_NAME_MAX_LENGTH}
+          minLength={1}
           name="lastName"
           required
         />

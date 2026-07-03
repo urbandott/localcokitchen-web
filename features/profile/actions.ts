@@ -3,9 +3,9 @@
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import {
-  detectProfileImage,
   PROFILE_IMAGE_MAX_BYTES,
   profileDetailsSchema,
+  validateProfileImage,
 } from "@/features/profile/profile-validation";
 
 export type ProfileActionState = {
@@ -45,6 +45,13 @@ export async function updateProfileAction(
   }
 
   const avatar = formData.get("avatar");
+  if (avatar instanceof File && avatar.size === 0 && avatar.name) {
+    return {
+      ok: false,
+      message: "The selected profile photo is empty.",
+      fieldErrors: { avatar: "Choose a non-empty image file." },
+    };
+  }
   const newAvatar = avatar instanceof File && avatar.size > 0 ? avatar : null;
   const removeAvatar = formData.get("removeAvatar") === "on";
 
@@ -83,12 +90,14 @@ export async function updateProfileAction(
   let uploadedPath: string | null = null;
   if (newAvatar) {
     const bytes = new Uint8Array(await newAvatar.arrayBuffer());
-    const image = detectProfileImage(bytes);
+    const image = validateProfileImage(bytes);
     if (!image || newAvatar.type !== image.contentType) {
       return {
         ok: false,
-        message: "Use a valid JPG, PNG, or WebP image.",
-        fieldErrors: { avatar: "The file contents must match a supported image format." },
+        message: "Use a valid JPG, PNG, or WebP image within the allowed dimensions.",
+        fieldErrors: {
+          avatar: "The image must be valid, at most 4096 × 4096, and no more than 16 megapixels.",
+        },
       };
     }
 
@@ -108,7 +117,7 @@ export async function updateProfileAction(
   const lastName = parsed.data.lastName;
   const update = {
     first_name: firstName,
-    last_name: lastName || null,
+    last_name: lastName,
     full_name: [firstName, lastName].filter(Boolean).join(" "),
     ...(uploadedPath || removeAvatar ? { avatar_path: uploadedPath } : {}),
   };

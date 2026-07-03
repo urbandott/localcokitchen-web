@@ -69,7 +69,7 @@ describe("Next.js security regressions", () => {
     expect(migration).toMatch(/avatar_path like id::text \|\| '\/%'/);
     expect(migration).toMatch(/public = false/);
     expect(action).toMatch(/PROFILE_IMAGE_MAX_BYTES/);
-    expect(action).toMatch(/detectProfileImage/);
+    expect(action).toMatch(/validateProfileImage/);
     expect(action).toMatch(/upsert: false/);
     expect(action).not.toMatch(/newAvatar\.name/);
   });

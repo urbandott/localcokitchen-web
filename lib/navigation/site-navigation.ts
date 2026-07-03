@@ -20,6 +20,17 @@ export const mobileUtilityNavigation: SiteLink[] = [
   { href: "/contact-us/", label: "Contact" },
 ];
 
+export const accountNavigation: SiteLink[] = [
+  { href: "/profile/", label: "My profile" },
+  { href: "/menu/", label: "Available menu" },
+  { href: "/faq/", label: "Help and FAQ" },
+];
+
+export const cookAccountNavigation: SiteLink = {
+  href: "/my-shop/",
+  label: "My kitchen",
+};
+
 export const footerNavigation: SiteLinkGroup[] = [
   {
     title: "Eat",

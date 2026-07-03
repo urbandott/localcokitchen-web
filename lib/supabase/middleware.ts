@@ -3,9 +3,9 @@ import { NextResponse, type NextRequest } from "next/server";
 import type { Database } from "@/types/database";
 import { getSupabaseBrowserConfig } from "@/lib/supabase/config";
 
-export async function updateSession(request: NextRequest) {
+export async function updateSession(request: NextRequest, requestHeaders = request.headers) {
   const config = getSupabaseBrowserConfig();
-  const response = NextResponse.next({ request });
+  const response = NextResponse.next({ request: { headers: requestHeaders } });
   if (!config) return response;
 
   const supabase = createServerClient<Database>(config.url, config.publishableKey, {

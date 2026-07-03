@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { signOutAction } from "@/features/auth/actions";
+import { userHasCookApplication } from "@/features/kitchen/kitchen-data";
 import { requireUser } from "@/lib/auth/session";
 import { createMetadata } from "@/lib/seo/metadata";
 
@@ -13,6 +13,8 @@ export const metadata: Metadata = createMetadata({
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile/");
+  const hasCookApplication = await userHasCookApplication(user.id);
+
   return (
     <div className="content-page next-page-grid">
       <section className="page-hero">
@@ -20,28 +22,29 @@ export default async function ProfilePage() {
         <h1>Your profile</h1>
         <p className="lede">{user.email}</p>
       </section>
-      <section className="next-card-grid">
+      <section className="next-card-grid profile-card-grid">
         <article className="next-card">
-          <h2>My kitchen</h2>
-          <p>Apply as a cook, manage your public profile, menu, and pickup windows.</p>
-          <Link className="secondary-action compact-action" href="/my-shop/">
-            Open kitchen dashboard
+          <h2>Personal details</h2>
+          <p>Update your name and profile photo.</p>
+          <Link className="secondary-action compact-action" href="/profile/personal-details/">
+            Manage profile
           </Link>
         </article>
+        {hasCookApplication ? (
+          <article className="next-card">
+            <h2>My kitchen</h2>
+            <p>Manage your cook application, public profile, menu, and pickup windows.</p>
+            <Link className="secondary-action compact-action" href="/my-shop/">
+              Open kitchen dashboard
+            </Link>
+          </article>
+        ) : null}
         <article className="next-card">
           <h2>Account security</h2>
           <p>Use a strong password and keep your email account secure.</p>
           <Link className="secondary-action compact-action" href="/reset-password/">
             Reset password
           </Link>
-        </article>
-        <article className="next-card">
-          <h2>Sign out</h2>
-          <form action={signOutAction}>
-            <button className="primary-action compact-action" type="submit">
-              Sign out
-            </button>
-          </form>
         </article>
       </section>
     </div>

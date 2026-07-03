@@ -32,3 +32,33 @@ test("mobile menu route renders controls without horizontal overflow", async ({ 
   const width = await page.evaluate(() => document.documentElement.scrollWidth);
   expect(width).toBeLessThanOrEqual(430);
 });
+
+test("signup preserves values and gates submission on live password requirements", async ({
+  page,
+}) => {
+  await page.goto("/signup/");
+
+  const firstName = page.getByLabel("First name");
+  const lastName = page.getByLabel("Last name");
+  const email = page.getByLabel("Email");
+  const password = page.locator('input[name="password"]');
+  const submit = page.getByRole("button", { name: "Create account" });
+
+  await firstName.fill("Asha");
+  await lastName.fill("Cook");
+  await email.fill("asha@example.com");
+  await password.click();
+
+  await expect(page.getByText("Your password must include:")).toBeVisible();
+  await password.fill("weak");
+  await expect(submit).toBeDisabled();
+
+  await password.fill("StrongPass1!");
+  await expect(page.locator(".password-requirement.is-met")).toHaveCount(5);
+  await expect(submit).toBeEnabled();
+
+  await expect(firstName).toHaveValue("Asha");
+  await expect(lastName).toHaveValue("Cook");
+  await expect(email).toHaveValue("asha@example.com");
+  await expect(password).toHaveValue("StrongPass1!");
+});

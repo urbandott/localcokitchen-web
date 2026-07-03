@@ -2,6 +2,20 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 
 export type AdminCookStatus = "submitted" | "approved" | "rejected" | "suspended" | "draft";
 
+export type IdentityUser = {
+  id: string;
+  email: string;
+  first_name: string | null;
+  last_name: string | null;
+  full_name: string | null;
+  marketing_opt_in: boolean;
+  marketing_opt_in_at: string | null;
+  avatar_url: string | null;
+  avatar_path: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type CustomerMenuItem = {
   id: string;
   cook_id: string;
@@ -166,7 +180,13 @@ export type Database = {
     };
   };
   lck_identity: {
-    Tables: Record<string, never>;
+    Tables: {
+      users: {
+        Row: IdentityUser;
+        Insert: Partial<IdentityUser>;
+        Update: Partial<IdentityUser>;
+      };
+    };
     Functions: {
       current_user_is_admin: { Args: Record<string, never>; Returns: boolean };
       get_admin_metrics: { Args: Record<string, never>; Returns: AdminMetrics };

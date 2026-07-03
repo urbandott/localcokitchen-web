@@ -21,6 +21,7 @@ export default function SignUpPage() {
       <AuthForm
         action={signUpAction}
         submitLabel="Create account"
+        showPasswordRequirements
         fields={[
           { name: "firstName", label: "First name", type: "text", autoComplete: "given-name" },
           { name: "lastName", label: "Last name", type: "text", autoComplete: "family-name" },

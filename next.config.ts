@@ -5,23 +5,14 @@ const withBundleAnalyzer = bundleAnalyzer({
   enabled: process.env.ANALYZE === "true",
 });
 
-const csp = [
-  "default-src 'self'",
-  "base-uri 'self'",
-  "frame-ancestors 'none'",
-  "object-src 'none'",
-  "form-action 'self'",
-  "img-src 'self' data: blob: https://*.supabase.co",
-  "font-src 'self'",
-  "style-src 'self' 'unsafe-inline'",
-  "script-src 'self'",
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-  "upgrade-insecure-requests",
-].join("; ");
-
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  experimental: {
+    serverActions: {
+      bodySizeLimit: "3mb",
+    },
+  },
   images: {
     remotePatterns: [
       {
@@ -36,7 +27,6 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: [
-          { key: "Content-Security-Policy", value: csp },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "X-Frame-Options", value: "DENY" },

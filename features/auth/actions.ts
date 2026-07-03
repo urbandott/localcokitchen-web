@@ -4,18 +4,38 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { safeRedirectPath } from "@/lib/security/safe-path";
+import { meetsPasswordRequirements, PASSWORD_MAX_LENGTH } from "@/features/auth/password-policy";
 
 const emailSchema = z
   .string()
   .email()
   .max(254)
   .transform((value) => value.toLowerCase());
-const passwordSchema = z.string().min(10).max(128);
+const passwordSchema = z
+  .string()
+  .max(PASSWORD_MAX_LENGTH, `Password must be ${PASSWORD_MAX_LENGTH} characters or fewer.`)
+  .refine(meetsPasswordRequirements, {
+    message: "Password must meet all requirements shown below.",
+  });
 
 export type AuthActionState = {
   message: string;
   ok: boolean;
+  fieldErrors?: Record<string, string>;
 };
+
+function firstFieldErrors(error: z.ZodError): Record<string, string> {
+  const fieldErrors: Record<string, string> = {};
+
+  for (const issue of error.issues) {
+    const field = issue.path[0];
+    if (typeof field === "string" && !fieldErrors[field]) {
+      fieldErrors[field] = issue.message;
+    }
+  }
+
+  return fieldErrors;
+}
 
 export async function signInAction(
   _state: AuthActionState,
@@ -51,12 +71,18 @@ export async function signUpAction(
     .object({
       email: emailSchema,
       password: passwordSchema,
-      firstName: z.string().trim().max(80).optional(),
-      lastName: z.string().trim().max(80).optional(),
+      firstName: z.string().trim().max(80, "First name must be 80 characters or fewer.").optional(),
+      lastName: z.string().trim().max(80, "Last name must be 80 characters or fewer.").optional(),
     })
     .safeParse(Object.fromEntries(formData));
 
-  if (!parsed.success) return { ok: false, message: "Enter a valid email and a strong password." };
+  if (!parsed.success) {
+    return {
+      ok: false,
+      message: "Please correct the highlighted fields.",
+      fieldErrors: firstFieldErrors(parsed.error),
+    };
+  }
 
   const supabase = await createClient();
   if (!supabase) return { ok: false, message: "Authentication is not configured yet." };
@@ -75,7 +101,7 @@ export async function signUpAction(
   return {
     ok: true,
     message:
-      "If your email can be registered, you will receive the next sign-in or confirmation steps shortly.",
+      "Thanks! Check your inbox and spam folder for a confirmation email. If you already have an account, you can sign in instead.",
   };
 }
 

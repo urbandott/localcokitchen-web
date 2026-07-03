@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ChefHat } from "lucide-react";
+import { BrandLogo } from "@/components/brand-logo";
 import { footerNavigation } from "@/lib/navigation/site-navigation";
 
 export function SiteFooter() {
@@ -8,13 +8,8 @@ export function SiteFooter() {
       <div className="container-page py-14">
         <div className="grid gap-10 lg:grid-cols-[1.4fr_2fr]">
           <div>
-            <Link className="flex items-center gap-2" href="/" aria-label="LocalCoKitchen home">
-              <span className="grid h-9 w-9 place-items-center rounded-xl bg-primary text-primary-foreground">
-                <ChefHat className="h-5 w-5" />
-              </span>
-              <span className="text-[17px] font-bold tracking-tight">
-                localco<span className="text-primary">kitchen</span>
-              </span>
+            <Link className="inline-flex" href="/" aria-label="LocalCoKitchen home">
+              <BrandLogo placement="footer" />
             </Link>
             <p
               id="footer-title"

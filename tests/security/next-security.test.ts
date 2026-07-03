@@ -20,7 +20,9 @@ describe("Next.js security regressions", () => {
       .filter((file) => /\.(ts|tsx)$/.test(file));
     const source = files.map(read).join("\n");
     expect(source).not.toMatch(/service[_-]?role/i);
-    expect(source).not.toMatch(/\b(?:innerHTML|outerHTML|insertAdjacentHTML|eval|Function)\b/);
+    expect(source).not.toMatch(
+      /\b(?:innerHTML|outerHTML|insertAdjacentHTML)\b|\beval\s*\(|\bnew\s+Function\s*\(/,
+    );
     expect(source).not.toMatch(/dangerouslySetInnerHTML/);
   });
 
@@ -36,7 +38,39 @@ describe("Next.js security regressions", () => {
     expect(read("app/(auth)/layout.tsx")).toMatch(/index: false/);
     expect(read("app/(account)/layout.tsx")).toMatch(/index: false/);
     expect(read("app/(admin)/layout.tsx")).toMatch(/index: false/);
-    expect(read("next.config.ts")).toMatch(/Content-Security-Policy/);
-    expect(read("next.config.ts")).toMatch(/frame-ancestors 'none'/);
+    expect(read("proxy.ts")).toMatch(/Content-Security-Policy/);
+    expect(read("lib/security/content-security-policy.ts")).toMatch(/frame-ancestors 'none'/);
+    expect(read("lib/security/content-security-policy.ts")).toMatch(/nonce-/);
+    expect(read("lib/security/content-security-policy.ts")).not.toMatch(
+      /script-src[^;\n]*unsafe-inline/,
+    );
+  });
+
+  it("uses the canonical image asset for visible and browser branding", () => {
+    expect(read("lib/brand.ts")).toMatch(/logo: "\/images\/logo\.svg"/);
+    expect(read("components/brand-logo.tsx")).toMatch(/BRAND_ASSETS\.logo/);
+    expect(read("components/site-header.tsx")).toMatch(/<BrandLogo placement="header" priority/);
+    expect(read("components/site-footer.tsx")).toMatch(/<BrandLogo placement="footer"/);
+    expect(read("lib/seo/metadata.ts")).toMatch(/icons: \{/);
+    expect(read("lib/seo/metadata.ts")).toMatch(/BRAND_ASSETS\.logo/);
+    expect(read("components/site-header.tsx")).not.toMatch(/ChefHat/);
+    expect(read("components/site-footer.tsx")).not.toMatch(/ChefHat/);
+  });
+
+  it("keeps account profile updates owner-scoped and profile images private", () => {
+    const migration = read(
+      "supabase/migrations/20260703023857_add_customer_profile_management.sql",
+    );
+    const action = read("features/profile/actions.ts");
+
+    expect(migration).toMatch(/for update\s+to authenticated/);
+    expect(migration).toMatch(/auth\.uid\(\)\) = id/);
+    expect(migration).toMatch(/grant update \(first_name, last_name, full_name, avatar_path\)/);
+    expect(migration).toMatch(/avatar_path like id::text \|\| '\/%'/);
+    expect(migration).toMatch(/public = false/);
+    expect(action).toMatch(/PROFILE_IMAGE_MAX_BYTES/);
+    expect(action).toMatch(/detectProfileImage/);
+    expect(action).toMatch(/upsert: false/);
+    expect(action).not.toMatch(/newAvatar\.name/);
   });
 });

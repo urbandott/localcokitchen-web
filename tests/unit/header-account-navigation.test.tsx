@@ -4,6 +4,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const authMocks = vi.hoisted(() => ({
   getCookApplication: vi.fn(),
+  getCookIntent: vi.fn(),
   getUser: vi.fn(),
   onAuthStateChange: vi.fn(),
   unsubscribe: vi.fn(),
@@ -23,10 +24,10 @@ vi.mock("@/lib/supabase/browser", () => ({
       onAuthStateChange: authMocks.onAuthStateChange,
     },
     schema: () => ({
-      from: () => ({
+      from: (table: string) => ({
         select: () => ({
           eq: () => ({
-            maybeSingle: authMocks.getCookApplication,
+            maybeSingle: table === "users" ? authMocks.getCookIntent : authMocks.getCookApplication,
           }),
         }),
       }),
@@ -54,6 +55,10 @@ describe("header account navigation", () => {
     });
     authMocks.getCookApplication.mockResolvedValue({
       data: null,
+      error: null,
+    });
+    authMocks.getCookIntent.mockResolvedValue({
+      data: { cook_onboarding_started_at: null },
       error: null,
     });
     authMocks.onAuthStateChange.mockReturnValue({
@@ -99,5 +104,16 @@ describe("header account navigation", () => {
 
     expect(container.textContent).toContain("My kitchen");
     expect(container.textContent).not.toContain("Browse cooks");
+  });
+
+  it("shows My kitchen when cook onboarding was selected during signup", async () => {
+    authMocks.getCookIntent.mockResolvedValue({
+      data: { cook_onboarding_started_at: "2026-07-05T12:00:00.000Z" },
+      error: null,
+    });
+
+    await renderNavigation();
+
+    expect(container.textContent).toContain("My kitchen");
   });
 });

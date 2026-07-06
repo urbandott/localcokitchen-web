@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { userHasCookApplication } from "@/features/kitchen/kitchen-data";
+import { userHasCookWorkspace } from "@/features/kitchen/kitchen-data";
 import { requireUser } from "@/lib/auth/session";
 import { createMetadata } from "@/lib/seo/metadata";
 
@@ -13,7 +13,7 @@ export const metadata: Metadata = createMetadata({
 
 export default async function ProfilePage() {
   const user = await requireUser("/profile/");
-  const hasCookApplication = await userHasCookApplication(user.id);
+  const hasCookWorkspace = await userHasCookWorkspace(user.id);
 
   return (
     <div className="content-page next-page-grid">
@@ -30,7 +30,7 @@ export default async function ProfilePage() {
             Manage profile
           </Link>
         </article>
-        {hasCookApplication ? (
+        {hasCookWorkspace ? (
           <article className="next-card">
             <h2>My kitchen</h2>
             <p>Manage your cook application, public profile, menu, and pickup windows.</p>

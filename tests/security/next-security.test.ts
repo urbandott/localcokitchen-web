@@ -73,4 +73,18 @@ describe("Next.js security regressions", () => {
     expect(action).toMatch(/upsert: false/);
     expect(action).not.toMatch(/newAvatar\.name/);
   });
+
+  it("keeps cook onboarding intent separate from cook authorization", () => {
+    const migration = read("supabase/migrations/20260706002918_add_cook_onboarding_intent.sql");
+    const authActions = read("features/auth/actions.ts");
+
+    expect(migration).toMatch(/Cook onboarding intent is a navigation preference/);
+    expect(migration).toMatch(/grant update \(cook_onboarding_started_at\)/);
+    expect(migration).toMatch(
+      /avatar_path = coalesce\(excluded\.avatar_path, lck_identity\.users\.avatar_path\)/,
+    );
+    expect(authActions).toMatch(/postSignInDestination/);
+    expect(authActions).toMatch(/cook_onboarding_started_at/);
+    expect(authActions).not.toMatch(/user_metadata.*(?:role|admin|approved)/i);
+  });
 });

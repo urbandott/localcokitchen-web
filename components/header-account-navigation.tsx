@@ -45,15 +45,28 @@ export function HeaderAccountNavigation() {
         return;
       }
 
-      const { data } = await authenticatedClient
-        .schema("lck_marketplace")
-        .from("cook_applications")
-        .select("id")
-        .eq("user_id", userId)
-        .maybeSingle();
+      const [identity, application] = await Promise.all([
+        authenticatedClient
+          .schema("lck_identity")
+          .from("users")
+          .select("cook_onboarding_started_at")
+          .eq("id", userId)
+          .maybeSingle(),
+        authenticatedClient
+          .schema("lck_marketplace")
+          .from("cook_applications")
+          .select("id")
+          .eq("user_id", userId)
+          .maybeSingle(),
+      ]);
 
       if (active && request === accountRequest) {
-        setHasCookApplication(Boolean(data));
+        setHasCookApplication(
+          Boolean(
+            (!identity.error && identity.data?.cook_onboarding_started_at) ||
+            (!application.error && application.data),
+          ),
+        );
         setAuthStatus("signed-in");
       }
     }

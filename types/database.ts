@@ -12,6 +12,7 @@ export type IdentityUser = {
   marketing_opt_in_at: string | null;
   avatar_url: string | null;
   avatar_path: string | null;
+  cook_onboarding_started_at: string | null;
   created_at: string;
   updated_at: string;
 };

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { AppChrome } from "@/components/app-chrome";
+import { startCookOnboardingAction } from "@/features/auth/actions";
 import { createMetadata } from "@/lib/seo/metadata";
 
 export const metadata: Metadata = createMetadata({
@@ -10,7 +11,13 @@ export const metadata: Metadata = createMetadata({
   path: "/sell-your-food/",
 });
 
-export default function SellFoodPage() {
+export default async function SellFoodPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ setup?: string }>;
+}) {
+  const setupFailed = (await searchParams).setup === "error";
+
   return (
     <AppChrome>
       <div className="content-page next-page-grid">
@@ -22,10 +29,17 @@ export default function SellFoodPage() {
               Create a cook account, submit your application, publish menu items, and manage your
               pickup availability after approval.
             </p>
+            {setupFailed ? (
+              <p className="next-alert" role="alert">
+                Cook setup could not be started. Refresh the page and try again.
+              </p>
+            ) : null}
             <div className="button-row">
-              <Link className="primary-action" href="/signup/">
-                Create account
-              </Link>
+              <form action={startCookOnboardingAction}>
+                <button className="primary-action" type="submit">
+                  Apply to become a cook
+                </button>
+              </form>
               <Link className="secondary-action" href="/my-shop/">
                 Manage my kitchen
               </Link>

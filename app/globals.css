@@ -448,6 +448,10 @@ body {
   transform: translateY(-1px);
 }
 
+.primary-action:not(:disabled) {
+  cursor: pointer;
+}
+
 .primary-action:disabled {
   cursor: not-allowed;
   opacity: 0.55;

@@ -62,3 +62,18 @@ test("signup preserves values and gates submission on live password requirements
   await expect(email).toHaveValue("asha@example.com");
   await expect(password).toHaveValue("StrongPass1!");
 });
+
+test("cook application entry creates a dedicated cook onboarding path", async ({ page }) => {
+  await page.goto("/");
+
+  await page.getByRole("button", { name: "Apply to become a cook", exact: true }).click();
+
+  await expect(page).toHaveURL(/\/signup\/?\?intent=cook$/);
+  await expect(page.getByRole("heading", { name: "Create your cook account" })).toBeVisible();
+  await expect(page.locator('input[name="intent"]')).toHaveValue("cook");
+  await expect(page.getByRole("button", { name: "Create cook account" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Already have an account?" })).toHaveAttribute(
+    "href",
+    "/signin?intent=cook",
+  );
+});

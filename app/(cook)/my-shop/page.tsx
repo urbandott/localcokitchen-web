@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { getKitchenDashboard } from "@/features/kitchen/kitchen-data";
+import { redirect } from "next/navigation";
+import { getKitchenDashboard, userHasCookWorkspace } from "@/features/kitchen/kitchen-data";
 import { requireUser } from "@/lib/auth/session";
 import { createMetadata } from "@/lib/seo/metadata";
 import { formatCurrency } from "@/lib/utils/format";
@@ -14,6 +15,7 @@ export const metadata: Metadata = createMetadata({
 
 export default async function MyShopPage() {
   const user = await requireUser("/my-shop/");
+  if (!(await userHasCookWorkspace(user.id))) redirect("/sell-your-food/");
   const { application, profile, menuItems, error } = await getKitchenDashboard(user.id);
 
   return (

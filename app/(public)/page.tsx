@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { startCookOnboardingAction } from "@/features/auth/actions";
 import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
@@ -525,13 +526,15 @@ function CookCta() {
               growing your neighborhood following.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link
-                href="/signup/"
-                className="inline-flex h-12 items-center gap-2 rounded-full bg-background px-6 text-sm font-semibold text-foreground transition-colors hover:bg-background/90"
-              >
-                Apply to become a cook
-                <ArrowRight className="h-4 w-4" />
-              </Link>
+              <form action={startCookOnboardingAction}>
+                <button
+                  className="inline-flex h-12 cursor-pointer items-center gap-2 rounded-full border-0 bg-background px-6 text-sm font-semibold text-foreground transition-colors hover:bg-background/90"
+                  type="submit"
+                >
+                  Apply to become a cook
+                  <ArrowRight className="h-4 w-4" />
+                </button>
+              </form>
               <Link
                 href="/sell-your-food/"
                 className="inline-flex h-12 items-center rounded-full border border-primary-foreground/30 px-6 text-sm font-semibold text-primary-foreground transition-colors hover:bg-background/10"

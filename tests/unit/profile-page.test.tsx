@@ -7,7 +7,7 @@ const profileMocks = vi.hoisted(() => ({
 }));
 
 vi.mock("@/features/kitchen/kitchen-data", () => ({
-  userHasCookApplication: profileMocks.hasCookApplication,
+  userHasCookWorkspace: profileMocks.hasCookApplication,
 }));
 
 vi.mock("@/lib/auth/session", () => ({

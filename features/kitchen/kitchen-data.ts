@@ -1,18 +1,29 @@
 import { createClient } from "@/lib/supabase/server";
 import type { CookApplication, CookMenuItem, CookProfile } from "@/types/database";
 
-export async function userHasCookApplication(userId: string): Promise<boolean> {
+export async function userHasCookWorkspace(userId: string): Promise<boolean> {
   const supabase = await createClient();
   if (!supabase) return false;
 
-  const { data, error } = await supabase
-    .schema("lck_marketplace")
-    .from("cook_applications")
-    .select("id")
-    .eq("user_id", userId)
-    .maybeSingle();
+  const [identity, application] = await Promise.all([
+    supabase
+      .schema("lck_identity")
+      .from("users")
+      .select("cook_onboarding_started_at")
+      .eq("id", userId)
+      .maybeSingle(),
+    supabase
+      .schema("lck_marketplace")
+      .from("cook_applications")
+      .select("id")
+      .eq("user_id", userId)
+      .maybeSingle(),
+  ]);
 
-  return !error && Boolean(data);
+  return Boolean(
+    (!identity.error && identity.data?.cook_onboarding_started_at) ||
+    (!application.error && application.data),
+  );
 }
 
 export async function getKitchenDashboard(userId: string): Promise<{

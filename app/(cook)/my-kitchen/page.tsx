@@ -9,12 +9,12 @@ import { formatCurrency } from "@/lib/utils/format";
 export const metadata: Metadata = createMetadata({
   title: "My Kitchen",
   description: "Manage your LocalCoKitchen cook dashboard.",
-  path: "/my-shop/",
+  path: "/my-kitchen/",
   noIndex: true,
 });
 
-export default async function MyShopPage() {
-  const user = await requireUser("/my-shop/");
+export default async function MyKitchenPage() {
+  const user = await requireUser("/my-kitchen/");
   if (!(await userHasCookWorkspace(user.id))) redirect("/sell-your-food/");
   const { application, profile, menuItems, error } = await getKitchenDashboard(user.id);
 

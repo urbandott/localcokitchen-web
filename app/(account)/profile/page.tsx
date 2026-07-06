@@ -34,7 +34,7 @@ export default async function ProfilePage() {
           <article className="next-card">
             <h2>My kitchen</h2>
             <p>Manage your cook application, public profile, menu, and pickup windows.</p>
-            <Link className="secondary-action compact-action" href="/my-shop/">
+            <Link className="secondary-action compact-action" href="/my-kitchen/">
               Open kitchen dashboard
             </Link>
           </article>

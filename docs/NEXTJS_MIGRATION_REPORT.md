@@ -34,7 +34,7 @@ The app now has a production-buildable Next.js App Router implementation alongsi
 | `/forgot-password/` | `app/(auth)/forgot-password/page.tsx` | Migrated |
 | `/reset-password/` | `app/(auth)/reset-password/page.tsx` | Migrated |
 | `/profile/` | `app/(account)/profile/page.tsx` | Migrated |
-| `/my-shop/` | `app/(cook)/my-shop/page.tsx` | Migrated read dashboard |
+| `/my-kitchen/` | `app/(cook)/my-kitchen/page.tsx` | Migrated read dashboard |
 | `/admin/` | `app/(admin)/admin/page.tsx` | Migrated |
 | `/admin/signin/` | `app/(admin)/admin/signin/page.tsx` | Redirects to unified sign-in |
 | `/admin/cook-applications/` | `app/(admin)/admin/cook-applications/page.tsx` | Migrated list view |
@@ -101,7 +101,7 @@ Blocked:
 
 ## Remaining risks
 
-- Full cook dashboard write workflows are not yet rebuilt as rich Next.js forms; the migrated `/my-shop/` page currently provides a protected dashboard/read view.
+- Full cook dashboard write workflows are not yet rebuilt as rich Next.js forms; the migrated `/my-kitchen/` page currently provides a protected dashboard/read view.
 - Admin application review details/actions are not yet rebuilt to full legacy UI depth; admin cook list and kitchen moderation action are migrated.
 - Production deployment requires real `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, and migration reconciliation.
 - Checkout/order/payment flows are still not implemented in this codebase.

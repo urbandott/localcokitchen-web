@@ -9,7 +9,7 @@ export default function robots(): MetadataRoute.Robots {
         allow: "/",
         disallow: [
           "/admin/",
-          "/my-shop/",
+          "/my-kitchen/",
           "/profile/",
           "/signin/",
           "/signup/",

@@ -25,7 +25,7 @@ Legacy static auth files still exist during migration but should not be used as 
 - Password reset request at `/forgot-password/`
 - Password update at `/reset-password/`
 - Authenticated profile route at `/profile/`
-- Cook dashboard route at `/my-shop/`
+- Cook dashboard route at `/my-kitchen/`
 - Admin routes under `/admin/`
 - Admin authorization through database role/RPC checks, not user-editable metadata
 - Generic signup/reset messages to avoid account enumeration

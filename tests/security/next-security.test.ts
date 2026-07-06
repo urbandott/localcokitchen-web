@@ -46,6 +46,14 @@ describe("Next.js security regressions", () => {
     );
   });
 
+  it("uses the protected My Kitchen route and preserves old bookmarks", () => {
+    expect(read("app/(cook)/my-kitchen/page.tsx")).toMatch(/requireUser\("\/my-kitchen\/"\)/);
+    expect(read("proxy.ts")).toMatch(/"\/my-kitchen"/);
+    expect(read("app/robots.ts")).toMatch(/"\/my-kitchen\/"/);
+    expect(read("next.config.ts")).toMatch(/source: "\/my-shop\/:path\*"/);
+    expect(read("next.config.ts")).toMatch(/destination: "\/my-kitchen\/:path\*"/);
+  });
+
   it("uses the canonical image asset for visible and browser branding", () => {
     expect(read("lib/brand.ts")).toMatch(/logo: "\/images\/logo\.svg"/);
     expect(read("components/brand-logo.tsx")).toMatch(/BRAND_ASSETS\.logo/);

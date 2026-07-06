@@ -49,7 +49,7 @@ export async function startCookOnboardingAction() {
     if (updated.error) redirect("/sell-your-food/?setup=error");
   }
 
-  redirect("/my-shop/");
+  redirect("/my-kitchen/");
 }
 
 function firstFieldErrors(error: z.ZodError): Record<string, string> {
@@ -177,7 +177,7 @@ export async function signUpAction(
     },
   });
 
-  if (data.session) redirect(accountIntent === "cook" ? "/my-shop/" : "/");
+  if (data.session) redirect(accountIntent === "cook" ? "/my-kitchen/" : "/");
 
   return {
     ok: true,

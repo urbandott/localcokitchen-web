@@ -50,7 +50,7 @@ Open:
 - Sign in: `http://127.0.0.1:3000/signin/`
 - Sign up: `http://127.0.0.1:3000/signup/`
 - Profile: `http://127.0.0.1:3000/profile/`
-- My Kitchen: `http://127.0.0.1:3000/my-shop/`
+- My Kitchen: `http://127.0.0.1:3000/my-kitchen/`
 - Admin: `http://127.0.0.1:3000/admin/`
 
 If Supabase env vars are missing, public pages still render, but auth/database-backed sections show unavailable states or redirect as expected.

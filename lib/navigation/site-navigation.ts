@@ -22,12 +22,11 @@ export const mobileUtilityNavigation: SiteLink[] = [
 
 export const accountNavigation: SiteLink[] = [
   { href: "/profile/", label: "My profile" },
-  { href: "/menu/", label: "Available menu" },
   { href: "/faq/", label: "Help and FAQ" },
 ];
 
 export const cookAccountNavigation: SiteLink = {
-  href: "/my-shop/",
+  href: "/my-kitchen/",
   label: "My kitchen",
 };
 
@@ -45,7 +44,7 @@ export const footerNavigation: SiteLinkGroup[] = [
     title: "Cook",
     links: [
       { label: "Become a cook", href: "/sell-your-food/" },
-      { label: "My kitchen", href: "/my-shop/" },
+      { label: "My kitchen", href: "/my-kitchen/" },
       { label: "Create account", href: "/signup/" },
       { label: "Sign in", href: "/signin/" },
     ],

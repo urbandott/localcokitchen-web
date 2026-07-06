@@ -2,7 +2,7 @@ import type { NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 import { createContentSecurityPolicy } from "@/lib/security/content-security-policy";
 
-const protectedPrefixes = ["/profile", "/my-shop", "/admin"];
+const protectedPrefixes = ["/profile", "/my-kitchen", "/admin"];
 
 export async function proxy(request: NextRequest) {
   const nonce = btoa(crypto.randomUUID());

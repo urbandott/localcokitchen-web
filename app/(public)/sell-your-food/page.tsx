@@ -40,7 +40,7 @@ export default async function SellFoodPage({
                   Apply to become a cook
                 </button>
               </form>
-              <Link className="secondary-action" href="/my-shop/">
+              <Link className="secondary-action" href="/my-kitchen/">
                 Manage my kitchen
               </Link>
             </div>

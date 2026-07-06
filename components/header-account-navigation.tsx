@@ -17,6 +17,26 @@ type AuthStatus = "loading" | "signed-in" | "signed-out";
 
 const menuLinkClass =
   "rounded-xl px-4 py-3 text-sm font-semibold text-foreground transition-colors hover:bg-secondary";
+const cookCtaHref = "/#cook-cta";
+
+function PrimaryNavigation({ showCookCta }: { showCookCta: boolean }) {
+  const navigation = showCookCta
+    ? primaryNavigation
+    : primaryNavigation.filter((link) => link.href !== cookCtaHref);
+
+  return (
+    <nav
+      className="hidden items-center gap-7 text-sm font-medium text-muted-foreground md:flex"
+      aria-label="Primary navigation"
+    >
+      {navigation.map((link) => (
+        <Link className="transition-colors hover:text-foreground" href={link.href} key={link.href}>
+          {link.label}
+        </Link>
+      ))}
+    </nav>
+  );
+}
 
 export function HeaderAccountNavigation() {
   const supabaseConfigured = Boolean(getSupabaseBrowserConfig());
@@ -93,11 +113,16 @@ export function HeaderAccountNavigation() {
 
   if (authStatus === "loading") {
     return (
-      <div
-        className="h-10 w-32 animate-pulse rounded-full bg-secondary sm:w-44"
-        role="status"
-        aria-label="Checking account status"
-      />
+      <>
+        <PrimaryNavigation showCookCta={false} />
+        <div className="flex items-center gap-2">
+          <div
+            className="h-10 w-32 animate-pulse rounded-full bg-secondary sm:w-44"
+            role="status"
+            aria-label="Checking account status"
+          />
+        </div>
+      </>
     );
   }
 
@@ -109,67 +134,75 @@ export function HeaderAccountNavigation() {
       : accountNavigation;
 
     return (
-      <details className="group relative">
-        <summary
-          aria-label="Open account menu"
-          className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full border border-border bg-background transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden"
-        >
-          <Menu className="h-5 w-5" />
-        </summary>
-        <nav
-          aria-label="Account navigation"
-          className="absolute right-0 top-12 z-50 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-card"
-        >
-          {navigation.map((link) => (
-            <Link className={menuLinkClass} href={link.href} key={link.href}>
-              {link.label}
-            </Link>
-          ))}
-          <form action={signOutAction} className="mt-1 border-t border-border pt-1">
-            <button
-              className={`${menuLinkClass} w-full cursor-pointer border-0 bg-transparent text-left`}
-              type="submit"
+      <>
+        <PrimaryNavigation showCookCta={!hasCookApplication} />
+        <div className="flex items-center gap-2">
+          <details className="group relative">
+            <summary
+              aria-label="Open account menu"
+              className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full border border-border bg-background transition-colors hover:bg-secondary [&::-webkit-details-marker]:hidden"
             >
-              Sign out
-            </button>
-          </form>
-        </nav>
-      </details>
+              <Menu className="h-5 w-5" />
+            </summary>
+            <nav
+              aria-label="Account navigation"
+              className="absolute right-0 top-12 z-50 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-card"
+            >
+              {navigation.map((link) => (
+                <Link className={menuLinkClass} href={link.href} key={link.href}>
+                  {link.label}
+                </Link>
+              ))}
+              <form action={signOutAction} className="mt-1 border-t border-border pt-1">
+                <button
+                  className={`${menuLinkClass} w-full cursor-pointer border-0 bg-transparent text-left`}
+                  type="submit"
+                >
+                  Sign out
+                </button>
+              </form>
+            </nav>
+          </details>
+        </div>
+      </>
     );
   }
 
   return (
     <>
-      <Link
-        href="/signin/"
-        className="hidden h-10 items-center rounded-full px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:inline-flex"
-      >
-        Sign in
-      </Link>
-      <Link
-        href="/signup/"
-        className="inline-flex h-10 items-center rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
-      >
-        Get started
-      </Link>
-      <details className="group relative md:hidden">
-        <summary
-          aria-label="Open menu"
-          className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full border border-border [&::-webkit-details-marker]:hidden"
+      <PrimaryNavigation showCookCta />
+      <div className="flex items-center gap-2">
+        <Link
+          href="/signin/"
+          className="hidden h-10 items-center rounded-full px-4 text-sm font-medium text-foreground transition-colors hover:bg-secondary sm:inline-flex"
         >
-          <Menu className="h-5 w-5" />
-        </summary>
-        <nav
-          aria-label="Mobile navigation"
-          className="absolute right-0 top-12 z-50 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-card"
+          Sign in
+        </Link>
+        <Link
+          href="/signup/"
+          className="inline-flex h-10 items-center rounded-full bg-foreground px-4 text-sm font-semibold text-background transition-colors hover:bg-foreground/90"
         >
-          {[...primaryNavigation, ...mobileUtilityNavigation].map((link) => (
-            <Link className={menuLinkClass} href={link.href} key={link.href}>
-              {link.label}
-            </Link>
-          ))}
-        </nav>
-      </details>
+          Get started
+        </Link>
+        <details className="group relative md:hidden">
+          <summary
+            aria-label="Open menu"
+            className="grid h-10 w-10 cursor-pointer list-none place-items-center rounded-full border border-border [&::-webkit-details-marker]:hidden"
+          >
+            <Menu className="h-5 w-5" />
+          </summary>
+          <nav
+            aria-label="Mobile navigation"
+            className="absolute right-0 top-12 z-50 grid w-64 gap-1 rounded-2xl border border-border bg-background p-2 shadow-card"
+          >
+            {[...primaryNavigation, ...mobileUtilityNavigation].map((link) => (
+              <Link className={menuLinkClass} href={link.href} key={link.href}>
+                {link.label}
+              </Link>
+            ))}
+          </nav>
+        </details>
+      </div>
     </>
   );
 }

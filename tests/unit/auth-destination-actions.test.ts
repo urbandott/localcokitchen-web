@@ -101,12 +101,12 @@ describe("auth destination actions", () => {
   it("redirects established cooks to My Kitchen", async () => {
     authMocks.application.mockResolvedValue({ data: { id: "application-id" }, error: null });
 
-    await expect(signInAction(initialState, signInData())).rejects.toThrow("REDIRECT:/my-shop/");
+    await expect(signInAction(initialState, signInData())).rejects.toThrow("REDIRECT:/my-kitchen/");
   });
 
   it("persists explicit cook intent and redirects to My Kitchen", async () => {
     await expect(signInAction(initialState, signInData({ intent: "cook" }))).rejects.toThrow(
-      "REDIRECT:/my-shop/",
+      "REDIRECT:/my-kitchen/",
     );
     expect(authMocks.updateIdentity).toHaveBeenCalledWith({
       cook_onboarding_started_at: expect.any(String),
@@ -144,7 +144,7 @@ describe("auth destination actions", () => {
   });
 
   it("marks a signed-in customer and sends them directly to My Kitchen", async () => {
-    await expect(startCookOnboardingAction()).rejects.toThrow("REDIRECT:/my-shop/");
+    await expect(startCookOnboardingAction()).rejects.toThrow("REDIRECT:/my-kitchen/");
 
     expect(authMocks.updateIdentity).toHaveBeenCalledWith({
       cook_onboarding_started_at: expect.any(String),
@@ -158,7 +158,7 @@ describe("auth destination actions", () => {
       error: null,
     });
 
-    await expect(startCookOnboardingAction()).rejects.toThrow("REDIRECT:/my-shop/");
+    await expect(startCookOnboardingAction()).rejects.toThrow("REDIRECT:/my-kitchen/");
     expect(authMocks.updateIdentity).not.toHaveBeenCalled();
   });
 });

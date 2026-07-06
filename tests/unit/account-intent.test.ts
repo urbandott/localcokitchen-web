@@ -23,7 +23,7 @@ describe("account intent and sign-in destinations", () => {
         isAdmin: false,
         requestedAdmin: false,
       }),
-    ).toBe("/my-shop/");
+    ).toBe("/my-kitchen/");
   });
 
   it("allows the explicit admin flow only for verified admins", () => {

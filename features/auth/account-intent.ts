@@ -12,7 +12,7 @@ export function postSignInDestination({
   hasCookWorkspace: boolean;
   isAdmin: boolean;
   requestedAdmin: boolean;
-}): "/" | "/admin/" | "/my-shop/" {
+}): "/" | "/admin/" | "/my-kitchen/" {
   if (requestedAdmin && isAdmin) return "/admin/";
-  return hasCookWorkspace ? "/my-shop/" : "/";
+  return hasCookWorkspace ? "/my-kitchen/" : "/";
 }

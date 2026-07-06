@@ -87,7 +87,7 @@ curl -I http://127.0.0.1:4174/signin/
 curl -I http://127.0.0.1:4174/signup/
 curl -I http://127.0.0.1:4174/profile/
 curl -I http://127.0.0.1:4174/sell-your-food/
-curl -I http://127.0.0.1:4174/my-shop/
+curl -I http://127.0.0.1:4174/my-kitchen/
 ```
 
 For Supabase migrations, dry-run first when targeting a linked remote project:

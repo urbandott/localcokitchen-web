@@ -165,9 +165,9 @@
             return;
           }
 
-          if (hasShopAccess && !menu.querySelector('[href="/my-shop/"]')) {
+          if (hasShopAccess && !menu.querySelector('[href="/my-kitchen/"]')) {
             const shopLink = document.createElement("a");
-            shopLink.href = "/my-shop/";
+            shopLink.href = "/my-kitchen/";
             shopLink.textContent = "My Kitchen";
             menu.insertBefore(shopLink, signOutButton);
           }

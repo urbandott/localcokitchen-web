@@ -22,6 +22,15 @@ const nextConfig: NextConfig = {
     ],
     formats: ["image/avif", "image/webp"],
   },
+  async redirects() {
+    return [
+      {
+        source: "/my-shop/:path*",
+        destination: "/my-kitchen/:path*",
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

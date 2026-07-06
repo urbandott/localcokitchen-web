@@ -26,7 +26,7 @@ The system is still **NOT READY FOR PROD**. Orders, checkout, payment confirmati
 ```text
 Browser
  ├─ Public static routes (home, menu, marketing, auth)
- ├─ Cook routes (profile, application, my-shop)
+ ├─ Cook routes (profile, application, my-kitchen)
  └─ Admin routes (AAL2 sign-in, applications, cooks, metrics)
         │ HTTPS + Supabase publishable key + user JWT
         ▼

@@ -58,7 +58,7 @@ Supabase remains the source of truth for authentication, sessions, RLS, roles, a
 - Requires an authenticated Supabase user
 - Shows account actions and links to cook dashboard
 
-### `/my-shop/`
+### `/my-kitchen/`
 
 - Requires an authenticated Supabase user
 - Reads cook application/profile/menu data through RLS

@@ -81,15 +81,30 @@ describe("header account navigation", () => {
     });
   }
 
-  it("hides cook-only and browse links from a customer's account menu", async () => {
+  it("does not flash the cook CTA while account status is loading", async () => {
+    authMocks.getUser.mockReturnValue(new Promise(() => undefined));
+
     await renderNavigation();
 
+    expect(container.querySelector('[aria-label="Checking account status"]')).not.toBeNull();
+    expect(
+      container.querySelector('nav[aria-label="Primary navigation"]')?.textContent,
+    ).not.toContain("Become a cook");
+  });
+
+  it("hides cook-only, browse, and menu links from a customer's account menu", async () => {
+    await renderNavigation();
+
+    const accountMenu = container.querySelector('nav[aria-label="Account navigation"]');
+    const primaryMenu = container.querySelector('nav[aria-label="Primary navigation"]');
+
     expect(container.querySelector('summary[aria-label="Open account menu"]')).not.toBeNull();
-    expect(container.textContent).toContain("My profile");
-    expect(container.textContent).toContain("Available menu");
-    expect(container.textContent).toContain("Sign out");
-    expect(container.textContent).not.toContain("My kitchen");
-    expect(container.textContent).not.toContain("Browse cooks");
+    expect(accountMenu?.textContent).toContain("My profile");
+    expect(accountMenu?.textContent).toContain("Sign out");
+    expect(accountMenu?.textContent).not.toContain("My kitchen");
+    expect(accountMenu?.textContent).not.toContain("Browse cooks");
+    expect(accountMenu?.textContent).not.toContain("Available menu");
+    expect(primaryMenu?.textContent).toContain("Become a cook");
     expect(container.textContent).not.toContain("Get started");
     expect(container.textContent).not.toContain("Sign in");
   });
@@ -102,8 +117,13 @@ describe("header account navigation", () => {
 
     await renderNavigation();
 
-    expect(container.textContent).toContain("My kitchen");
-    expect(container.textContent).not.toContain("Browse cooks");
+    const accountMenu = container.querySelector('nav[aria-label="Account navigation"]');
+    const primaryMenu = container.querySelector('nav[aria-label="Primary navigation"]');
+
+    expect(accountMenu?.textContent).toContain("My kitchen");
+    expect(accountMenu?.textContent).not.toContain("Browse cooks");
+    expect(accountMenu?.textContent).not.toContain("Available menu");
+    expect(primaryMenu?.textContent).not.toContain("Become a cook");
   });
 
   it("shows My kitchen when cook onboarding was selected during signup", async () => {
@@ -115,5 +135,21 @@ describe("header account navigation", () => {
     await renderNavigation();
 
     expect(container.textContent).toContain("My kitchen");
+    expect(
+      container.querySelector('nav[aria-label="Primary navigation"]')?.textContent,
+    ).not.toContain("Become a cook");
+  });
+
+  it("does not show Available menu in the signed-out mobile menu", async () => {
+    authMocks.getUser.mockResolvedValue({
+      data: { user: null },
+      error: null,
+    });
+
+    await renderNavigation();
+
+    expect(
+      container.querySelector('nav[aria-label="Mobile navigation"]')?.textContent,
+    ).not.toContain("Available menu");
   });
 });

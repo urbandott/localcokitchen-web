@@ -111,7 +111,7 @@ describe("header account navigation", () => {
 
   it("shows My kitchen when the signed-in user has opted in as a cook", async () => {
     authMocks.getCookApplication.mockResolvedValue({
-      data: { id: "application-id" },
+      data: { user_id: "user-id" },
       error: null,
     });
 

@@ -45,7 +45,6 @@ export type CustomerMenuItem = {
 };
 
 export type CookApplication = {
-  id: string;
   user_id: string;
   legal_name: string;
   phone: string;

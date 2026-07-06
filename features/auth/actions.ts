@@ -116,7 +116,7 @@ export async function signInAction(
     supabase
       .schema("lck_marketplace")
       .from("cook_applications")
-      .select("id")
+      .select("user_id")
       .eq("user_id", data.user.id)
       .maybeSingle(),
     parsed.data.next === "/admin/"

@@ -99,7 +99,7 @@ describe("auth destination actions", () => {
   });
 
   it("redirects established cooks to My Kitchen", async () => {
-    authMocks.application.mockResolvedValue({ data: { id: "application-id" }, error: null });
+    authMocks.application.mockResolvedValue({ data: { user_id: "user-id" }, error: null });
 
     await expect(signInAction(initialState, signInData())).rejects.toThrow("REDIRECT:/my-kitchen/");
   });

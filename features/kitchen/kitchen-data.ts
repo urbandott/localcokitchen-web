@@ -15,7 +15,7 @@ export async function userHasCookWorkspace(userId: string): Promise<boolean> {
     supabase
       .schema("lck_marketplace")
       .from("cook_applications")
-      .select("id")
+      .select("user_id")
       .eq("user_id", userId)
       .maybeSingle(),
   ]);

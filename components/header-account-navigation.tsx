@@ -75,7 +75,7 @@ export function HeaderAccountNavigation() {
         authenticatedClient
           .schema("lck_marketplace")
           .from("cook_applications")
-          .select("id")
+          .select("user_id")
           .eq("user_id", userId)
           .maybeSingle(),
       ]);

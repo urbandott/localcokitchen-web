@@ -6,6 +6,11 @@ const publicEnvSchema = z.object({
   NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: z.string().min(20).optional(),
 });
 
+const serverEnvSchema = publicEnvSchema.extend({
+  SUPABASE_SECRET_KEY: z.string().min(20).optional(),
+  STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
+});
+
 export type PublicEnv = z.infer<typeof publicEnvSchema>;
 
 export function getPublicEnv(): PublicEnv {
@@ -17,7 +22,7 @@ export function getPublicEnv(): PublicEnv {
 }
 
 export function getServerEnv() {
-  return publicEnvSchema.parse(process.env);
+  return serverEnvSchema.parse(process.env);
 }
 
 export function hasSupabasePublicEnv(env: PublicEnv = getPublicEnv()): boolean {

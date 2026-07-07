@@ -1,5 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
-import type { CookApplication, CookMenuItem, CookProfile } from "@/types/database";
+import type {
+  CookApplication,
+  CookMenuItem,
+  CookPickupWindow,
+  CookProfile,
+} from "@/types/database";
 
 export async function userHasCookWorkspace(userId: string): Promise<boolean> {
   const supabase = await createClient();
@@ -30,6 +35,7 @@ export async function getKitchenDashboard(userId: string): Promise<{
   application: CookApplication | null;
   profile: CookProfile | null;
   menuItems: CookMenuItem[];
+  pickupWindows: CookPickupWindow[];
   error: string | null;
 }> {
   const supabase = await createClient();
@@ -38,11 +44,12 @@ export async function getKitchenDashboard(userId: string): Promise<{
       application: null,
       profile: null,
       menuItems: [],
+      pickupWindows: [],
       error: "Supabase is not configured.",
     };
 
   const marketplace = supabase.schema("lck_marketplace");
-  const [application, profile, menuItems] = await Promise.all([
+  const [application, profile, menuItems, pickupWindows] = await Promise.all([
     marketplace.from("cook_applications").select("*").eq("user_id", userId).maybeSingle(),
     marketplace.from("cook_profiles").select("*").eq("cook_id", userId).maybeSingle(),
     marketplace
@@ -50,13 +57,19 @@ export async function getKitchenDashboard(userId: string): Promise<{
       .select("*")
       .eq("cook_id", userId)
       .order("created_at", { ascending: false }),
+    marketplace
+      .from("cook_pickup_windows")
+      .select("*")
+      .eq("cook_id", userId)
+      .order("day_of_week", { ascending: true }),
   ]);
 
-  if (application.error || profile.error || menuItems.error) {
+  if (application.error || profile.error || menuItems.error || pickupWindows.error) {
     return {
       application: null,
       profile: null,
       menuItems: [],
+      pickupWindows: [],
       error: "Kitchen data could not be loaded.",
     };
   }
@@ -65,6 +78,7 @@ export async function getKitchenDashboard(userId: string): Promise<{
     application: application.data,
     profile: profile.data,
     menuItems: menuItems.data ?? [],
+    pickupWindows: pickupWindows.data ?? [],
     error: null,
   };
 }

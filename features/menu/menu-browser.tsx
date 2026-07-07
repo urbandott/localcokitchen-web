@@ -1,7 +1,8 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useFormStatus } from "react-dom";
 import {
   addCartItem,
   CART_STORAGE_KEY,
@@ -11,6 +12,7 @@ import {
   setCartQuantity,
   type CartEntry,
 } from "@/features/cart/cart-utils";
+import { createCheckoutOrderAction, type CheckoutActionState } from "@/features/checkout/actions";
 import {
   emptyMenuFilters,
   itemMatchesFilters,
@@ -29,6 +31,11 @@ function arrayText(values: string[]): string {
   return values.filter(Boolean).join(", ");
 }
 
+const initialCheckoutState: CheckoutActionState = {
+  ok: false,
+  message: "",
+};
+
 export function MenuBrowser({ items, error }: Props) {
   const [filters, setFilters] = useState<MenuFilters>(emptyMenuFilters);
   const [cart, setCart] = useState<CartEntry[]>(() => {
@@ -44,6 +51,17 @@ export function MenuBrowser({ items, error }: Props) {
   const [selectedItem, setSelectedItem] = useState<CustomerMenuItemView | null>(null);
   const [selectedCook, setSelectedCook] = useState<string | null>(null);
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [checkoutState, checkoutAction] = useActionState(
+    async (state: CheckoutActionState, formData: FormData) => {
+      const result = await createCheckoutOrderAction(state, formData);
+      if (result.ok) {
+        setCart([]);
+        window.localStorage.removeItem(CART_STORAGE_KEY);
+      }
+      return result;
+    },
+    initialCheckoutState,
+  );
 
   const itemsById = useMemo(() => new Map(items.map((item) => [item.id, item])), [items]);
   const validCart = useMemo(() => normalizeCartEntries(cart, itemsById), [cart, itemsById]);
@@ -307,6 +325,20 @@ export function MenuBrowser({ items, error }: Props) {
         </div>
         <div className="cart-summary" aria-live="polite">
           <p>Subtotal: {formatCurrency(subtotal)}</p>
+          <form action={checkoutAction} className="checkout-form">
+            <input type="hidden" name="cart" value={JSON.stringify(validCart)} />
+            <CheckoutButton disabled={validCart.length === 0} />
+          </form>
+          {checkoutState.message ? (
+            <p className={checkoutState.ok ? "next-success" : "next-alert"} role="status">
+              {checkoutState.message}
+              {checkoutState.ok && checkoutState.orderId
+                ? ` Order ${checkoutState.orderId.slice(0, 8)} was created for ${formatCurrency(
+                    checkoutState.subtotalCents ?? 0,
+                  )}.`
+                : ""}
+            </p>
+          ) : null}
         </div>
       </aside>
 
@@ -323,6 +355,15 @@ export function MenuBrowser({ items, error }: Props) {
         ) : null}
       </dialog>
     </section>
+  );
+}
+
+function CheckoutButton({ disabled }: { disabled: boolean }) {
+  const { pending } = useFormStatus();
+  return (
+    <button className="primary-action compact-action" type="submit" disabled={disabled || pending}>
+      {pending ? "Checking out…" : "Checkout securely"}
+    </button>
   );
 }
 

@@ -1,0 +1,87 @@
+"use server";
+
+import { z } from "zod";
+import { createClient } from "@/lib/supabase/server";
+import { CART_ITEM_LIMIT } from "@/features/cart/cart-utils";
+import type { Json } from "@/types/database";
+
+const checkoutCartSchema = z
+  .array(
+    z.object({
+      id: z.string().uuid(),
+      quantity: z.coerce.number().int().min(1).max(CART_ITEM_LIMIT),
+    }),
+  )
+  .min(1, "Your cart is empty.")
+  .max(50, "Checkout supports up to 50 unique menu items.");
+
+export type CheckoutActionState = {
+  ok: boolean;
+  message: string;
+  orderId?: string;
+  subtotalCents?: number;
+  itemCount?: number;
+};
+
+export async function createCheckoutOrderAction(
+  _state: CheckoutActionState,
+  formData: FormData,
+): Promise<CheckoutActionState> {
+  const rawCart = String(formData.get("cart") ?? "");
+  let cartJson: unknown;
+  try {
+    cartJson = JSON.parse(rawCart);
+  } catch {
+    return { ok: false, message: "Your cart could not be read. Refresh and try again." };
+  }
+
+  const parsed = checkoutCartSchema.safeParse(cartJson);
+  if (!parsed.success) {
+    const hasQuantityIssue = parsed.error.issues.some((issue) => issue.path.includes("quantity"));
+    return {
+      ok: false,
+      message: hasQuantityIssue
+        ? "One or more item quantity values are invalid."
+        : (parsed.error.issues[0]?.message ?? "Your cart is invalid."),
+    };
+  }
+
+  const byId = new Map<string, number>();
+  for (const item of parsed.data) {
+    byId.set(item.id, (byId.get(item.id) ?? 0) + item.quantity);
+  }
+
+  const normalizedCart = [...byId.entries()].map(([id, quantity]) => ({ id, quantity }));
+  if (normalizedCart.some((item) => item.quantity < 1 || item.quantity > CART_ITEM_LIMIT)) {
+    return { ok: false, message: "One or more item quantity values are invalid." };
+  }
+
+  const supabase = await createClient();
+  if (!supabase) return { ok: false, message: "Checkout is not configured yet." };
+
+  const { data: userData, error: userError } = await supabase.auth.getUser();
+  if (userError || !userData.user) {
+    return { ok: false, message: "Sign in before checkout." };
+  }
+
+  const { data, error } = await supabase
+    .schema("lck_marketplace")
+    .rpc("create_customer_checkout_order", { p_cart: normalizedCart as Json });
+
+  if (error || !data?.[0]) {
+    return {
+      ok: false,
+      message:
+        "Checkout could not be completed. An item may be unavailable, sold out, or no longer public.",
+    };
+  }
+
+  const order = data[0];
+  return {
+    ok: true,
+    message: "Order created. Payment confirmation will be added in the next checkout step.",
+    orderId: order.order_id,
+    subtotalCents: order.subtotal_cents,
+    itemCount: order.item_count,
+  };
+}

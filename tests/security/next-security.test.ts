@@ -95,4 +95,87 @@ describe("Next.js security regressions", () => {
     expect(authActions).toMatch(/cook_onboarding_started_at/);
     expect(authActions).not.toMatch(/user_metadata.*(?:role|admin|approved)/i);
   });
+
+  it("keeps admin application review admin-only and uses short-lived private document links", () => {
+    const page = read("app/(admin)/admin/cook-applications/page.tsx");
+    const data = read("features/admin/admin-data.ts");
+    const actions = read("features/admin/actions.ts");
+
+    expect(page).toMatch(/requireAdmin\(\)/);
+    expect(page).toMatch(/listSubmittedCookApplicationsForReview/);
+    expect(page).not.toMatch(/(?:certificate|document|selfie|permit)_url/);
+    expect(data).toMatch(/createSignedUrl\(safePath, 300\)/);
+    expect(data).toMatch(/path\.startsWith\(`\$\{userId\}\/`\)/);
+    expect(actions).toMatch(/requireAdmin\(\)/);
+    expect(actions).toMatch(/reviewed_by: admin\.id/);
+    expect(actions).toMatch(/\.eq\("status", "submitted"\)/);
+  });
+
+  it("allows cooks to clean up only their own cook media objects", () => {
+    const migration = read("supabase/migrations/20260707025629_add_cook_media_delete_policies.sql");
+
+    expect(migration).toMatch(/for delete\s+to authenticated/);
+    expect(migration).toMatch(/bucket_id = 'cook-profile-images'/);
+    expect(migration).toMatch(/bucket_id = 'cook-menu-images'/);
+    expect(migration).toMatch(
+      /\(storage\.foldername\(name\)\)\[1\] = \(select auth\.uid\(\)\)::text/,
+    );
+  });
+
+  it("creates checkout orders only through an authenticated atomic validation RPC", () => {
+    const migration = read("supabase/migrations/20260707030047_add_atomic_customer_checkout.sql");
+    const action = read("features/checkout/actions.ts");
+
+    expect(migration).toMatch(/create table if not exists lck_marketplace\.customer_orders/);
+    expect(migration).toMatch(/create table if not exists lck_marketplace\.customer_order_items/);
+    expect(migration).toMatch(
+      /create function lck_marketplace\.create_customer_checkout_order\(p_cart jsonb\)/,
+    );
+    expect(migration).toMatch(/current_customer_id uuid := \(select auth\.uid\(\)\)/);
+    expect(migration).toMatch(/for update of item/);
+    expect(migration).toMatch(/application\.status = 'approved'/);
+    expect(migration).toMatch(/profile\.moderator_disabled_at is null/);
+    expect(migration).toMatch(/item\.quantity_available >= request\.quantity/);
+    expect(migration).toMatch(/quantity_available = item\.quantity_available - request\.quantity/);
+    expect(migration).toMatch(
+      /revoke all on function lck_marketplace\.create_customer_checkout_order\(jsonb\)/,
+    );
+    expect(migration).toMatch(
+      /grant execute on function lck_marketplace\.create_customer_checkout_order\(jsonb\)\s+to authenticated/,
+    );
+    expect(action).toMatch(/supabase\.auth\.getUser\(\)/);
+    expect(action).toMatch(/create_customer_checkout_order/);
+  });
+
+  it("keeps payment confirmation webhook-verified and provider events idempotent", () => {
+    const migration = read(
+      "supabase/migrations/20260707030857_add_payment_lifecycle_foundation.sql",
+    );
+    const route = read("app/api/webhooks/stripe/route.ts");
+    const helper = read("features/payments/stripe-webhook.ts");
+    const privileged = read("lib/supabase/privileged.ts");
+
+    expect(migration).toMatch(/customer_payment_attempts/);
+    expect(migration).toMatch(/payment_webhook_events/);
+    expect(migration).toMatch(/unique \(provider, provider_event_id\)/);
+    expect(migration).toMatch(/record_payment_webhook_event/);
+    expect(migration).toMatch(/cancel_customer_order_and_restock/);
+    expect(migration).toMatch(/expire_pending_payment_orders/);
+    expect(migration).toMatch(
+      /grant execute on function lck_marketplace\.record_payment_webhook_event/,
+    );
+    expect(migration).not.toMatch(
+      /grant execute on function lck_marketplace\.record_payment_webhook_event[\s\S]*to anon/i,
+    );
+    expect(migration).not.toMatch(
+      /grant execute on function lck_marketplace\.expire_pending_payment_orders[\s\S]*to anon/i,
+    );
+    expect(route).toMatch(/request\.text\(\)/);
+    expect(route).toMatch(/verifyStripeWebhookSignature/);
+    expect(route).toMatch(/record_payment_webhook_event/);
+    expect(helper).toMatch(/timingSafeEqual/);
+    expect(helper).toMatch(/createHmac\("sha256"/);
+    expect(privileged).toMatch(/SUPABASE_SECRET_KEY/);
+    expect(privileged).not.toMatch(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
+  });
 });

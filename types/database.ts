@@ -53,9 +53,12 @@ export type CookApplication = {
   food_handler_training_completed: boolean;
   food_handler_certificate_url: string | null;
   permit_or_certification_url: string | null;
+  government_id_document_url: string | null;
+  selfie_verification_url: string | null;
   status: AdminCookStatus;
   submitted_at: string | null;
   reviewed_at: string | null;
+  reviewed_by: string | null;
   review_notes: string | null;
   created_at: string;
   updated_at: string;
@@ -99,6 +102,77 @@ export type CookMenuItem = {
   is_active: boolean;
   created_at: string;
   updated_at: string;
+};
+
+export type CookPickupWindow = {
+  id: string;
+  cook_id: string;
+  day_of_week: number;
+  start_time: string;
+  end_time: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerOrder = {
+  id: string;
+  customer_id: string;
+  status: "pending_payment" | "paid" | "cancelled" | "fulfilled" | "refunded";
+  subtotal_cents: number;
+  currency: "usd";
+  expires_at: string;
+  paid_at: string | null;
+  cancelled_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type CustomerOrderItem = {
+  id: string;
+  order_id: string;
+  menu_item_id: string;
+  cook_id: string;
+  item_name: string;
+  unit_price_cents: number;
+  quantity: number;
+  line_total_cents: number;
+  created_at: string;
+};
+
+export type CheckoutOrderResult = {
+  order_id: string;
+  subtotal_cents: number;
+  item_count: number;
+};
+
+export type CustomerPaymentAttempt = {
+  id: string;
+  order_id: string;
+  customer_id: string;
+  provider: "stripe" | "manual" | "test";
+  provider_reference: string;
+  status:
+    | "created"
+    | "requires_action"
+    | "processing"
+    | "succeeded"
+    | "failed"
+    | "canceled"
+    | "expired";
+  amount_cents: number;
+  currency: "usd";
+  last_event_id: string | null;
+  last_event_type: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type PaymentWebhookResult = {
+  order_id: string | null;
+  order_status: string | null;
+  payment_status: string;
+  processed: boolean;
 };
 
 export type AdminCookSummary = {
@@ -155,6 +229,26 @@ export type Database = {
         Insert: Partial<CookMenuItem>;
         Update: Partial<CookMenuItem>;
       };
+      cook_pickup_windows: {
+        Row: CookPickupWindow;
+        Insert: Partial<CookPickupWindow>;
+        Update: Partial<CookPickupWindow>;
+      };
+      customer_orders: {
+        Row: CustomerOrder;
+        Insert: Partial<CustomerOrder>;
+        Update: Partial<CustomerOrder>;
+      };
+      customer_order_items: {
+        Row: CustomerOrderItem;
+        Insert: Partial<CustomerOrderItem>;
+        Update: Partial<CustomerOrderItem>;
+      };
+      customer_payment_attempts: {
+        Row: CustomerPaymentAttempt;
+        Insert: Partial<CustomerPaymentAttempt>;
+        Update: Partial<CustomerPaymentAttempt>;
+      };
     };
     Functions: {
       get_customer_menu_items: {
@@ -176,6 +270,28 @@ export type Database = {
       save_own_pickup_windows: {
         Args: { p_windows: Json };
         Returns: Json;
+      };
+      create_customer_checkout_order: {
+        Args: { p_cart: Json };
+        Returns: CheckoutOrderResult[];
+      };
+      record_payment_webhook_event: {
+        Args: {
+          p_provider: string;
+          p_provider_event_id: string;
+          p_event_type: string;
+          p_provider_reference: string;
+          p_payment_status: string;
+          p_order_id?: string | null;
+          p_amount_cents?: number | null;
+          p_currency?: string | null;
+          p_payload?: Json;
+        };
+        Returns: PaymentWebhookResult[];
+      };
+      expire_pending_payment_orders: {
+        Args: { p_before?: string };
+        Returns: number;
       };
     };
   };

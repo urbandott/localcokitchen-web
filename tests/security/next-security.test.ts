@@ -178,4 +178,31 @@ describe("Next.js security regressions", () => {
     expect(privileged).toMatch(/SUPABASE_SECRET_KEY/);
     expect(privileged).not.toMatch(/NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY/);
   });
+
+  it("creates Stripe Checkout Sessions server-side and records attempts through an owner-scoped RPC", () => {
+    const migration = read(
+      "supabase/migrations/20260708015722_add_checkout_session_payment_attempt_rpc.sql",
+    );
+    const action = read("features/checkout/actions.ts");
+    const helper = read("features/payments/stripe-checkout.ts");
+
+    expect(migration).toMatch(/create_checkout_session_payment_attempt/);
+    expect(migration).toMatch(/current_customer_id uuid := \(select auth\.uid\(\)\)/);
+    expect(migration).toMatch(/customer_order\.customer_id = current_customer_id/);
+    expect(migration).toMatch(/target_order\.status <> 'pending_payment'/);
+    expect(migration).toMatch(/target_order\.expires_at <= now\(\)/);
+    expect(migration).toMatch(/target_order\.subtotal_cents <> p_amount_cents/);
+    expect(migration).toMatch(
+      /grant execute on function lck_marketplace\.create_checkout_session_payment_attempt/,
+    );
+    expect(action).toMatch(/STRIPE_SECRET_KEY/);
+    expect(action).toMatch(/create_customer_checkout_order/);
+    expect(action).toMatch(/customer_order_items/);
+    expect(action).toMatch(/createStripeCheckoutSession/);
+    expect(action).toMatch(/create_checkout_session_payment_attempt/);
+    expect(helper).toMatch(/https:\/\/api\.stripe\.com\/v1\/checkout\/sessions/);
+    expect(helper).toMatch(/payment_intent_data\[metadata\]\[order_id\]/);
+    expect(helper).toMatch(/checkout\.stripe\.com/);
+    expect(helper).not.toMatch(/NEXT_PUBLIC/);
+  });
 });

@@ -110,10 +110,8 @@ export function parseStripePaymentWebhookEvent(payload: unknown): StripePaymentW
   }
 
   if (objectType === "checkout.session") {
-    const paymentIntent = stringValue(paymentObject.payment_intent);
     const sessionId = stringValue(paymentObject.id);
-    const providerReference = paymentIntent ?? sessionId;
-    if (!providerReference) return null;
+    if (!sessionId) return null;
 
     const paymentStatus =
       eventType === "checkout.session.completed" && paymentObject.payment_status === "paid"
@@ -130,7 +128,7 @@ export function parseStripePaymentWebhookEvent(payload: unknown): StripePaymentW
       eventType,
       orderId: metadataOrderId(paymentObject.metadata),
       paymentStatus,
-      providerReference,
+      providerReference: sessionId,
     };
   }
 

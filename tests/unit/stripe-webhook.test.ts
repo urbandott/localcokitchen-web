@@ -94,7 +94,7 @@ describe("Stripe webhook helpers", () => {
           },
         },
       })?.providerReference,
-    ).toBe("pi_456");
+    ).toBe("cs_123");
   });
 });
 

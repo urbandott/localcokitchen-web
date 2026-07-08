@@ -8,6 +8,7 @@ const publicEnvSchema = z.object({
 
 const serverEnvSchema = publicEnvSchema.extend({
   SUPABASE_SECRET_KEY: z.string().min(20).optional(),
+  STRIPE_SECRET_KEY: z.string().min(20).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),
 });
 

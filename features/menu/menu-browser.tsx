@@ -57,6 +57,7 @@ export function MenuBrowser({ items, error }: Props) {
       if (result.ok) {
         setCart([]);
         window.localStorage.removeItem(CART_STORAGE_KEY);
+        if (result.redirectUrl) window.location.assign(result.redirectUrl);
       }
       return result;
     },

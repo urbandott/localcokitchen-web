@@ -1,13 +1,21 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const checkoutMocks = vi.hoisted(() => ({
+  createCheckoutSession: vi.fn(),
   createClient: vi.fn(),
+  eq: vi.fn(),
+  from: vi.fn(),
   getUser: vi.fn(),
   rpc: vi.fn(),
+  select: vi.fn(),
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: checkoutMocks.createClient,
+}));
+
+vi.mock("@/features/payments/stripe-checkout", () => ({
+  createStripeCheckoutSession: checkoutMocks.createCheckoutSession,
 }));
 
 import { createCheckoutOrderAction } from "@/features/checkout/actions";
@@ -25,23 +33,45 @@ function checkoutForm(cart: unknown) {
 describe("checkout order action", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    process.env.NEXT_PUBLIC_SITE_URL = "https://localcokitchen.test";
+    process.env.NEXT_PUBLIC_SUPABASE_URL = "https://example.supabase.co";
+    process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "publishable-key-that-is-long";
+    process.env.STRIPE_SECRET_KEY = "sk_test_secret_key_that_is_long";
     checkoutMocks.getUser.mockResolvedValue({
-      data: { user: { id: "customer-id" } },
+      data: { user: { id: "customer-id", email: "customer@example.com" } },
       error: null,
     });
-    checkoutMocks.rpc.mockResolvedValue({
+    checkoutMocks.rpc.mockImplementation((name: string) => {
+      if (name === "create_customer_checkout_order") {
+        return Promise.resolve({
+          data: [
+            {
+              order_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+              subtotal_cents: 2500,
+              item_count: 3,
+            },
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: "payment-attempt-id", error: null });
+    });
+    checkoutMocks.eq.mockResolvedValue({
       data: [
-        {
-          order_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
-          subtotal_cents: 2500,
-          item_count: 3,
-        },
+        { item_name: "Chicken biryani", quantity: 2, unit_price_cents: 1000 },
+        { item_name: "Mango lassi", quantity: 1, unit_price_cents: 500 },
       ],
       error: null,
     });
+    checkoutMocks.select.mockReturnValue({ eq: checkoutMocks.eq });
+    checkoutMocks.from.mockReturnValue({ select: checkoutMocks.select });
+    checkoutMocks.createCheckoutSession.mockResolvedValue({
+      id: "cs_test_123",
+      url: "https://checkout.stripe.com/c/pay/cs_test_123",
+    });
     checkoutMocks.createClient.mockResolvedValue({
       auth: { getUser: checkoutMocks.getUser },
-      schema: () => ({ rpc: checkoutMocks.rpc }),
+      schema: () => ({ from: checkoutMocks.from, rpc: checkoutMocks.rpc }),
     });
   });
 
@@ -79,7 +109,7 @@ describe("checkout order action", () => {
     expect(checkoutMocks.rpc).not.toHaveBeenCalled();
   });
 
-  it("normalizes duplicate cart rows and delegates final validation to the database RPC", async () => {
+  it("normalizes duplicate cart rows, creates a Stripe session, and records the payment attempt", async () => {
     const result = await createCheckoutOrderAction(
       initialState,
       checkoutForm([
@@ -91,8 +121,9 @@ describe("checkout order action", () => {
 
     expect(result).toEqual({
       ok: true,
-      message: "Order created. Payment confirmation will be added in the next checkout step.",
+      message: "Redirecting you to secure payment…",
       orderId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      redirectUrl: "https://checkout.stripe.com/c/pay/cs_test_123",
       subtotalCents: 2500,
       itemCount: 3,
     });
@@ -102,5 +133,35 @@ describe("checkout order action", () => {
         { id: secondItemId, quantity: 1 },
       ],
     });
+    expect(checkoutMocks.createCheckoutSession).toHaveBeenCalledWith(
+      expect.objectContaining({
+        amountCents: 2500,
+        customerEmail: "customer@example.com",
+        lineItems: [
+          { name: "Chicken biryani", quantity: 2, unitAmountCents: 1000 },
+          { name: "Mango lassi", quantity: 1, unitAmountCents: 500 },
+        ],
+        orderId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      }),
+    );
+    expect(checkoutMocks.rpc).toHaveBeenCalledWith("create_checkout_session_payment_attempt", {
+      p_amount_cents: 2500,
+      p_currency: "usd",
+      p_order_id: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      p_provider_reference: "cs_test_123",
+    });
+  });
+
+  it("does not create an order when Stripe checkout is not configured", async () => {
+    delete process.env.STRIPE_SECRET_KEY;
+
+    const result = await createCheckoutOrderAction(
+      initialState,
+      checkoutForm([{ id: itemId, quantity: 2 }]),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/payment checkout is not configured/i);
+    expect(checkoutMocks.rpc).not.toHaveBeenCalled();
   });
 });

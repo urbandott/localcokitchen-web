@@ -275,6 +275,15 @@ export type Database = {
         Args: { p_cart: Json };
         Returns: CheckoutOrderResult[];
       };
+      create_checkout_session_payment_attempt: {
+        Args: {
+          p_amount_cents: number;
+          p_currency?: string;
+          p_order_id: string;
+          p_provider_reference: string;
+        };
+        Returns: string;
+      };
       record_payment_webhook_event: {
         Args: {
           p_provider: string;

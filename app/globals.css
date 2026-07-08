@@ -287,6 +287,43 @@ body {
   gap: 0.5rem;
 }
 
+.admin-order-card {
+  display: grid;
+  align-items: stretch;
+}
+
+.admin-order-card__summary {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.admin-order-items {
+  display: grid;
+  gap: 0.65rem;
+  min-width: min(100%, 480px);
+}
+
+.admin-order-item-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--background);
+  padding: 0.85rem;
+}
+
+.admin-order-item-row strong {
+  color: var(--foreground);
+}
+
+.admin-order-item-row p {
+  margin: 0.15rem 0 0;
+  color: var(--muted-foreground);
+}
+
 .next-section {
   display: grid;
   gap: 1rem;

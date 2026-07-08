@@ -32,6 +32,12 @@ export default async function AdminPage() {
           </Link>
         </article>
         <article className="next-card">
+          <h2>Orders</h2>
+          <Link className="secondary-action compact-action" href="/admin/orders/">
+            Review orders
+          </Link>
+        </article>
+        <article className="next-card">
           <h2>Metrics</h2>
           <Link className="secondary-action compact-action" href="/admin/metrics/">
             View metrics

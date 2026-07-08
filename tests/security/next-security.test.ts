@@ -276,4 +276,21 @@ describe("Next.js security regressions", () => {
     expect(action).toMatch(/supabase\.auth\.getUser\(\)/);
     expect(action).toMatch(/update_own_cook_order_item_fulfillment/);
   });
+
+  it("keeps admin order oversight admin-only and avoids exposing payment secrets", () => {
+    const page = read("app/(admin)/admin/orders/page.tsx");
+    const portal = read("app/(admin)/admin/page.tsx");
+    const data = read("features/admin/admin-data.ts");
+
+    expect(page).toMatch(/requireAdmin\(\)/);
+    expect(page).toMatch(/noIndex: true/);
+    expect(page).toMatch(/listAdminOrders/);
+    expect(portal).toMatch(/\/admin\/orders\//);
+    expect(data).toMatch(/customer_orders/);
+    expect(data).toMatch(/customer_order_items/);
+    expect(data).toMatch(/customer_payment_attempts/);
+    expect(data).toMatch(/amount_cents,created_at,currency,order_id,provider,status,updated_at/);
+    expect(data).not.toMatch(/provider_reference/);
+    expect(page).not.toMatch(/provider_reference|payload|secret/i);
+  });
 });

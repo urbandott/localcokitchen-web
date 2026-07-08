@@ -293,4 +293,34 @@ describe("Next.js security regressions", () => {
     expect(data).not.toMatch(/provider_reference/);
     expect(page).not.toMatch(/provider_reference|payload|secret/i);
   });
+
+  it("records sensitive order/payment events in private audit tables only", () => {
+    const existingAudit = read(
+      "supabase/migrations/20260622001814_production_readiness_hardening.sql",
+    );
+    const migration = read("supabase/migrations/20260708022441_add_order_audit_logging.sql");
+
+    expect(existingAudit).toMatch(/create table if not exists lck_private\.admin_actions/);
+    expect(existingAudit).toMatch(/create table if not exists lck_private\.system_events/);
+    expect(existingAudit).toMatch(/audit_cook_kitchen_moderation/);
+    expect(existingAudit).toMatch(/audit_cook_application_status/);
+    expect(existingAudit).toMatch(/revoke all on table lck_private\.admin_actions/);
+    expect(migration).toMatch(/record_system_event/);
+    expect(migration).toMatch(/audit_customer_order_status/);
+    expect(migration).toMatch(/audit_order_item_fulfillment/);
+    expect(migration).toMatch(/audit_payment_attempt_status/);
+    expect(migration).toMatch(/audit_payment_webhook_event/);
+    expect(migration).toMatch(/payment\.webhook_received/);
+    expect(migration).toMatch(/after update of status on lck_marketplace\.customer_orders/);
+    expect(migration).toMatch(
+      /after update of fulfillment_status on lck_marketplace\.customer_order_items/,
+    );
+    expect(migration).toMatch(
+      /after update of status on lck_marketplace\.customer_payment_attempts/,
+    );
+    expect(migration).toMatch(/after insert on lck_private\.payment_webhook_events/);
+    expect(migration).not.toMatch(/grant .*lck_private\.system_events[\s\S]*to anon/i);
+    expect(migration).not.toMatch(/grant .*lck_private\.admin_actions[\s\S]*to anon/i);
+    expect(migration).toMatch(/revoke all on function lck_private\.record_system_event/);
+  });
 });

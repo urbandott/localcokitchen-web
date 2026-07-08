@@ -102,7 +102,10 @@ export async function createCheckoutOrderAction(
   try {
     checkoutSession = await createStripeCheckoutSession({
       amountCents: order.subtotal_cents,
-      cancelUrl: new URL("/menu?checkout=cancelled", env.NEXT_PUBLIC_SITE_URL).toString(),
+      cancelUrl: new URL(
+        `/profile/orders/${order.order_id}/?checkout=cancelled`,
+        env.NEXT_PUBLIC_SITE_URL,
+      ).toString(),
       currency: "usd",
       customerEmail: userData.user.email,
       lineItems: orderItems.map((item) => ({
@@ -112,7 +115,10 @@ export async function createCheckoutOrderAction(
       })),
       orderId: order.order_id,
       secretKey: env.STRIPE_SECRET_KEY,
-      successUrl: new URL("/menu?checkout=success", env.NEXT_PUBLIC_SITE_URL).toString(),
+      successUrl: new URL(
+        `/profile/orders/${order.order_id}/?checkout=success`,
+        env.NEXT_PUBLIC_SITE_URL,
+      ).toString(),
     });
   } catch {
     return {

@@ -22,6 +22,7 @@ export const mobileUtilityNavigation: SiteLink[] = [
 
 export const accountNavigation: SiteLink[] = [
   { href: "/profile/", label: "My profile" },
+  { href: "/profile/orders/", label: "My orders" },
   { href: "/faq/", label: "Help and FAQ" },
 ];
 

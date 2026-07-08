@@ -284,6 +284,10 @@ export type Database = {
         };
         Returns: string;
       };
+      cancel_own_pending_payment_order: {
+        Args: { p_order_id: string };
+        Returns: boolean;
+      };
       record_payment_webhook_event: {
         Args: {
           p_provider: string;

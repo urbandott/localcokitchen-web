@@ -30,6 +30,13 @@ export default async function ProfilePage() {
             Manage profile
           </Link>
         </article>
+        <article className="next-card">
+          <h2>Orders</h2>
+          <p>Review your order history and payment status.</p>
+          <Link className="secondary-action compact-action" href="/profile/orders/">
+            View orders
+          </Link>
+        </article>
         {hasCookWorkspace ? (
           <article className="next-card">
             <h2>My kitchen</h2>

@@ -136,12 +136,16 @@ describe("checkout order action", () => {
     expect(checkoutMocks.createCheckoutSession).toHaveBeenCalledWith(
       expect.objectContaining({
         amountCents: 2500,
+        cancelUrl:
+          "https://localcokitchen.test/profile/orders/cccccccc-cccc-4ccc-8ccc-cccccccccccc/?checkout=cancelled",
         customerEmail: "customer@example.com",
         lineItems: [
           { name: "Chicken biryani", quantity: 2, unitAmountCents: 1000 },
           { name: "Mango lassi", quantity: 1, unitAmountCents: 500 },
         ],
         orderId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+        successUrl:
+          "https://localcokitchen.test/profile/orders/cccccccc-cccc-4ccc-8ccc-cccccccccccc/?checkout=success",
       }),
     );
     expect(checkoutMocks.rpc).toHaveBeenCalledWith("create_checkout_session_payment_attempt", {

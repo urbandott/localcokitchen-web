@@ -161,6 +161,123 @@ body {
   margin-top: auto;
 }
 
+.section-heading-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.order-list-card,
+.order-detail-card,
+.order-status-banner {
+  border: 1px solid var(--border);
+  border-radius: 1.75rem;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+}
+
+.order-list-card {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem;
+}
+
+.order-list-card h3,
+.order-status-banner h2 {
+  margin: 0.45rem 0;
+  color: var(--foreground);
+  font-weight: 800;
+  letter-spacing: -0.025em;
+}
+
+.order-list-card p,
+.order-status-banner p,
+.order-line-item p,
+.order-meta-grid dt {
+  color: var(--muted-foreground);
+}
+
+.order-status-banner {
+  padding: clamp(1.25rem, 3vw, 1.8rem);
+}
+
+.order-status-banner--success,
+.order-status-pill--success {
+  border-color: color-mix(in oklch, var(--success) 34%, var(--border));
+}
+
+.order-status-banner--warning,
+.order-status-pill--warning {
+  border-color: color-mix(in oklch, var(--primary) 32%, var(--border));
+}
+
+.order-meta-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 1rem;
+}
+
+.order-meta-grid > div,
+.order-line-item {
+  border: 1px solid var(--border);
+  border-radius: 1.25rem;
+  background: var(--background);
+  padding: 1rem;
+}
+
+.order-meta-grid dt,
+.order-meta-grid dd {
+  margin: 0;
+}
+
+.order-meta-grid dd,
+.order-line-item h3,
+.order-line-item strong {
+  color: var(--foreground);
+  font-weight: 800;
+}
+
+.order-line-items {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.order-line-item {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.order-line-item h3 {
+  margin: 0 0 0.25rem;
+}
+
+.order-cancel-form {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 620px;
+  border: 1px dashed color-mix(in oklch, var(--primary) 28%, var(--border));
+  border-radius: 1.25rem;
+  background: var(--background);
+  padding: 1rem;
+}
+
+.order-cancel-form p {
+  color: var(--muted-foreground);
+}
+
 .next-section {
   display: grid;
   gap: 1rem;

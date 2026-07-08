@@ -205,4 +205,48 @@ describe("Next.js security regressions", () => {
     expect(helper).toMatch(/checkout\.stripe\.com/);
     expect(helper).not.toMatch(/NEXT_PUBLIC/);
   });
+
+  it("keeps customer order pages authenticated, noindexed, and owner-scoped", () => {
+    const listPage = read("app/(account)/profile/orders/page.tsx");
+    const detailPage = read("app/(account)/profile/orders/[id]/page.tsx");
+    const data = read("features/orders/order-data.ts");
+    const checkout = read("features/checkout/actions.ts");
+
+    expect(listPage).toMatch(/requireUser\("\/profile\/orders\/"\)/);
+    expect(listPage).toMatch(/noIndex: true/);
+    expect(detailPage).toMatch(/requireUser\("\/profile\/orders\/"\)/);
+    expect(detailPage).toMatch(/noIndex: true/);
+    expect(data).toMatch(/orderIdSchema = z\.string\(\)\.uuid\(\)/);
+    expect(data).toMatch(/\.eq\("customer_id", userId\)/);
+    expect(data).toMatch(/\.eq\("id", parsed\.data\)/);
+    expect(checkout).toMatch(/\/profile\/orders\/\$\{order\.order_id\}\/\?checkout=success/);
+    expect(checkout).toMatch(/\/profile\/orders\/\$\{order\.order_id\}\/\?checkout=cancelled/);
+  });
+
+  it("lets customers cancel only their own pending payment orders", () => {
+    const migration = read(
+      "supabase/migrations/20260708020930_add_customer_pending_order_cancel_rpc.sql",
+    );
+    const action = read("features/orders/actions.ts");
+    const form = read("features/orders/cancel-order-form.tsx");
+    const details = read("features/orders/order-status.tsx");
+
+    expect(migration).toMatch(/cancel_own_pending_payment_order/);
+    expect(migration).toMatch(/current_customer_id uuid := \(select auth\.uid\(\)\)/);
+    expect(migration).toMatch(/customer_order\.customer_id = current_customer_id/);
+    expect(migration).toMatch(/target_order\.status <> 'pending_payment'/);
+    expect(migration).toMatch(/cancel_customer_order_and_restock\(target_order\.id, now\(\)\)/);
+    expect(migration).toMatch(/attempt\.customer_id = current_customer_id/);
+    expect(migration).toMatch(
+      /grant execute on function lck_marketplace\.cancel_own_pending_payment_order\(uuid\)\s+to authenticated/,
+    );
+    expect(migration).not.toMatch(
+      /grant execute on function lck_marketplace\.cancel_own_pending_payment_order[\s\S]*to anon/i,
+    );
+    expect(action).toMatch(/orderIdSchema\.safeParse/);
+    expect(action).toMatch(/supabase\.auth\.getUser\(\)/);
+    expect(action).toMatch(/cancel_own_pending_payment_order/);
+    expect(form).toMatch(/useActionState/);
+    expect(details).toMatch(/order\.status === "pending_payment"/);
+  });
 });

@@ -100,6 +100,7 @@ describe("header account navigation", () => {
 
     expect(container.querySelector('summary[aria-label="Open account menu"]')).not.toBeNull();
     expect(accountMenu?.textContent).toContain("My profile");
+    expect(accountMenu?.textContent).toContain("My orders");
     expect(accountMenu?.textContent).toContain("Sign out");
     expect(accountMenu?.textContent).not.toContain("My kitchen");
     expect(accountMenu?.textContent).not.toContain("Browse cooks");

@@ -249,4 +249,31 @@ describe("Next.js security regressions", () => {
     expect(form).toMatch(/useActionState/);
     expect(details).toMatch(/order\.status === "pending_payment"/);
   });
+
+  it("keeps cook order management paid-only and scoped to the cook's own items", () => {
+    const migration = read("supabase/migrations/20260708021336_add_cook_order_management.sql");
+    const page = read("app/(cook)/my-kitchen/orders/page.tsx");
+    const data = read("features/kitchen/cook-orders-data.ts");
+    const action = read("features/kitchen/cook-order-actions.ts");
+
+    expect(migration).toMatch(/fulfillment_status in \('pending', 'ready', 'fulfilled'\)/);
+    expect(migration).toMatch(/drop policy if exists "Cooks read their own order items"/);
+    expect(migration).toMatch(/customer_order\.status in \('paid', 'fulfilled', 'refunded'\)/);
+    expect(migration).toMatch(/list_own_cook_order_items/);
+    expect(migration).toMatch(/application\.status = 'approved'/);
+    expect(migration).toMatch(/order_item\.cook_id = \(select auth\.uid\(\)\)/);
+    expect(migration).toMatch(/update_own_cook_order_item_fulfillment/);
+    expect(migration).toMatch(/order_item\.cook_id = current_cook_id/);
+    expect(migration).toMatch(/target_order\.status <> 'paid'/);
+    expect(migration).toMatch(/pending_item_count = 0/);
+    expect(migration).not.toMatch(
+      /grant execute on function lck_marketplace\.update_own_cook_order_item_fulfillment[\s\S]*to anon/i,
+    );
+    expect(page).toMatch(/requireUser\("\/my-kitchen\/orders\/"\)/);
+    expect(page).toMatch(/noIndex: true/);
+    expect(data).toMatch(/list_own_cook_order_items/);
+    expect(action).toMatch(/z\.enum\(\["ready", "fulfilled"\]\)/);
+    expect(action).toMatch(/supabase\.auth\.getUser\(\)/);
+    expect(action).toMatch(/update_own_cook_order_item_fulfillment/);
+  });
 });

@@ -66,6 +66,7 @@ describe("My Kitchen access", () => {
     expect(kitchenPageMocks.redirect).not.toHaveBeenCalled();
     expect(container.textContent).toContain("My Kitchen");
     expect(container.textContent).toContain("Status: Approved");
+    expect(container.textContent).toContain("Manage orders");
   });
 
   it("shows the application form when onboarding has started but no application exists", async () => {

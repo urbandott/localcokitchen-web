@@ -137,6 +137,8 @@ export type CustomerOrderItem = {
   unit_price_cents: number;
   quantity: number;
   line_total_cents: number;
+  fulfillment_status: "pending" | "ready" | "fulfilled";
+  fulfilled_at: string | null;
   created_at: string;
 };
 
@@ -173,6 +175,21 @@ export type PaymentWebhookResult = {
   order_status: string | null;
   payment_status: string;
   processed: boolean;
+};
+
+export type CookOrderItemSummary = {
+  order_item_id: string;
+  order_id: string;
+  menu_item_id: string;
+  item_name: string;
+  quantity: number;
+  unit_price_cents: number;
+  line_total_cents: number;
+  fulfillment_status: "pending" | "ready" | "fulfilled";
+  fulfilled_at: string | null;
+  order_status: CustomerOrder["status"];
+  order_paid_at: string | null;
+  order_created_at: string;
 };
 
 export type AdminCookSummary = {
@@ -305,6 +322,14 @@ export type Database = {
       expire_pending_payment_orders: {
         Args: { p_before?: string };
         Returns: number;
+      };
+      list_own_cook_order_items: {
+        Args: Record<string, never>;
+        Returns: CookOrderItemSummary[];
+      };
+      update_own_cook_order_item_fulfillment: {
+        Args: { p_fulfillment_status: string; p_order_item_id: string };
+        Returns: boolean;
       };
     };
   };

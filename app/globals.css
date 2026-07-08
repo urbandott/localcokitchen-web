@@ -278,6 +278,15 @@ body {
   color: var(--muted-foreground);
 }
 
+.kitchen-order-card {
+  align-items: flex-start;
+}
+
+.kitchen-order-action-form {
+  display: grid;
+  gap: 0.5rem;
+}
+
 .next-section {
   display: grid;
   gap: 1rem;

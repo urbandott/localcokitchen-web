@@ -79,6 +79,15 @@ export default async function MyKitchenPage() {
             View public menu
           </Link>
         </article>
+        {isApprovedCook ? (
+          <article className="next-card">
+            <h2>Orders</h2>
+            <p>View paid order items and update preparation status.</p>
+            <Link className="secondary-action compact-action" href="/my-kitchen/orders/">
+              Manage orders
+            </Link>
+          </article>
+        ) : null}
       </section>
       {!application || application.status === "draft" || application.status === "rejected" ? (
         <section className="next-section">

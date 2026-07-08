@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   AdminCookSummary,
+  AdminAuditEvent,
   AdminMetrics,
   CookApplication,
   CookProfile,
@@ -44,6 +45,21 @@ export type AdminOrderSummary = CustomerOrder & {
   > | null;
 };
 
+const auditEventSources = new Set(["admin_action", "system_event"]);
+const auditTargetTypes = new Set([
+  "admin",
+  "cook",
+  "customer_order",
+  "customer_order_item",
+  "customer_payment_attempt",
+  "payment_webhook_event",
+]);
+
+export type AdminAuditFilters = {
+  eventSource?: string | null;
+  targetType?: string | null;
+};
+
 export async function getAdminMetrics(): Promise<{
   metrics: AdminMetrics | null;
   error: string | null;
@@ -54,6 +70,30 @@ export async function getAdminMetrics(): Promise<{
   return error
     ? { metrics: null, error: "Admin metrics could not be loaded." }
     : { metrics: data, error: null };
+}
+
+function allowedFilter(value: string | null | undefined, allowed: Set<string>): string | null {
+  if (!value) return null;
+  const normalized = value.trim();
+  return allowed.has(normalized) ? normalized : null;
+}
+
+export async function listAdminAuditEvents(
+  filters: AdminAuditFilters = {},
+): Promise<{ error: string | null; events: AdminAuditEvent[] }> {
+  const supabase = await createClient();
+  if (!supabase) return { error: "Supabase is not configured.", events: [] };
+
+  const { data, error } = await supabase.schema("lck_identity").rpc("list_admin_audit_events", {
+    p_event_type: allowedFilter(filters.eventSource, auditEventSources),
+    p_limit: 75,
+    p_offset: 0,
+    p_target_type: allowedFilter(filters.targetType, auditTargetTypes),
+  });
+
+  return error
+    ? { error: "Admin audit events could not be loaded.", events: [] }
+    : { error: null, events: data ?? [] };
 }
 
 export async function listAdminCooks(): Promise<{

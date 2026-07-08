@@ -323,4 +323,31 @@ describe("Next.js security regressions", () => {
     expect(migration).not.toMatch(/grant .*lck_private\.admin_actions[\s\S]*to anon/i);
     expect(migration).toMatch(/revoke all on function lck_private\.record_system_event/);
   });
+
+  it("exposes audit events only through an admin-gated sanitized viewer", () => {
+    const migration = read(
+      "supabase/migrations/20260708022845_add_admin_audit_event_viewer_rpc.sql",
+    );
+    const page = read("app/(admin)/admin/audit/page.tsx");
+    const portal = read("app/(admin)/admin/page.tsx");
+    const data = read("features/admin/admin-data.ts");
+
+    expect(migration).toMatch(/list_admin_audit_events/);
+    expect(migration).toMatch(/current_user_is_admin\(\)/);
+    expect(migration).toMatch(/safe_limit integer := least\(greatest/);
+    expect(migration).toMatch(/safe_event_type not in \('admin_action', 'system_event'\)/);
+    expect(migration).toMatch(/safe_target_type not in/);
+    expect(migration).toMatch(/metadata - 'payload' - 'provider_reference' - 'token' - 'secret'/);
+    expect(migration).toMatch(/revoke all on function lck_identity\.list_admin_audit_events/);
+    expect(migration).not.toMatch(
+      /grant execute on function lck_identity\.list_admin_audit_events[\s\S]*to anon/i,
+    );
+    expect(page).toMatch(/requireAdmin\(\)/);
+    expect(page).toMatch(/noIndex: true/);
+    expect(page).toMatch(/metadataPreview/);
+    expect(page).toMatch(/payload\|secret\|token\|provider_reference/i);
+    expect(portal).toMatch(/\/admin\/audit\//);
+    expect(data).toMatch(/list_admin_audit_events/);
+    expect(data).toMatch(/allowedFilter/);
+  });
 });

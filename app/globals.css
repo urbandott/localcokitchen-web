@@ -324,6 +324,39 @@ body {
   color: var(--muted-foreground);
 }
 
+.audit-filter-form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: end;
+  border: 1px solid var(--border);
+  border-radius: 1.5rem;
+  background: var(--card);
+  box-shadow: var(--shadow-soft);
+  padding: 1rem;
+}
+
+.audit-filter-form label {
+  display: grid;
+  gap: 0.4rem;
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
+.audit-filter-form select {
+  min-height: 2.75rem;
+  min-width: 180px;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--background);
+  color: var(--foreground);
+}
+
+.admin-audit-card {
+  display: block;
+}
+
 .next-section {
   display: grid;
   gap: 1rem;

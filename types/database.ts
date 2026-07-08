@@ -228,6 +228,17 @@ export type AdminMetrics = {
   review_count_30d: number;
 };
 
+export type AdminAuditEvent = {
+  event_source: "admin_action" | "system_event";
+  event_name: string;
+  actor_user_id: string | null;
+  target_type: string;
+  target_id: string | null;
+  severity: "info" | "warning" | "critical";
+  metadata: Json;
+  created_at: string;
+};
+
 export type Database = {
   lck_marketplace: {
     Tables: {
@@ -344,6 +355,15 @@ export type Database = {
     Functions: {
       current_user_is_admin: { Args: Record<string, never>; Returns: boolean };
       get_admin_metrics: { Args: Record<string, never>; Returns: AdminMetrics };
+      list_admin_audit_events: {
+        Args: {
+          p_event_type?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+          p_target_type?: string | null;
+        };
+        Returns: AdminAuditEvent[];
+      };
       list_admin_cooks: {
         Args: {
           p_search?: string | null;

@@ -43,6 +43,12 @@ export default async function AdminPage() {
             View metrics
           </Link>
         </article>
+        <article className="next-card">
+          <h2>Audit events</h2>
+          <Link className="secondary-action compact-action" href="/admin/audit/">
+            Review audit log
+          </Link>
+        </article>
       </section>
     </div>
   );

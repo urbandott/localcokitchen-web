@@ -350,4 +350,30 @@ describe("Next.js security regressions", () => {
     expect(data).toMatch(/list_admin_audit_events/);
     expect(data).toMatch(/allowedFilter/);
   });
+
+  it("queues order lifecycle notifications in a private outbox only", () => {
+    const migration = read("supabase/migrations/20260713022924_add_notification_outbox_hooks.sql");
+
+    expect(migration).toMatch(/create table if not exists lck_private\.notification_outbox/);
+    expect(migration).toMatch(
+      /alter table lck_private\.notification_outbox enable row level security/,
+    );
+    expect(migration).toMatch(/revoke all on table lck_private\.notification_outbox/);
+    expect(migration).toMatch(/enqueue_notification/);
+    expect(migration).toMatch(/order\.payment_confirmed/);
+    expect(migration).toMatch(/cook\.order_paid/);
+    expect(migration).toMatch(/order_item\.' \|\| new\.fulfillment_status/);
+    expect(migration).toMatch(/after update of status on lck_marketplace\.customer_orders/);
+    expect(migration).toMatch(
+      /after update of fulfillment_status on lck_marketplace\.customer_order_items/,
+    );
+    expect(migration).toMatch(/claim_pending_notifications/);
+    expect(migration).toMatch(/for update skip locked/);
+    expect(migration).toMatch(/mark_notification_sent/);
+    expect(migration).toMatch(/mark_notification_failed/);
+    expect(migration).toMatch(/to service_role/);
+    expect(migration).not.toMatch(/grant .*notification_outbox[\s\S]*to anon/i);
+    expect(migration).not.toMatch(/grant .*notification_outbox[\s\S]*to authenticated/i);
+    expect(migration).toMatch(/- 'payload' - 'provider_reference' - 'token' - 'secret'/);
+  });
 });

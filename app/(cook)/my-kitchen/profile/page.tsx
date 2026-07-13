@@ -28,10 +28,13 @@ export default async function KitchenProfilePage() {
   const isApprovedCook = application?.status === "approved";
   const hasActiveMenuItem = menuItems.some((item) => item.is_active && !item.is_sold_out);
   const hasActivePickupWindow = pickupWindows.some((window) => window.is_active);
+  const canMakePublic = Boolean(
+    isApprovedCook && !profile?.moderator_disabled_at && hasActiveMenuItem && hasActivePickupWindow,
+  );
   const liveDisabledReason = profile?.moderator_disabled_at
-    ? "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information."
+    ? null
     : !isApprovedCook
-      ? "You can prepare this profile now. Kitchen live status unlocks after your cook application is approved."
+      ? null
       : !hasActiveMenuItem
         ? "Add at least one active, available menu item before making your kitchen live."
         : !hasActivePickupWindow
@@ -72,6 +75,7 @@ export default async function KitchenProfilePage() {
       {!error && canPrepareKitchen ? (
         <section className="next-section kitchen-management-grid">
           <CookProfileManagementForm
+            canMakePublic={canMakePublic}
             liveDisabledReason={liveDisabledReason}
             moderatorDisabled={Boolean(profile?.moderator_disabled_at)}
             profile={profile}

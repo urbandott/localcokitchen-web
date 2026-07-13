@@ -127,8 +127,10 @@ export default async function AdminNotificationsPage({
             >
               <div>
                 <span className="status-pill">{notification.status}</span>
-                <h3>{notification.notification_type}</h3>
-                <p>
+                <h3 className="text-truncate" title={notification.notification_type}>
+                  {notification.notification_type}
+                </h3>
+                <p className="text-wrap-safe">
                   {notification.recipient_email_masked} · {notification.channel} ·{" "}
                   {notification.template_key}
                 </p>
@@ -142,7 +144,9 @@ export default async function AdminNotificationsPage({
                   {formatDateTime(notification.next_attempt_at)}
                 </p>
                 {notification.sent_at ? <p>Sent {formatDateTime(notification.sent_at)}</p> : null}
-                {notification.last_error ? <p>Error: {notification.last_error}</p> : null}
+                {notification.last_error ? (
+                  <p className="text-wrap-safe">Error: {notification.last_error}</p>
+                ) : null}
               </div>
               {notification.status === "failed" || notification.status === "pending" ? (
                 <form action={retryNotificationAction}>

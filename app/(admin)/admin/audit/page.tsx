@@ -101,14 +101,16 @@ export default async function AdminAuditPage({
             >
               <div>
                 <span className="status-pill">{event.severity}</span>
-                <h2>{event.event_name}</h2>
-                <p>
+                <h2 className="text-truncate" title={event.event_name}>
+                  {event.event_name}
+                </h2>
+                <p className="text-wrap-safe">
                   {event.event_source} · {event.target_type}
                   {event.target_id ? ` #${event.target_id.slice(0, 8)}` : ""} ·{" "}
                   {formatDateTime(event.created_at)}
                 </p>
                 <p>Actor: {event.actor_user_id ? event.actor_user_id.slice(0, 8) : "system"}</p>
-                <p>{metadataPreview(event.metadata)}</p>
+                <p className="text-wrap-safe">{metadataPreview(event.metadata)}</p>
               </div>
             </article>
           ))}

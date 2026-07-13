@@ -75,7 +75,9 @@ export default async function KitchenOrdersPage() {
                 <article className="order-list-card kitchen-order-card" key={item.order_item_id}>
                   <div>
                     <span className="status-pill">{fulfillmentLabel(item.fulfillment_status)}</span>
-                    <h3>{item.item_name}</h3>
+                    <h3 className="text-truncate" title={item.item_name}>
+                      {item.item_name}
+                    </h3>
                     <p>
                       Order #{item.order_id.slice(0, 8)} · Paid {formatDateTime(item.order_paid_at)}
                     </p>

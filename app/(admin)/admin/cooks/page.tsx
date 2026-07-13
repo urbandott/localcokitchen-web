@@ -24,7 +24,12 @@ export default async function AdminCooksPage() {
       <section className="next-section">
         {cooks.map((cook) => (
           <article className="next-card" key={cook.cook_id}>
-            <h2>{cook.display_name ?? cook.full_name ?? cook.email ?? "Cook"}</h2>
+            <h2
+              className="text-truncate"
+              title={cook.display_name ?? cook.full_name ?? cook.email ?? undefined}
+            >
+              {cook.display_name ?? cook.full_name ?? cook.email ?? "Cook"}
+            </h2>
             <p>
               Status: {cook.application_status} · Live: {cook.is_live_kitchen ? "Yes" : "No"} · Menu
               items: {cook.active_menu_item_count}

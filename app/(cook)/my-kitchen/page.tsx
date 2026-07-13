@@ -65,7 +65,9 @@ export default async function MyKitchenPage() {
         </article>
         <article className="next-card">
           <h2>Public profile</h2>
-          <p>{profile?.display_name ?? "No public profile yet"}</p>
+          <p className="text-truncate" title={profile?.display_name ?? undefined}>
+            {profile?.display_name ?? "No public profile yet"}
+          </p>
           <p>
             Kitchen live: {profile?.is_public && !profile.moderator_disabled_at ? "Yes" : "No"} ·
             pickup windows: {activePickupWindowCount}

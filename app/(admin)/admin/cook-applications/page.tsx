@@ -27,8 +27,10 @@ export default async function AdminApplicationsPage() {
       <section className="next-section">
         {applications.map(({ application, documents, user }) => (
           <article className="next-card admin-application-card" key={application.user_id}>
-            <h2>{application.legal_name ?? "Cook application"}</h2>
-            <p>
+            <h2 className="text-truncate" title={application.legal_name ?? undefined}>
+              {application.legal_name ?? "Cook application"}
+            </h2>
+            <p className="text-wrap-safe">
               {user?.email ?? "No email found"} · {application.phone ?? "No phone"} ·{" "}
               {application.pickup_zip_code ?? "No ZIP"}
             </p>
@@ -44,13 +46,13 @@ export default async function AdminApplicationsPage() {
             <dl className="admin-application-details">
               <div>
                 <dt>Applicant profile</dt>
-                <dd>
+                <dd className="text-wrap-safe">
                   {user?.full_name ?? [user?.first_name, user?.last_name].filter(Boolean).join(" ")}
                 </dd>
               </div>
               <div>
                 <dt>Private pickup address</dt>
-                <dd>{application.pickup_address ?? "No address"}</dd>
+                <dd className="text-wrap-safe">{application.pickup_address ?? "No address"}</dd>
               </div>
               <div>
                 <dt>Food handler training</dt>

@@ -73,7 +73,7 @@ export default async function AdminOrdersPage() {
               <div className="admin-order-card__summary">
                 <span className="status-pill">{order.status.replaceAll("_", " ")}</span>
                 <h3>Order #{order.id.slice(0, 8)}</h3>
-                <p>
+                <p className="text-wrap-safe">
                   {customerLabel(order)} · {formatCurrency(order.subtotal_cents)} ·{" "}
                   {formatDateTime(order.created_at)}
                 </p>
@@ -87,8 +87,10 @@ export default async function AdminOrdersPage() {
                 {order.items.map((item) => (
                   <div className="admin-order-item-row" key={item.id}>
                     <div>
-                      <strong>{item.item_name}</strong>
-                      <p>
+                      <strong className="text-truncate" title={item.item_name}>
+                        {item.item_name}
+                      </strong>
+                      <p className="text-wrap-safe">
                         Cook: {item.cookDisplayName ?? item.cook_id.slice(0, 8)} · Qty{" "}
                         {item.quantity} · {formatCurrency(item.line_total_cents)}
                       </p>

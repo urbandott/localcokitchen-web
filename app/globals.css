@@ -121,6 +121,8 @@ body {
 }
 
 .next-card {
+  min-width: 0;
+  overflow-wrap: anywhere;
   padding: clamp(1.25rem, 3vw, 1.65rem);
   border: 1px solid var(--border);
   border-radius: 1.5rem;
@@ -151,6 +153,21 @@ body {
   line-height: 1.65;
 }
 
+.text-truncate {
+  display: block;
+  max-width: 100%;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.text-wrap-safe {
+  min-width: 0;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
 .profile-card-grid .next-card {
   display: flex;
   flex-direction: column;
@@ -162,6 +179,7 @@ body {
 }
 
 .section-heading-row {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -177,6 +195,8 @@ body {
 .order-list-card,
 .order-detail-card,
 .order-status-banner {
+  min-width: 0;
+  overflow-wrap: anywhere;
   border: 1px solid var(--border);
   border-radius: 1.75rem;
   background: var(--card);
@@ -229,6 +249,7 @@ body {
 
 .order-meta-grid > div,
 .order-line-item {
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 1.25rem;
   background: var(--background);
@@ -304,6 +325,7 @@ body {
 }
 
 .admin-order-item-row {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -549,6 +571,7 @@ body {
 
 .admin-application-details dd {
   margin: 0;
+  overflow-wrap: anywhere;
 }
 
 .admin-document-list {
@@ -557,6 +580,7 @@ body {
 }
 
 .admin-document-row {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -618,6 +642,7 @@ body {
 .kitchen-detail-list dd {
   margin: 0;
   color: var(--foreground);
+  overflow-wrap: anywhere;
 }
 
 .kitchen-two-column {
@@ -648,6 +673,7 @@ body {
 
 .kitchen-inventory-card,
 .kitchen-inventory-actions {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 1rem;
@@ -985,6 +1011,8 @@ body {
 .filter-panel span,
 .status-pill,
 .menu-attribute-tags span {
+  max-width: 100%;
+  overflow-wrap: anywhere;
   border: 1px solid var(--border);
   border-radius: 999px;
   background: var(--cream);
@@ -1024,6 +1052,8 @@ body {
 
 .menu-item,
 .cart-item {
+  min-width: 0;
+  overflow-wrap: anywhere;
   border: 1px solid var(--border);
   border-radius: 1.5rem;
   background: var(--card);
@@ -1033,6 +1063,21 @@ body {
 .menu-item {
   grid-template-columns: 180px minmax(0, 1fr);
   padding: 1rem;
+}
+
+.menu-item__body,
+.modal-heading,
+.cart-item__quantity {
+  min-width: 0;
+}
+
+.menu-cook-button {
+  display: inline-block;
+  max-width: min(100%, 22rem);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: bottom;
+  white-space: nowrap;
 }
 
 .menu-item:hover {
@@ -1048,6 +1093,7 @@ body {
 
 .menu-item h2,
 .cart-item h3 {
+  min-width: 0;
   color: var(--foreground);
   font-weight: 800;
   letter-spacing: -0.025em;
@@ -1056,6 +1102,8 @@ body {
 .menu-item__cook-line,
 .menu-item-details dd,
 .cart-item p {
+  min-width: 0;
+  overflow-wrap: anywhere;
   color: var(--muted-foreground);
 }
 

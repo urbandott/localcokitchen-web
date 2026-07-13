@@ -210,7 +210,9 @@ export function MenuBrowser({ items, error }: Props) {
                 )}
                 <div className="menu-item__body">
                   <span className="status-pill">{item.quantity_available} available</span>
-                  <h2>{item.name}</h2>
+                  <h2 className="text-truncate" title={item.name}>
+                    {item.name}
+                  </h2>
                   <p className="menu-item__cook-line">
                     By{" "}
                     <button
@@ -275,8 +277,10 @@ export function MenuBrowser({ items, error }: Props) {
               if (!item) return null;
               return (
                 <article className="cart-item" key={entry.id}>
-                  <h3>{item.name}</h3>
-                  <p>
+                  <h3 className="text-truncate" title={item.name}>
+                    {item.name}
+                  </h3>
+                  <p className="text-wrap-safe">
                     {item.cook_display_name} · {formatCurrency(item.price_cents)}
                   </p>
                   <div className="cart-item__quantity">
@@ -406,7 +410,7 @@ function ItemDialog({
   return (
     <div className="menu-dialog__content">
       <div className="modal-heading">
-        <h2>{item.name}</h2>
+        <h2 className="text-wrap-safe">{item.name}</h2>
         <button
           className="modal-close"
           type="button"
@@ -425,7 +429,7 @@ function ItemDialog({
           alt={item.name}
         />
       ) : null}
-      <p>{item.description}</p>
+      <p className="text-wrap-safe">{item.description}</p>
       <dl className="menu-item-details">
         <Detail label="Price" value={formatCurrency(item.price_cents)} />
         <Detail label="Available" value={`${item.quantity_available} left`} />
@@ -450,7 +454,7 @@ function CookDialog({ item, onClose }: { item: CustomerMenuItemView; onClose: ()
   return (
     <div className="menu-dialog__content">
       <div className="modal-heading">
-        <h2>{item.cook_display_name}</h2>
+        <h2 className="text-wrap-safe">{item.cook_display_name}</h2>
         <button
           className="modal-close"
           type="button"
@@ -469,7 +473,9 @@ function CookDialog({ item, onClose }: { item: CustomerMenuItemView; onClose: ()
           alt={item.cook_display_name}
         />
       ) : null}
-      <p>{item.cook_description ?? "This cook has not added a public description yet."}</p>
+      <p className="text-wrap-safe">
+        {item.cook_description ?? "This cook has not added a public description yet."}
+      </p>
       <dl className="menu-item-details">
         <Detail label="Cuisine" value={item.cook_cuisine_type ?? ""} />
         <Detail
@@ -492,7 +498,7 @@ function Detail({ label, value }: { label: string; value: string }) {
   return (
     <div>
       <dt>{label}</dt>
-      <dd>{value}</dd>
+      <dd className="text-wrap-safe">{value}</dd>
     </div>
   );
 }

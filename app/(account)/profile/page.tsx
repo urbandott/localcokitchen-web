@@ -20,7 +20,9 @@ export default async function ProfilePage() {
       <section className="page-hero">
         <p className="eyebrow">Account</p>
         <h1>Your profile</h1>
-        <p className="lede">{user.email}</p>
+        <p className="lede text-truncate" title={user.email}>
+          {user.email}
+        </p>
       </section>
       <section className="next-card-grid profile-card-grid">
         <article className="next-card">

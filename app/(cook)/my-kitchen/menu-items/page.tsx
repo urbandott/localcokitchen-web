@@ -89,12 +89,14 @@ export default async function KitchenMenuItemsPage() {
                 <article className="next-card kitchen-inventory-card" key={item.id}>
                   <div>
                     <span className="status-pill">{menuStatusLabel(item)}</span>
-                    <h3>{item.name}</h3>
-                    <p>
+                    <h3 className="text-truncate" title={item.name}>
+                      {item.name}
+                    </h3>
+                    <p className="text-wrap-safe">
                       {formatCurrency(item.price_cents)} · {item.quantity_available} available ·{" "}
                       {item.category}
                     </p>
-                    <p>
+                    <p className="text-wrap-safe">
                       Ingredients: {item.main_ingredients.join(", ")} · Allergens:{" "}
                       {item.allergens.join(", ")}
                     </p>

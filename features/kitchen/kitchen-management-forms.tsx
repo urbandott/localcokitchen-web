@@ -51,10 +51,12 @@ function dollarsFromCents(cents: number): string {
 }
 
 export function CookProfileManagementForm({
+  canMakePublic,
   liveDisabledReason = null,
   moderatorDisabled,
   profile,
 }: {
+  canMakePublic: boolean;
   liveDisabledReason?: string | null;
   moderatorDisabled: boolean;
   profile: CookProfile | null;
@@ -65,8 +67,7 @@ export function CookProfileManagementForm({
   );
   const fieldErrors = state.fieldErrors ?? {};
   const isCurrentlyPublic = Boolean(profile?.is_public) && !moderatorDisabled;
-  const disableLiveToggle =
-    moderatorDisabled || (Boolean(liveDisabledReason) && !isCurrentlyPublic);
+  const disableLiveToggle = moderatorDisabled || (!canMakePublic && !isCurrentlyPublic);
 
   return (
     <form action={formAction} className="next-form">

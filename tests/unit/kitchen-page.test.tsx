@@ -160,6 +160,43 @@ describe("My Kitchen access", () => {
     expect(container.textContent).not.toContain("View public menu");
   });
 
+  it("truncates long public profile names inside the kitchen dashboard card", async () => {
+    const longDisplayName = "Asha's ".repeat(40).trim();
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: approvedApplication,
+      profile: {
+        cook_id: "legacy-cook-id",
+        display_name: longDisplayName,
+        profile_image_url: null,
+        description: "Home cooked meals.",
+        cuisine_type: "Pakistani",
+        pickup_zip_code: "60601",
+        preorder_cutoff_hours: 24,
+        order_notes: "Bring your order number.",
+        is_public: true,
+        rating: 0,
+        review_count: 0,
+        moderator_disabled_at: null,
+        moderator_disabled_by: null,
+        created_at: "2026-07-02T00:00:00.000Z",
+        updated_at: "2026-07-02T00:00:00.000Z",
+      },
+      menuItems: [menuItem],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await MyKitchenPage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    const name = container.querySelector(".text-truncate");
+    expect(name?.textContent).toBe(longDisplayName);
+    expect(name?.getAttribute("title")).toBe(longDisplayName);
+  });
+
   it("shows the application form on the application page when onboarding has started", async () => {
     kitchenPageMocks.getDashboard.mockResolvedValue({
       application: null,
@@ -307,7 +344,7 @@ describe("My Kitchen access", () => {
     });
 
     expect(container.textContent).toContain("You can prepare your public profile");
-    expect(container.textContent).toContain("Kitchen live status unlocks");
+    expect(container.textContent).not.toContain("Kitchen live status unlocks");
     expect(
       container.querySelector("form[aria-label='Cook profile management form']"),
     ).not.toBeNull();

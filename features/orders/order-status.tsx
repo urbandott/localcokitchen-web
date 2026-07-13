@@ -68,7 +68,9 @@ export function OrderDetailsCard({ order }: { order: CustomerOrderDetails }) {
         {order.items.map((item) => (
           <article className="order-line-item" key={item.id}>
             <div>
-              <h3>{item.item_name}</h3>
+              <h3 className="text-truncate" title={item.item_name}>
+                {item.item_name}
+              </h3>
               <p>
                 Qty {item.quantity} · {formatCurrency(item.unit_price_cents)} each
               </p>

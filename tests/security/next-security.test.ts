@@ -403,4 +403,32 @@ describe("Next.js security regressions", () => {
     expect(helper).toMatch(/escapeHtml/);
     expect(helper).not.toMatch(/NEXT_PUBLIC/);
   });
+
+  it("exposes notification observability only through admin-gated sanitized RPCs", () => {
+    const migration = read(
+      "supabase/migrations/20260713024509_add_admin_notification_observability.sql",
+    );
+    const page = read("app/(admin)/admin/notifications/page.tsx");
+    const portal = read("app/(admin)/admin/page.tsx");
+    const data = read("features/admin/admin-data.ts");
+    const actions = read("features/admin/actions.ts");
+
+    expect(migration).toMatch(/get_admin_notification_summary/);
+    expect(migration).toMatch(/list_admin_notifications/);
+    expect(migration).toMatch(/retry_admin_notification/);
+    expect(migration).toMatch(/current_user_is_admin\(\)/);
+    expect(migration).toMatch(/recipient_email_masked/);
+    expect(migration).not.toMatch(/returns table[\s\S]*payload/i);
+    expect(migration).not.toMatch(
+      /grant execute on function lck_identity\.(?:get_admin_notification_summary|list_admin_notifications|retry_admin_notification)[\s\S]*to anon/i,
+    );
+    expect(page).toMatch(/requireAdmin\(\)/);
+    expect(page).toMatch(/noIndex: true/);
+    expect(page).not.toMatch(/notification\.payload|notification\.recipient_email[^_]/i);
+    expect(portal).toMatch(/\/admin\/notifications\//);
+    expect(data).toMatch(/list_admin_notifications/);
+    expect(data).toMatch(/get_admin_notification_summary/);
+    expect(actions).toMatch(/retry_admin_notification/);
+    expect(actions).toMatch(/z\.string\(\)\.uuid\(\)/);
+  });
 });

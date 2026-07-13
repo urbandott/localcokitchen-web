@@ -258,6 +258,31 @@ export type NotificationOutbox = {
   updated_at: string;
 };
 
+export type AdminNotificationSummary = {
+  status: NotificationOutbox["status"];
+  total_count: number;
+  oldest_created_at: string | null;
+  newest_created_at: string | null;
+};
+
+export type AdminNotificationRow = {
+  notification_id: string;
+  notification_type: string;
+  recipient_email_masked: string;
+  channel: "email";
+  template_key: string;
+  target_type: string;
+  target_id: string | null;
+  status: NotificationOutbox["status"];
+  attempts: number;
+  next_attempt_at: string;
+  sent_at: string | null;
+  last_error: string;
+  created_at: string;
+  updated_at: string;
+  total_count: number;
+};
+
 export type Database = {
   lck_marketplace: {
     Tables: {
@@ -374,6 +399,10 @@ export type Database = {
     Functions: {
       current_user_is_admin: { Args: Record<string, never>; Returns: boolean };
       get_admin_metrics: { Args: Record<string, never>; Returns: AdminMetrics };
+      get_admin_notification_summary: {
+        Args: Record<string, never>;
+        Returns: AdminNotificationSummary[];
+      };
       list_admin_audit_events: {
         Args: {
           p_event_type?: string | null;
@@ -382,6 +411,14 @@ export type Database = {
           p_target_type?: string | null;
         };
         Returns: AdminAuditEvent[];
+      };
+      list_admin_notifications: {
+        Args: {
+          p_status?: string | null;
+          p_limit?: number;
+          p_offset?: number;
+        };
+        Returns: AdminNotificationRow[];
       };
       list_admin_cooks: {
         Args: {
@@ -396,6 +433,10 @@ export type Database = {
       };
       set_admin_cook_kitchen_disabled: {
         Args: { p_cook_id: string; p_disabled: boolean };
+        Returns: boolean;
+      };
+      retry_admin_notification: {
+        Args: { p_notification_id: string };
         Returns: boolean;
       };
     };

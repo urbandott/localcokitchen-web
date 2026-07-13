@@ -3,6 +3,8 @@ import type {
   AdminCookSummary,
   AdminAuditEvent,
   AdminMetrics,
+  AdminNotificationRow,
+  AdminNotificationSummary,
   CookApplication,
   CookProfile,
   CustomerOrder,
@@ -54,10 +56,22 @@ const auditTargetTypes = new Set([
   "customer_payment_attempt",
   "payment_webhook_event",
 ]);
+const notificationStatuses = new Set([
+  "all",
+  "pending",
+  "processing",
+  "sent",
+  "failed",
+  "cancelled",
+]);
 
 export type AdminAuditFilters = {
   eventSource?: string | null;
   targetType?: string | null;
+};
+
+export type AdminNotificationFilters = {
+  status?: string | null;
 };
 
 export async function getAdminMetrics(): Promise<{
@@ -94,6 +108,46 @@ export async function listAdminAuditEvents(
   return error
     ? { error: "Admin audit events could not be loaded.", events: [] }
     : { error: null, events: data ?? [] };
+}
+
+export async function listAdminNotifications(filters: AdminNotificationFilters = {}): Promise<{
+  error: string | null;
+  notifications: AdminNotificationRow[];
+  summary: AdminNotificationSummary[];
+}> {
+  const supabase = await createClient();
+  if (!supabase) {
+    return {
+      error: "Supabase is not configured.",
+      notifications: [],
+      summary: [],
+    };
+  }
+
+  const status = allowedFilter(filters.status, notificationStatuses) ?? "all";
+  const identity = supabase.schema("lck_identity");
+  const [summaryResult, notificationsResult] = await Promise.all([
+    identity.rpc("get_admin_notification_summary"),
+    identity.rpc("list_admin_notifications", {
+      p_limit: 75,
+      p_offset: 0,
+      p_status: status,
+    }),
+  ]);
+
+  if (summaryResult.error || notificationsResult.error) {
+    return {
+      error: "Admin notifications could not be loaded.",
+      notifications: [],
+      summary: [],
+    };
+  }
+
+  return {
+    error: null,
+    notifications: notificationsResult.data ?? [],
+    summary: summaryResult.data ?? [],
+  };
 }
 
 export async function listAdminCooks(): Promise<{

@@ -43,6 +43,24 @@ export async function setKitchenDisabledAction(formData: FormData) {
   revalidatePath("/admin/cooks/");
 }
 
+export async function retryNotificationAction(formData: FormData) {
+  await requireAdmin();
+  const parsed = z
+    .object({
+      notificationId: z.string().uuid(),
+    })
+    .safeParse({
+      notificationId: formData.get("notificationId"),
+    });
+  if (!parsed.success) return;
+
+  const supabase = await createClient();
+  await supabase?.schema("lck_identity").rpc("retry_admin_notification", {
+    p_notification_id: parsed.data.notificationId,
+  });
+  revalidatePath("/admin/notifications/");
+}
+
 export async function reviewCookApplicationAction(formData: FormData) {
   const admin = await requireAdmin();
   const parsed = reviewCookApplicationSchema.safeParse({

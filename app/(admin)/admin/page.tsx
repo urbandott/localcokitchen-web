@@ -49,6 +49,12 @@ export default async function AdminPage() {
             Review audit log
           </Link>
         </article>
+        <article className="next-card">
+          <h2>Notifications</h2>
+          <Link className="secondary-action compact-action" href="/admin/notifications/">
+            Review delivery
+          </Link>
+        </article>
       </section>
     </div>
   );

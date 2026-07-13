@@ -46,10 +46,10 @@ export type CustomerMenuItem = {
 
 export type CookApplication = {
   user_id: string;
-  legal_name: string;
-  phone: string;
-  pickup_address: string;
-  pickup_zip_code: string;
+  legal_name: string | null;
+  phone: string | null;
+  pickup_address: string | null;
+  pickup_zip_code: string | null;
   food_handler_training_completed: boolean;
   food_handler_certificate_url: string | null;
   permit_or_certification_url: string | null;

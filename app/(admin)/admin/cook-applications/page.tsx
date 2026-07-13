@@ -27,10 +27,10 @@ export default async function AdminApplicationsPage() {
       <section className="next-section">
         {applications.map(({ application, documents, user }) => (
           <article className="next-card admin-application-card" key={application.user_id}>
-            <h2>{application.legal_name}</h2>
+            <h2>{application.legal_name ?? "Cook application"}</h2>
             <p>
-              {user?.email ?? "No email found"} · {application.phone} ·{" "}
-              {application.pickup_zip_code}
+              {user?.email ?? "No email found"} · {application.phone ?? "No phone"} ·{" "}
+              {application.pickup_zip_code ?? "No ZIP"}
             </p>
             <p className="next-muted">
               Submitted{" "}
@@ -50,7 +50,7 @@ export default async function AdminApplicationsPage() {
               </div>
               <div>
                 <dt>Private pickup address</dt>
-                <dd>{application.pickup_address}</dd>
+                <dd>{application.pickup_address ?? "No address"}</dd>
               </div>
               <div>
                 <dt>Food handler training</dt>
@@ -59,7 +59,10 @@ export default async function AdminApplicationsPage() {
                 </dd>
               </div>
             </dl>
-            <div className="admin-document-list" aria-label={`${application.legal_name} documents`}>
+            <div
+              className="admin-document-list"
+              aria-label={`${application.legal_name ?? "Cook application"} documents`}
+            >
               {documents.map((document) => (
                 <div className="admin-document-row" key={document.label}>
                   <span>{document.label}</span>

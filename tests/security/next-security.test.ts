@@ -48,6 +48,16 @@ describe("Next.js security regressions", () => {
 
   it("uses the protected My Kitchen route and preserves old bookmarks", () => {
     expect(read("app/(cook)/my-kitchen/page.tsx")).toMatch(/requireUser\("\/my-kitchen\/"\)/);
+    expect(read("app/(cook)/my-kitchen/application/page.tsx")).toMatch(
+      /requireUser\("\/my-kitchen\/application\/"\)/,
+    );
+    expect(read("app/(cook)/my-kitchen/profile/page.tsx")).toMatch(
+      /requireUser\("\/my-kitchen\/profile\/"\)/,
+    );
+    expect(read("app/(cook)/my-kitchen/menu-items/page.tsx")).toMatch(
+      /requireUser\("\/my-kitchen\/menu-items\/"\)/,
+    );
+    expect(read("features/kitchen/kitchen-data.ts")).toMatch(/eq\("cook_id", userId\)/);
     expect(read("proxy.ts")).toMatch(/"\/my-kitchen"/);
     expect(read("app/robots.ts")).toMatch(/"\/my-kitchen\/"/);
     expect(read("next.config.ts")).toMatch(/source: "\/my-shop\/:path\*"/);
@@ -94,6 +104,24 @@ describe("Next.js security regressions", () => {
     expect(authActions).toMatch(/postSignInDestination/);
     expect(authActions).toMatch(/cook_onboarding_started_at/);
     expect(authActions).not.toMatch(/user_metadata.*(?:role|admin|approved)/i);
+  });
+
+  it("allows owner-only cook application drafts while keeping final submission requirements strict", () => {
+    const migration = read("supabase/migrations/20260713031230_add_cook_application_drafts.sql");
+    const action = read("features/kitchen/actions.ts");
+    const validation = read("features/kitchen/application-validation.ts");
+
+    expect(migration).toMatch(/status = 'draft'/);
+    expect(migration).toMatch(/status in \('draft', 'submitted'\)/);
+    expect(migration).toMatch(/cook_applications_submission_required_fields/);
+    expect(migration).toMatch(/food_handler_certificate_url is not null/);
+    expect(migration).toMatch(/government_id_document_url is not null/);
+    expect(migration).toMatch(/selfie_verification_url is not null/);
+    expect(migration).toMatch(/\(select auth\.uid\(\)\) = user_id/);
+    expect(migration).toMatch(/new\.status not in \('draft', 'submitted'\)/);
+    expect(action).toMatch(/intent.*draft/);
+    expect(action).toMatch(/cookApplicationDraftSchema/);
+    expect(validation).toMatch(/alphabeticCharacters/);
   });
 
   it("keeps admin application review admin-only and uses short-lived private document links", () => {

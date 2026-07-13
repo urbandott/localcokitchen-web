@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 import {
   COOK_APPLICATION_MAX_FILE_BYTES,
   COOK_APPLICATION_MAX_TOTAL_FILE_BYTES,
+  cookApplicationDraftSchema,
   cookApplicationSchema,
   validateCookApplicationFileBytes,
   type SupportedCookApplicationFile,
@@ -49,19 +50,6 @@ const requiredFileLabels: Record<Exclude<ApplicationFileField, "permitOrCertific
   governmentIdDocument: "Government ID",
   selfieVerification: "Selfie verification photo",
 };
-
-function formFieldErrors(
-  error: ReturnType<typeof cookApplicationSchema.safeParse>,
-): Record<string, string> {
-  if (error.success) return {};
-
-  const result: Record<string, string> = {};
-  for (const issue of error.error.issues) {
-    const field = issue.path[0];
-    if (typeof field === "string" && !result[field]) result[field] = issue.message;
-  }
-  return result;
-}
 
 function zodFieldErrors(error: z.ZodError): Record<string, string> {
   const result: Record<string, string> = {};
@@ -187,19 +175,27 @@ export async function submitCookApplicationAction(
   _state: CookApplicationActionState,
   formData: FormData,
 ): Promise<CookApplicationActionState> {
-  const parsed = cookApplicationSchema.safeParse({
+  const intent = formData.get("intent") === "draft" ? "draft" : "submit";
+  const parsedInput = {
     legalName: formData.get("legalName"),
     phone: formData.get("phone"),
     pickupAddress: formData.get("pickupAddress"),
     pickupZipCode: formData.get("pickupZipCode"),
     foodHandlerTrainingCompleted: formData.get("foodHandlerTrainingCompleted") === "on",
-  });
+  };
+  const parsed =
+    intent === "draft"
+      ? cookApplicationDraftSchema.safeParse(parsedInput)
+      : cookApplicationSchema.safeParse(parsedInput);
 
   if (!parsed.success) {
     return {
       ok: false,
-      message: "Please correct the highlighted fields.",
-      fieldErrors: formFieldErrors(parsed),
+      message:
+        intent === "draft"
+          ? "Please correct the highlighted fields before saving your draft."
+          : "Please complete the highlighted fields before submitting.",
+      fieldErrors: zodFieldErrors(parsed.error),
     };
   }
 
@@ -225,7 +221,7 @@ export async function submitCookApplicationAction(
     return { ok: false, message: "Your application status could not be loaded. Try again." };
   }
 
-  if (current.data && current.data.status !== "rejected") {
+  if (current.data && !["draft", "rejected"].includes(current.data.status)) {
     return {
       ok: false,
       message:
@@ -250,7 +246,17 @@ export async function submitCookApplicationAction(
   for (const fileConfig of requiredFiles) {
     const submitted = formData.get(fileConfig.field);
     if (!isSubmittedFile(submitted)) {
-      fieldErrors[fileConfig.field] = `${requiredFileLabels[fileConfig.field]} is required.`;
+      const currentPath =
+        current.data?.[
+          fileConfig.field === "foodHandlerCertificate"
+            ? "food_handler_certificate_url"
+            : fileConfig.field === "governmentIdDocument"
+              ? "government_id_document_url"
+              : "selfie_verification_url"
+        ];
+      if (intent === "submit" && !currentPath) {
+        fieldErrors[fileConfig.field] = `${requiredFileLabels[fileConfig.field]} is required.`;
+      }
       continue;
     }
 
@@ -304,15 +310,28 @@ export async function submitCookApplicationAction(
     uploadedPaths.push(file.path);
   }
 
-  const foodHandlerCertificate = prepared.get("foodHandlerCertificate");
-  const governmentIdDocument = prepared.get("governmentIdDocument");
-  const selfieVerification = prepared.get("selfieVerification");
+  const foodHandlerCertificatePath =
+    prepared.get("foodHandlerCertificate")?.path ??
+    current.data?.food_handler_certificate_url ??
+    null;
+  const governmentIdDocumentPath =
+    prepared.get("governmentIdDocument")?.path ?? current.data?.government_id_document_url ?? null;
+  const selfieVerificationPath =
+    prepared.get("selfieVerification")?.path ?? current.data?.selfie_verification_url ?? null;
+  const permitOrCertificationPath =
+    prepared.get("permitOrCertification")?.path ??
+    current.data?.permit_or_certification_url ??
+    null;
 
-  if (!foodHandlerCertificate || !governmentIdDocument || !selfieVerification) {
+  if (
+    intent === "submit" &&
+    (!foodHandlerCertificatePath || !governmentIdDocumentPath || !selfieVerificationPath)
+  ) {
     await removeUploadedFiles(supabase, uploadedPaths);
     return { ok: false, message: "Required application documents are missing." };
   }
 
+  const submittedAt = intent === "submit" ? new Date().toISOString() : null;
   const saved = await marketplace
     .from("cook_applications")
     .upsert(
@@ -322,12 +341,13 @@ export async function submitCookApplicationAction(
         phone: parsed.data.phone,
         pickup_address: parsed.data.pickupAddress,
         pickup_zip_code: parsed.data.pickupZipCode,
-        food_handler_training_completed: true,
-        food_handler_certificate_url: foodHandlerCertificate.path,
-        permit_or_certification_url: prepared.get("permitOrCertification")?.path ?? null,
-        government_id_document_url: governmentIdDocument.path,
-        selfie_verification_url: selfieVerification.path,
-        status: "submitted",
+        food_handler_training_completed: parsed.data.foodHandlerTrainingCompleted,
+        food_handler_certificate_url: foodHandlerCertificatePath,
+        permit_or_certification_url: permitOrCertificationPath,
+        government_id_document_url: governmentIdDocumentPath,
+        selfie_verification_url: selfieVerificationPath,
+        status: intent === "submit" ? "submitted" : "draft",
+        submitted_at: submittedAt,
       },
       { onConflict: "user_id" },
     )
@@ -339,18 +359,23 @@ export async function submitCookApplicationAction(
     return { ok: false, message: "Your application could not be submitted. Try again." };
   }
 
+  const newPathsByField = new Set([...prepared.values()].map((file) => file.path));
   const previousPaths = [
-    current.data?.food_handler_certificate_url,
-    current.data?.permit_or_certification_url,
-    current.data?.government_id_document_url,
-    current.data?.selfie_verification_url,
-  ].filter((path): path is string => Boolean(path) && !uploadedPaths.includes(path));
+    prepared.has("foodHandlerCertificate") ? current.data?.food_handler_certificate_url : null,
+    prepared.has("permitOrCertification") ? current.data?.permit_or_certification_url : null,
+    prepared.has("governmentIdDocument") ? current.data?.government_id_document_url : null,
+    prepared.has("selfieVerification") ? current.data?.selfie_verification_url : null,
+  ].filter((path): path is string => Boolean(path) && !newPathsByField.has(path));
   await removeUploadedFiles(supabase, previousPaths);
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/application/");
   return {
     ok: true,
-    message: "Your cook application has been submitted for review.",
+    message:
+      intent === "submit"
+        ? "Your cook application has been submitted for review."
+        : "Your cook application draft has been saved.",
   };
 }
 
@@ -438,6 +463,7 @@ export async function updateCookProfileAction(
   }
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/profile/");
   revalidatePath("/menu/");
   return { ok: true, message: "Your public cook profile has been updated." };
 }
@@ -520,6 +546,7 @@ export async function createMenuItemAction(
   }
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/menu-items/");
   revalidatePath("/menu/");
   return { ok: true, message: "Menu item created." };
 }
@@ -618,6 +645,7 @@ export async function updateMenuItemAction(
   }
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/menu-items/");
   revalidatePath("/menu/");
   return { ok: true, message: "Menu item updated." };
 }
@@ -650,6 +678,7 @@ export async function setMenuItemAvailabilityAction(formData: FormData) {
     .eq("cook_id", context.userId);
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/menu-items/");
   revalidatePath("/menu/");
 }
 
@@ -689,6 +718,7 @@ export async function deleteMenuItemAction(formData: FormData) {
   }
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/menu-items/");
   revalidatePath("/menu/");
 }
 
@@ -732,6 +762,7 @@ export async function savePickupWindowsAction(
   if (saved.error) return { ok: false, message: "Pickup windows could not be saved. Try again." };
 
   revalidatePath("/my-kitchen/");
+  revalidatePath("/my-kitchen/profile/");
   revalidatePath("/menu/");
   return { ok: true, message: "Pickup windows saved." };
 }

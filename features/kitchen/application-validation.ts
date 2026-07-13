@@ -4,6 +4,7 @@ export const COOK_APPLICATION_MAX_FILE_BYTES = 5 * 1024 * 1024;
 export const COOK_APPLICATION_MAX_TOTAL_FILE_BYTES = 15 * 1024 * 1024;
 
 const unsupportedCharacters = /[\p{Cc}\p{Cf}\p{Cs}\p{Co}]/u;
+const alphabeticCharacters = /\p{L}/u;
 
 function normalizedText(label: string, min: number, max: number) {
   return z
@@ -25,7 +26,43 @@ function normalizedText(label: string, min: number, max: number) {
     );
 }
 
+function optionalNormalizedText(label: string, min: number, max: number) {
+  return z
+    .string()
+    .transform((value) =>
+      value
+        .normalize("NFC")
+        .trim()
+        .replace(/\p{Zs}+/gu, " "),
+    )
+    .pipe(
+      z.string().superRefine((value, context) => {
+        if (!value) return;
+        if (value.length < min) {
+          context.addIssue({
+            code: "custom",
+            message: `${label} must be at least ${min} characters.`,
+          });
+        }
+        if (value.length > max) {
+          context.addIssue({
+            code: "custom",
+            message: `${label} must be ${max} characters or fewer.`,
+          });
+        }
+        if (unsupportedCharacters.test(value)) {
+          context.addIssue({
+            code: "custom",
+            message: `${label} contains unsupported characters.`,
+          });
+        }
+      }),
+    )
+    .transform((value) => value || null);
+}
+
 export function normalizeUsPhone(value: string): string {
+  if (alphabeticCharacters.test(value)) return value.trim();
   const digits = value.replace(/\D/g, "");
   const withoutCountryCode =
     digits.length === 11 && digits.startsWith("1") ? digits.slice(1) : digits;
@@ -54,7 +91,36 @@ export const cookApplicationSchema = z.object({
   }),
 });
 
+export const cookApplicationDraftSchema = z.object({
+  legalName: optionalNormalizedText("Legal name", 2, 120),
+  phone: z
+    .string()
+    .transform((value) => {
+      const trimmed = value.trim();
+      return trimmed ? normalizeUsPhone(trimmed) : null;
+    })
+    .pipe(
+      z
+        .string()
+        .regex(/^\+1 [0-9]{3}-[0-9]{3}-[0-9]{4}$/, "Enter a valid US phone number.")
+        .nullable(),
+    ),
+  pickupAddress: optionalNormalizedText("Pickup address", 8, 240),
+  pickupZipCode: z
+    .string()
+    .trim()
+    .transform((value) => value || null)
+    .pipe(
+      z
+        .string()
+        .regex(/^[0-9]{5}$/, "Enter a valid 5-digit ZIP code.")
+        .nullable(),
+    ),
+  foodHandlerTrainingCompleted: z.boolean(),
+});
+
 export type CookApplicationInput = z.infer<typeof cookApplicationSchema>;
+export type CookApplicationDraftInput = z.infer<typeof cookApplicationDraftSchema>;
 
 export type SupportedCookApplicationFile = {
   contentType: "application/pdf" | "image/jpeg" | "image/png" | "image/webp";

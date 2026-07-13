@@ -54,6 +54,7 @@ describe("cook application validation helpers", () => {
   it("normalizes common US phone number formats to the database format", () => {
     expect(normalizeUsPhone("(312) 555-0142")).toBe("+1 312-555-0142");
     expect(normalizeUsPhone("1-312-555-0142")).toBe("+1 312-555-0142");
+    expect(normalizeUsPhone("312-555-ABCD")).toBe("312-555-ABCD");
   });
 
   it("detects supported files by signature and rejects PDFs for image-only fields", () => {
@@ -120,6 +121,47 @@ describe("cook application action", () => {
     expect(result.fieldErrors?.governmentIdDocument).toMatch(/required/i);
     expect(kitchenMocks.upload).not.toHaveBeenCalled();
     expect(kitchenMocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("rejects alphabetic phone numbers before uploading", async () => {
+    const data = validApplicationData();
+    data.set("phone", "312-555-ABCD");
+
+    const result = await submitCookApplicationAction(initialState, data);
+
+    expect(result.ok).toBe(false);
+    expect(result.fieldErrors?.phone).toMatch(/valid US phone/i);
+    expect(kitchenMocks.upload).not.toHaveBeenCalled();
+    expect(kitchenMocks.upsert).not.toHaveBeenCalled();
+  });
+
+  it("saves an incomplete application draft without required documents", async () => {
+    const data = new FormData();
+    data.set("intent", "draft");
+    data.set("legalName", "Asha Cook");
+    data.set("phone", "");
+    data.set("pickupAddress", "");
+    data.set("pickupZipCode", "");
+
+    const result = await submitCookApplicationAction(initialState, data);
+
+    expect(result).toEqual({
+      ok: true,
+      message: "Your cook application draft has been saved.",
+    });
+    expect(kitchenMocks.upload).not.toHaveBeenCalled();
+    expect(kitchenMocks.upsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        legal_name: "Asha Cook",
+        phone: null,
+        status: "draft",
+        food_handler_certificate_url: null,
+        government_id_document_url: null,
+        selfie_verification_url: null,
+        submitted_at: null,
+      }),
+      { onConflict: "user_id" },
+    );
   });
 
   it("rejects MIME-spoofed application documents", async () => {

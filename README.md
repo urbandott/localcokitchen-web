@@ -126,6 +126,8 @@ Authorization: Bearer YOUR_NOTIFICATION_WORKER_SECRET
 
 The worker requires `SUPABASE_SECRET_KEY`, `NOTIFICATION_WORKER_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` in the deployment environment. Set `NOTIFICATION_ALERT_EMAIL` to send throttled operational health alerts when failed notifications or stale pending notifications indicate delivery problems.
 
+Incident response steps for failed or delayed notification delivery are documented in [docs/operations/NOTIFICATION_DELIVERY_RUNBOOK.md](docs/operations/NOTIFICATION_DELIVERY_RUNBOOK.md).
+
 ## Verification
 
 Run the normal local verification suite:

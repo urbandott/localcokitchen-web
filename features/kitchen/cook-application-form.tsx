@@ -6,6 +6,7 @@ import {
   submitCookApplicationAction,
   type CookApplicationActionState,
 } from "@/features/kitchen/actions";
+import type { CookApplication } from "@/types/database";
 
 const initialCookApplicationActionState: CookApplicationActionState = {
   ok: false,
@@ -20,18 +21,36 @@ function FieldError({ error }: { error?: string }) {
   ) : null;
 }
 
-function SubmitButton() {
+function SubmitButton({
+  children,
+  name,
+  value,
+  variant = "primary",
+}: {
+  children: string;
+  name: string;
+  value: string;
+  variant?: "primary" | "secondary";
+}) {
   const { pending } = useFormStatus();
   return (
-    <button className="primary-action compact-action" type="submit" disabled={pending}>
-      {pending ? "Submitting…" : "Submit application"}
+    <button
+      className={`${variant === "primary" ? "primary-action" : "secondary-action"} compact-action`}
+      name={name}
+      type="submit"
+      value={value}
+      disabled={pending}
+    >
+      {pending ? "Saving…" : children}
     </button>
   );
 }
 
 export function CookApplicationForm({
+  application = null,
   initialState = initialCookApplicationActionState,
 }: {
+  application?: CookApplication | null;
   initialState?: CookApplicationActionState;
 }) {
   const [state, formAction] = useActionState(submitCookApplicationAction, initialState);
@@ -59,9 +78,9 @@ export function CookApplicationForm({
         <input
           autoComplete="name"
           name="legalName"
-          required
           maxLength={120}
           placeholder="First and last name"
+          defaultValue={application?.legal_name ?? ""}
         />
         <FieldError error={fieldErrors.legalName} />
       </label>
@@ -72,9 +91,13 @@ export function CookApplicationForm({
           autoComplete="tel"
           inputMode="tel"
           name="phone"
-          required
+          maxLength={20}
+          pattern="[0-9+().\\s-]{10,20}"
           placeholder="+1 555-555-5555"
+          title="Use digits and phone punctuation only, for example +1 312-555-0142."
+          defaultValue={application?.phone ?? ""}
         />
+        <small>Use digits only with optional spaces, dashes, parentheses, or +1.</small>
         <FieldError error={fieldErrors.phone} />
       </label>
 
@@ -83,9 +106,9 @@ export function CookApplicationForm({
         <input
           autoComplete="street-address"
           name="pickupAddress"
-          required
           maxLength={240}
           placeholder="Street address used for admin review"
+          defaultValue={application?.pickup_address ?? ""}
         />
         <FieldError error={fieldErrors.pickupAddress} />
       </label>
@@ -97,15 +120,19 @@ export function CookApplicationForm({
           inputMode="numeric"
           name="pickupZipCode"
           pattern="[0-9]{5}"
-          required
           maxLength={5}
           placeholder="60601"
+          defaultValue={application?.pickup_zip_code ?? ""}
         />
         <FieldError error={fieldErrors.pickupZipCode} />
       </label>
 
       <label className="next-check-field">
-        <input name="foodHandlerTrainingCompleted" required type="checkbox" />
+        <input
+          name="foodHandlerTrainingCompleted"
+          type="checkbox"
+          defaultChecked={application?.food_handler_training_completed ?? false}
+        />
         <span>I have completed the required food handler training.</span>
       </label>
       <FieldError error={fieldErrors.foodHandlerTrainingCompleted} />
@@ -115,10 +142,12 @@ export function CookApplicationForm({
         <input
           accept="application/pdf,image/jpeg,image/png,image/webp"
           name="foodHandlerCertificate"
-          required
           type="file"
         />
-        <small>PDF, JPG, PNG, or WebP. Maximum 5 MB.</small>
+        <small>
+          PDF, JPG, PNG, or WebP. Maximum 5 MB.
+          {application?.food_handler_certificate_url ? " Existing file is saved." : ""}
+        </small>
         <FieldError error={fieldErrors.foodHandlerCertificate} />
       </label>
 
@@ -127,22 +156,22 @@ export function CookApplicationForm({
         <input
           accept="application/pdf,image/jpeg,image/png,image/webp"
           name="governmentIdDocument"
-          required
           type="file"
         />
-        <small>PDF, JPG, PNG, or WebP. Maximum 5 MB.</small>
+        <small>
+          PDF, JPG, PNG, or WebP. Maximum 5 MB.
+          {application?.government_id_document_url ? " Existing file is saved." : ""}
+        </small>
         <FieldError error={fieldErrors.governmentIdDocument} />
       </label>
 
       <label className="next-field">
         <span>Selfie verification photo</span>
-        <input
-          accept="image/jpeg,image/png,image/webp"
-          name="selfieVerification"
-          required
-          type="file"
-        />
-        <small>JPG, PNG, or WebP. Maximum 5 MB.</small>
+        <input accept="image/jpeg,image/png,image/webp" name="selfieVerification" type="file" />
+        <small>
+          JPG, PNG, or WebP. Maximum 5 MB.
+          {application?.selfie_verification_url ? " Existing file is saved." : ""}
+        </small>
         <FieldError error={fieldErrors.selfieVerification} />
       </label>
 
@@ -157,7 +186,14 @@ export function CookApplicationForm({
         <FieldError error={fieldErrors.permitOrCertification} />
       </label>
 
-      <SubmitButton />
+      <div className="form-action-row">
+        <SubmitButton name="intent" value="draft" variant="secondary">
+          Save draft
+        </SubmitButton>
+        <SubmitButton name="intent" value="submit">
+          Submit application
+        </SubmitButton>
+      </div>
     </form>
   );
 }

@@ -51,9 +51,11 @@ function dollarsFromCents(cents: number): string {
 }
 
 export function CookProfileManagementForm({
+  liveDisabledReason = null,
   moderatorDisabled,
   profile,
 }: {
+  liveDisabledReason?: string | null;
   moderatorDisabled: boolean;
   profile: CookProfile | null;
 }) {
@@ -62,6 +64,9 @@ export function CookProfileManagementForm({
     initialKitchenManagementActionState,
   );
   const fieldErrors = state.fieldErrors ?? {};
+  const isCurrentlyPublic = Boolean(profile?.is_public) && !moderatorDisabled;
+  const disableLiveToggle =
+    moderatorDisabled || (Boolean(liveDisabledReason) && !isCurrentlyPublic);
 
   return (
     <form action={formAction} className="next-form">
@@ -76,6 +81,7 @@ export function CookProfileManagementForm({
           before making it public again.
         </p>
       ) : null}
+      {liveDisabledReason ? <p className="next-alert">{liveDisabledReason}</p> : null}
       <label>
         <span>Display name</span>
         <input
@@ -135,8 +141,8 @@ export function CookProfileManagementForm({
         <input
           name="isPublic"
           type="checkbox"
-          defaultChecked={Boolean(profile?.is_public) && !moderatorDisabled}
-          disabled={moderatorDisabled}
+          defaultChecked={isCurrentlyPublic}
+          disabled={disableLiveToggle}
         />
         <span>Make my kitchen public</span>
       </label>

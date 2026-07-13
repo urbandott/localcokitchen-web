@@ -19,8 +19,24 @@ export const metadata: Metadata = createMetadata({
 export default async function KitchenProfilePage() {
   const user = await requireUser("/my-kitchen/profile/");
   if (!(await userHasCookWorkspace(user.id))) redirect("/sell-your-food/");
-  const { application, error, pickupWindows, profile } = await getKitchenDashboard(user.id);
+  const { application, error, menuItems, pickupWindows, profile } = await getKitchenDashboard(
+    user.id,
+  );
+  const canPrepareKitchen = Boolean(
+    application && ["draft", "submitted", "rejected", "approved"].includes(application.status),
+  );
   const isApprovedCook = application?.status === "approved";
+  const hasActiveMenuItem = menuItems.some((item) => item.is_active && !item.is_sold_out);
+  const hasActivePickupWindow = pickupWindows.some((window) => window.is_active);
+  const liveDisabledReason = profile?.moderator_disabled_at
+    ? "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information."
+    : !isApprovedCook
+      ? "You can prepare this profile now. Kitchen live status unlocks after your cook application is approved."
+      : !hasActiveMenuItem
+        ? "Add at least one active, available menu item before making your kitchen live."
+        : !hasActivePickupWindow
+          ? "Add at least one active pickup window before making your kitchen live."
+          : null;
 
   return (
     <div className="content-page next-page-grid">
@@ -46,16 +62,17 @@ export default async function KitchenProfilePage() {
           for more information.
         </p>
       ) : null}
-      {!error && !isApprovedCook ? (
-        <p className="next-alert">
-          Public profile and pickup-window management unlock after your cook application is
-          approved.
+      {!error && canPrepareKitchen && !isApprovedCook ? (
+        <p className="next-success">
+          You can prepare your public profile and pickup windows before approval. They are not
+          customer-visible until your application is approved and your kitchen is made public.
         </p>
       ) : null}
 
-      {isApprovedCook ? (
+      {!error && canPrepareKitchen ? (
         <section className="next-section kitchen-management-grid">
           <CookProfileManagementForm
+            liveDisabledReason={liveDisabledReason}
             moderatorDisabled={Boolean(profile?.moderator_disabled_at)}
             profile={profile}
           />

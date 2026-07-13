@@ -99,12 +99,15 @@ async function removeUploadedFiles(
   await supabase.storage.from("cook-documents").remove(paths);
 }
 
-async function requireApprovedCookContext(): Promise<
+const preparableCookStatuses = new Set(["draft", "submitted", "rejected", "approved"]);
+
+async function requireCookWorkspaceContext(): Promise<
   | {
-      ok: true;
-      userId: string;
-      supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>;
+      applicationStatus: string;
       moderatorDisabled: boolean;
+      ok: true;
+      supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>;
+      userId: string;
     }
   | { ok: false; message: string }
 > {
@@ -131,16 +134,83 @@ async function requireApprovedCookContext(): Promise<
     return { ok: false, message: "Your cook approval status could not be loaded." };
   }
 
-  if (application.data?.status !== "approved") {
-    return { ok: false, message: "Your cook application must be approved before editing this." };
+  const applicationStatus = application.data?.status;
+  if (!applicationStatus || !preparableCookStatuses.has(applicationStatus)) {
+    return {
+      ok: false,
+      message:
+        applicationStatus === "suspended"
+          ? "Your cook application is suspended. Please contact support before editing your kitchen."
+          : "Save your cook application draft before editing this.",
+    };
   }
 
   return {
-    ok: true,
-    userId,
-    supabase,
+    applicationStatus,
     moderatorDisabled: Boolean(profile.data?.moderator_disabled_at),
+    ok: true,
+    supabase,
+    userId,
   };
+}
+
+async function requireKitchenLiveReadiness(context: {
+  applicationStatus: string;
+  moderatorDisabled: boolean;
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>;
+  userId: string;
+}): Promise<{ ok: true } | { ok: false; message: string }> {
+  if (context.moderatorDisabled) {
+    return {
+      ok: false,
+      message:
+        "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information.",
+    };
+  }
+
+  if (context.applicationStatus !== "approved") {
+    return {
+      ok: false,
+      message: "Your cook application must be approved before making your kitchen live.",
+    };
+  }
+
+  const marketplace = context.supabase.schema("lck_marketplace");
+  const [menuItems, pickupWindows] = await Promise.all([
+    marketplace
+      .from("cook_menu_items")
+      .select("id")
+      .eq("cook_id", context.userId)
+      .eq("is_active", true)
+      .eq("is_sold_out", false)
+      .limit(1),
+    marketplace
+      .from("cook_pickup_windows")
+      .select("id")
+      .eq("cook_id", context.userId)
+      .eq("is_active", true)
+      .limit(1),
+  ]);
+
+  if (menuItems.error || pickupWindows.error) {
+    return { ok: false, message: "Kitchen readiness could not be checked. Try again." };
+  }
+
+  if (!menuItems.data?.length) {
+    return {
+      ok: false,
+      message: "Add at least one active, available menu item before making your kitchen live.",
+    };
+  }
+
+  if (!pickupWindows.data?.length) {
+    return {
+      ok: false,
+      message: "Add at least one active pickup window before making your kitchen live.",
+    };
+  }
+
+  return { ok: true };
 }
 
 async function uploadKitchenImage(params: {
@@ -400,14 +470,11 @@ export async function updateCookProfileAction(
     };
   }
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return { ok: false, message: context.message };
-  if (context.moderatorDisabled && parsed.data.isPublic) {
-    return {
-      ok: false,
-      message:
-        "The moderator has disabled this kitchen. Please reach out to us at info@localcokitchen.com for more information.",
-    };
+  if (parsed.data.isPublic) {
+    const readiness = await requireKitchenLiveReadiness(context);
+    if (!readiness.ok) return { ok: false, message: readiness.message };
   }
 
   const marketplace = context.supabase.schema("lck_marketplace");
@@ -495,7 +562,7 @@ export async function createMenuItemAction(
     };
   }
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return { ok: false, message: context.message };
 
   const image = formData.get("image");
@@ -581,7 +648,7 @@ export async function updateMenuItemAction(
     };
   }
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return { ok: false, message: context.message };
 
   const marketplace = context.supabase.schema("lck_marketplace");
@@ -664,7 +731,7 @@ export async function setMenuItemAvailabilityAction(formData: FormData) {
     });
   if (!parsed.success) return;
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return;
 
   await context.supabase
@@ -694,7 +761,7 @@ export async function deleteMenuItemAction(formData: FormData) {
     });
   if (!parsed.success) return;
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return;
 
   const marketplace = context.supabase.schema("lck_marketplace");
@@ -743,7 +810,7 @@ export async function savePickupWindowsAction(
     };
   }
 
-  const context = await requireApprovedCookContext();
+  const context = await requireCookWorkspaceContext();
   if (!context.ok) return { ok: false, message: context.message };
 
   const payload = windows.map((result) => {

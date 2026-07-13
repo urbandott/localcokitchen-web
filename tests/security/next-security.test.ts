@@ -150,6 +150,31 @@ describe("Next.js security regressions", () => {
     );
   });
 
+  it("allows pre-approval kitchen preparation but gates public live status on approval and readiness", () => {
+    const migration = read(
+      "supabase/migrations/20260713033115_allow_cook_workspace_preapproval_preparation.sql",
+    );
+    const actions = read("features/kitchen/actions.ts");
+    const profilePage = read("app/(cook)/my-kitchen/profile/page.tsx");
+    const menuPage = read("app/(cook)/my-kitchen/menu-items/page.tsx");
+
+    expect(migration).toMatch(/status in \('draft', 'submitted', 'rejected', 'approved'\)/);
+    expect(migration).toMatch(/application\.status = 'approved'/);
+    expect(migration).toMatch(/item\.is_active/);
+    expect(migration).toMatch(/not item\.is_sold_out/);
+    expect(migration).toMatch(/pickup\.is_active/);
+    expect(migration).toMatch(/bucket_id = 'cook-profile-images'/);
+    expect(migration).toMatch(/bucket_id = 'cook-menu-images'/);
+    expect(actions).toMatch(/preparableCookStatuses/);
+    expect(actions).toMatch(/requireKitchenLiveReadiness/);
+    expect(actions).toMatch(
+      /Your cook application must be approved before making your kitchen live/,
+    );
+    expect(profilePage).toMatch(/canPrepareKitchen/);
+    expect(profilePage).toMatch(/liveDisabledReason/);
+    expect(menuPage).toMatch(/Save your public profile first/);
+  });
+
   it("creates checkout orders only through an authenticated atomic validation RPC", () => {
     const migration = read("supabase/migrations/20260707030047_add_atomic_customer_checkout.sql");
     const action = read("features/checkout/actions.ts");

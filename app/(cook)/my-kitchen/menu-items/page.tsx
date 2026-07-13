@@ -26,8 +26,11 @@ export default async function KitchenMenuItemsPage() {
   const user = await requireUser("/my-kitchen/menu-items/");
   if (!(await userHasCookWorkspace(user.id))) redirect("/sell-your-food/");
   const { application, error, menuItems, profile } = await getKitchenDashboard(user.id);
-  const isApprovedCook = application?.status === "approved";
+  const canPrepareKitchen = Boolean(
+    application && ["draft", "submitted", "rejected", "approved"].includes(application.status),
+  );
   const activeMenuCount = menuItems.filter((item) => item.is_active && !item.is_sold_out).length;
+  const hasPublicProfile = Boolean(profile);
 
   return (
     <div className="content-page next-page-grid">
@@ -53,15 +56,19 @@ export default async function KitchenMenuItemsPage() {
           for more information.
         </p>
       ) : null}
-      {!error && !isApprovedCook ? (
-        <p className="next-alert">
-          Menu item management unlocks after your application is approved.
+      {!error && canPrepareKitchen ? (
+        <p className="next-success">
+          You can prepare menu items before approval. They are not customer-visible until your
+          application is approved and your kitchen is live.
         </p>
       ) : null}
+      {!error && canPrepareKitchen && !hasPublicProfile ? (
+        <p className="next-alert">Save your public profile first, then add menu items.</p>
+      ) : null}
 
-      {isApprovedCook ? (
+      {!error && canPrepareKitchen ? (
         <section className="next-section kitchen-menu-layout">
-          <MenuItemCreateForm />
+          {hasPublicProfile ? <MenuItemCreateForm /> : null}
 
           <section className="next-section" aria-labelledby="my-menu-inventory-title">
             <div className="section-heading-row">

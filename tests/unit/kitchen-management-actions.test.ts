@@ -57,6 +57,12 @@ function profileForm(overrides: Record<string, string | File> = {}) {
   return formData;
 }
 
+function profileDraftForm(overrides: Record<string, string | File> = {}) {
+  const formData = profileForm(overrides);
+  formData.delete("isPublic");
+  return formData;
+}
+
 function menuForm(overrides: Record<string, string | File> = {}) {
   const formData = new FormData();
   formData.set("itemId", itemId);
@@ -88,7 +94,14 @@ function pickupForm() {
   return formData;
 }
 
-function mockSupabase(options: { status?: string; moderatorDisabled?: boolean } = {}) {
+function mockSupabase(
+  options: {
+    hasActiveMenuItem?: boolean;
+    hasActivePickupWindow?: boolean;
+    moderatorDisabled?: boolean;
+    status?: string;
+  } = {},
+) {
   managementMocks.applicationSingle.mockResolvedValue({
     data: { status: options.status ?? "approved" },
     error: null,
@@ -128,6 +141,24 @@ function mockSupabase(options: { status?: string; moderatorDisabled?: boolean } 
   managementMocks.upload.mockResolvedValue({ data: { path: "uploaded" }, error: null });
   managementMocks.remove.mockResolvedValue({ data: [], error: null });
 
+  function ownerScopedMaybeSingleQuery() {
+    return {
+      eq: vi.fn(() => ({
+        eq: vi.fn(() => ({
+          maybeSingle: managementMocks.menuItemSingle,
+        })),
+      })),
+    };
+  }
+
+  function readinessListQuery(rows: Array<{ id: string }>) {
+    const query = {
+      eq: vi.fn(() => query),
+      limit: vi.fn().mockResolvedValue({ data: rows, error: null }),
+    };
+    return query;
+  }
+
   return {
     auth: {
       getUser: vi.fn().mockResolvedValue({ data: { user: { id: "user-id" } }, error: null }),
@@ -153,14 +184,21 @@ function mockSupabase(options: { status?: string; moderatorDisabled?: boolean } 
           return {
             delete: managementMocks.deleteMenuItem,
             insert: managementMocks.insertMenuItem,
-            select: () => ({
-              eq: () => ({
-                eq: () => ({
-                  maybeSingle: managementMocks.menuItemSingle,
-                }),
-              }),
-            }),
+            select: (columns?: string) =>
+              columns === "id"
+                ? readinessListQuery(
+                    options.hasActiveMenuItem === false ? [] : [{ id: "active-menu-item" }],
+                  )
+                : ownerScopedMaybeSingleQuery(),
             update: managementMocks.updateMenuItem,
+          };
+        }
+        if (table === "cook_pickup_windows") {
+          return {
+            select: () =>
+              readinessListQuery(
+                options.hasActivePickupWindow === false ? [] : [{ id: "pickup-window" }],
+              ),
           };
         }
         throw new Error(`Unexpected table ${table}`);
@@ -195,13 +233,70 @@ describe("kitchen management actions", () => {
     expect(managementMocks.profileUpsert).not.toHaveBeenCalled();
   });
 
-  it("rejects menu item creation until the cook is approved", async () => {
+  it("blocks profile publication until the cook is approved", async () => {
+    managementMocks.createClient.mockResolvedValue(mockSupabase({ status: "submitted" }));
+
+    const result = await updateCookProfileAction(
+      initialKitchenManagementActionState,
+      profileForm(),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/must be approved/i);
+    expect(managementMocks.profileUpsert).not.toHaveBeenCalled();
+  });
+
+  it("allows profile preparation before approval when the kitchen is not made public", async () => {
+    managementMocks.createClient.mockResolvedValue(mockSupabase({ status: "submitted" }));
+
+    const result = await updateCookProfileAction(
+      initialKitchenManagementActionState,
+      profileDraftForm(),
+    );
+
+    expect(result).toEqual({ ok: true, message: "Your public cook profile has been updated." });
+    expect(managementMocks.profileUpsert).toHaveBeenCalledWith(
+      expect.objectContaining({
+        cook_id: "user-id",
+        display_name: "Asha's Kitchen",
+        is_public: false,
+      }),
+      { onConflict: "cook_id" },
+    );
+  });
+
+  it("requires active menu and pickup-window readiness before publication", async () => {
+    managementMocks.createClient.mockResolvedValue(
+      mockSupabase({ hasActiveMenuItem: false, status: "approved" }),
+    );
+
+    const result = await updateCookProfileAction(
+      initialKitchenManagementActionState,
+      profileForm(),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/active, available menu item/i);
+    expect(managementMocks.profileUpsert).not.toHaveBeenCalled();
+  });
+
+  it("allows menu item creation before approval as kitchen preparation", async () => {
     managementMocks.createClient.mockResolvedValue(mockSupabase({ status: "submitted" }));
 
     const result = await createMenuItemAction(initialKitchenManagementActionState, menuForm());
 
+    expect(result).toEqual({ ok: true, message: "Menu item created." });
+    expect(managementMocks.upload).toHaveBeenCalled();
+    expect(managementMocks.insertMenuItem).toHaveBeenCalled();
+  });
+
+  it("rejects menu item changes when the cook application is suspended", async () => {
+    managementMocks.createClient.mockResolvedValue(mockSupabase({ status: "suspended" }));
+
+    const result = await createMenuItemAction(initialKitchenManagementActionState, menuForm());
+
     expect(result.ok).toBe(false);
-    expect(result.message).toMatch(/must be approved/i);
+    expect(result.message).toMatch(/suspended/i);
     expect(managementMocks.upload).not.toHaveBeenCalled();
     expect(managementMocks.insertMenuItem).not.toHaveBeenCalled();
   });

@@ -29,7 +29,11 @@ vi.mock("@/features/kitchen/cook-application-form", () => ({
 }));
 
 vi.mock("@/features/kitchen/kitchen-management-forms", () => ({
-  CookProfileManagementForm: () => <form aria-label="Cook profile management form" />,
+  CookProfileManagementForm: ({ liveDisabledReason }: { liveDisabledReason?: string | null }) => (
+    <form aria-label="Cook profile management form">
+      {liveDisabledReason ? <p>{liveDisabledReason}</p> : null}
+    </form>
+  ),
   MenuItemCreateForm: () => <form aria-label="Menu item create form" />,
   MenuItemEditForm: ({ item }: { item: { name: string } }) => (
     <form aria-label={`Menu item edit form ${item.name}`} />
@@ -267,6 +271,49 @@ describe("My Kitchen access", () => {
     expect(container.querySelector("form[aria-label='Pickup windows form']")).not.toBeNull();
   });
 
+  it("lets submitted cooks prepare their profile and pickup windows before approval", async () => {
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: {
+        ...approvedApplication,
+        status: "submitted",
+        reviewed_at: null,
+      },
+      profile: {
+        cook_id: "legacy-cook-id",
+        display_name: "Asha's Kitchen",
+        profile_image_url: null,
+        description: "Home cooked meals.",
+        cuisine_type: "Pakistani",
+        pickup_zip_code: "60601",
+        preorder_cutoff_hours: 24,
+        order_notes: "Bring your order number.",
+        is_public: false,
+        rating: 0,
+        review_count: 0,
+        moderator_disabled_at: null,
+        moderator_disabled_by: null,
+        created_at: "2026-07-02T00:00:00.000Z",
+        updated_at: "2026-07-02T00:00:00.000Z",
+      },
+      menuItems: [],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await KitchenProfilePage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    expect(container.textContent).toContain("You can prepare your public profile");
+    expect(container.textContent).toContain("Kitchen live status unlocks");
+    expect(
+      container.querySelector("form[aria-label='Cook profile management form']"),
+    ).not.toBeNull();
+    expect(container.querySelector("form[aria-label='Pickup windows form']")).not.toBeNull();
+  });
+
   it("shows only the cook's own menu management on the menu items page", async () => {
     const page = await KitchenMenuItemsPage();
 
@@ -282,5 +329,70 @@ describe("My Kitchen access", () => {
       container.querySelector("form[aria-label='Menu item edit form Chicken biryani']"),
     ).not.toBeNull();
     expect(container.textContent).not.toContain("Available menu items");
+  });
+
+  it("lets submitted cooks prepare menu items before approval when a profile exists", async () => {
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: {
+        ...approvedApplication,
+        status: "submitted",
+        reviewed_at: null,
+      },
+      profile: {
+        cook_id: "legacy-cook-id",
+        display_name: "Asha's Kitchen",
+        profile_image_url: null,
+        description: "Home cooked meals.",
+        cuisine_type: "Pakistani",
+        pickup_zip_code: "60601",
+        preorder_cutoff_hours: 24,
+        order_notes: "Bring your order number.",
+        is_public: false,
+        rating: 0,
+        review_count: 0,
+        moderator_disabled_at: null,
+        moderator_disabled_by: null,
+        created_at: "2026-07-02T00:00:00.000Z",
+        updated_at: "2026-07-02T00:00:00.000Z",
+      },
+      menuItems: [menuItem],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await KitchenMenuItemsPage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    expect(container.textContent).toContain("You can prepare menu items before approval");
+    expect(container.querySelector("form[aria-label='Menu item create form']")).not.toBeNull();
+    expect(
+      container.querySelector("form[aria-label='Menu item edit form Chicken biryani']"),
+    ).not.toBeNull();
+  });
+
+  it("requires a prepared public profile before adding menu items", async () => {
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: {
+        ...approvedApplication,
+        status: "submitted",
+        reviewed_at: null,
+      },
+      profile: null,
+      menuItems: [],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await KitchenMenuItemsPage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    expect(container.textContent).toContain("Save your public profile first");
+    expect(container.querySelector("form[aria-label='Menu item create form']")).toBeNull();
   });
 });

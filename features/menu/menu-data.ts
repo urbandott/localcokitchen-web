@@ -27,6 +27,7 @@ async function signedImageUrl(bucket: string, value: string | null): Promise<str
 
 export type CustomerMenuItemView = CustomerMenuItem & {
   signed_image_url: string | null;
+  signed_image_urls: string[];
   signed_cook_profile_image_url: string | null;
 };
 
@@ -56,14 +57,24 @@ export async function getCustomerMenuItems(): Promise<{
 
   const rows: CustomerMenuItem[] = data ?? [];
   const items = await Promise.all(
-    rows.map(async (item) => ({
-      ...item,
-      signed_image_url: await signedImageUrl("cook-menu-images", item.image_url),
-      signed_cook_profile_image_url: await signedImageUrl(
-        "cook-profile-images",
-        item.cook_profile_image_url,
-      ),
-    })),
+    rows.map(async (item) => {
+      const imagePaths = item.image_urls?.length
+        ? item.image_urls
+        : [item.image_url].filter((path): path is string => Boolean(path));
+      const signedImageUrls = (
+        await Promise.all(imagePaths.map((path) => signedImageUrl("cook-menu-images", path)))
+      ).filter((url): url is string => Boolean(url));
+
+      return {
+        ...item,
+        signed_image_url: signedImageUrls[0] ?? null,
+        signed_image_urls: signedImageUrls,
+        signed_cook_profile_image_url: await signedImageUrl(
+          "cook-profile-images",
+          item.cook_profile_image_url,
+        ),
+      };
+    }),
   );
 
   return { items, error: null };

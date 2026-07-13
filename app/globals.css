@@ -1110,10 +1110,27 @@ body {
   box-shadow: var(--shadow-card);
 }
 
+.menu-item__image-frame {
+  position: relative;
+  min-width: 0;
+}
+
 .menu-item img,
 .menu-item__image-fallback {
   border-radius: 1.25rem;
   background: var(--cream);
+}
+
+.menu-item__photo-count {
+  position: absolute;
+  right: 0.75rem;
+  bottom: 0.75rem;
+  padding: 0.35rem 0.55rem;
+  border-radius: 999px;
+  color: var(--primary-foreground);
+  background: color-mix(in oklch, var(--foreground) 70%, transparent);
+  font-size: 0.74rem;
+  font-weight: 850;
 }
 
 .menu-item h2,
@@ -1179,6 +1196,15 @@ body {
 
 .menu-dialog__content {
   color: var(--foreground);
+}
+
+.menu-dialog__photo-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.menu-dialog__photo-grid .menu-dialog__image {
+  width: 100%;
 }
 
 .modal-close {

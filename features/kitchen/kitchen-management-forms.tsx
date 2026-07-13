@@ -277,9 +277,15 @@ export function MenuItemCreateForm() {
         <FieldError error={fieldErrors.pickupWindowNote} />
       </label>
       <label>
-        <span>Menu item image</span>
-        <input accept="image/jpeg,image/png,image/webp" name="image" required type="file" />
-        <small>JPG, PNG, or WebP. Maximum 2 MB.</small>
+        <span>Menu item photos</span>
+        <input
+          accept="image/jpeg,image/png,image/webp"
+          multiple
+          name="images"
+          required
+          type="file"
+        />
+        <small>Upload 1–3 JPG, PNG, or WebP photos. Maximum 2 MB each.</small>
         <FieldError error={fieldErrors.image} />
       </label>
       <label className="next-check-field">
@@ -409,9 +415,9 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
           <FieldError error={fieldErrors.pickupWindowNote} />
         </label>
         <label>
-          <span>Replace menu item image</span>
-          <input accept="image/jpeg,image/png,image/webp" name="image" type="file" />
-          <small>Optional JPG, PNG, or WebP. Maximum 2 MB.</small>
+          <span>Replace menu item photos</span>
+          <input accept="image/jpeg,image/png,image/webp" multiple name="images" type="file" />
+          <small>Optional. Upload 1–3 JPG, PNG, or WebP photos. Maximum 2 MB each.</small>
           <FieldError error={fieldErrors.image} />
         </label>
         <label className="next-check-field">

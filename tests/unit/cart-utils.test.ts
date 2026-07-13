@@ -15,6 +15,7 @@ function item(overrides: Partial<CustomerMenuItem> = {}): CustomerMenuItem {
     name: "Curry",
     description: "Home cooked curry",
     image_url: null,
+    image_urls: [],
     price_cents: 1250,
     quantity_available: 4,
     category: "Dinner",

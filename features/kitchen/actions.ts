@@ -241,6 +241,38 @@ async function uploadKitchenImage(params: {
   return upload.error ? { error: "Image could not be uploaded. Try again." } : { path };
 }
 
+function menuImageFilesFromFormData(
+  formData: FormData,
+  options: { required: boolean },
+): { files: File[] } | { error: string } {
+  const files = [...formData.getAll("images"), formData.get("image")]
+    .filter((value): value is File => value instanceof File && value.size > 0)
+    .slice(0, 4);
+
+  if (options.required && files.length === 0) {
+    return { error: "Upload at least one menu item photo." };
+  }
+  if (files.length > 3) return { error: "Upload no more than 3 menu item photos." };
+  return { files };
+}
+
+async function uploadMenuImages(params: {
+  files: File[];
+  userId: string;
+}): Promise<{ paths: string[] } | { error: string; paths: string[] }> {
+  const paths: string[] = [];
+  for (const file of params.files) {
+    const uploaded = await uploadKitchenImage({
+      bucket: "cook-menu-images",
+      file,
+      userId: params.userId,
+    });
+    if ("error" in uploaded) return { error: uploaded.error, paths };
+    paths.push(uploaded.path);
+  }
+  return { paths };
+}
+
 export async function submitCookApplicationAction(
   _state: CookApplicationActionState,
   formData: FormData,
@@ -565,21 +597,19 @@ export async function createMenuItemAction(
   const context = await requireCookWorkspaceContext();
   if (!context.ok) return { ok: false, message: context.message };
 
-  const image = formData.get("image");
-  if (!(image instanceof File) || image.size === 0) {
+  const images = menuImageFilesFromFormData(formData, { required: true });
+  if ("error" in images) {
     return {
       ok: false,
-      message: "Upload a menu item image.",
-      fieldErrors: { image: "Upload a menu item image." },
+      message: images.error,
+      fieldErrors: { image: images.error },
     };
   }
 
-  const uploaded = await uploadKitchenImage({
-    bucket: "cook-menu-images",
-    file: image,
-    userId: context.userId,
-  });
+  const uploaded = await uploadMenuImages({ files: images.files, userId: context.userId });
   if ("error" in uploaded) {
+    if (uploaded.paths.length > 0)
+      await context.supabase.storage.from("cook-menu-images").remove(uploaded.paths);
     return { ok: false, message: uploaded.error, fieldErrors: { image: uploaded.error } };
   }
 
@@ -590,7 +620,8 @@ export async function createMenuItemAction(
       cook_id: context.userId,
       name: parsed.data.name,
       description: parsed.data.description,
-      image_url: uploaded.path,
+      image_url: uploaded.paths[0],
+      image_urls: uploaded.paths,
       price_cents: parsed.data.priceCents,
       quantity_available: parsed.data.quantityAvailable,
       category: parsed.data.category,
@@ -608,7 +639,7 @@ export async function createMenuItemAction(
     .single();
 
   if (saved.error) {
-    await context.supabase.storage.from("cook-menu-images").remove([uploaded.path]);
+    await context.supabase.storage.from("cook-menu-images").remove(uploaded.paths);
     return { ok: false, message: "Menu item could not be created. Try again." };
   }
 
@@ -654,7 +685,7 @@ export async function updateMenuItemAction(
   const marketplace = context.supabase.schema("lck_marketplace");
   const existing = await marketplace
     .from("cook_menu_items")
-    .select("image_url")
+    .select("image_url,image_urls")
     .eq("id", itemId.data)
     .eq("cook_id", context.userId)
     .maybeSingle();
@@ -662,18 +693,19 @@ export async function updateMenuItemAction(
     return { ok: false, message: "Menu item could not be loaded." };
   }
 
-  let uploadedPath: string | null = null;
-  const image = formData.get("image");
-  if (image instanceof File && image.size > 0) {
-    const uploaded = await uploadKitchenImage({
-      bucket: "cook-menu-images",
-      file: image,
-      userId: context.userId,
-    });
+  let uploadedPaths: string[] = [];
+  const images = menuImageFilesFromFormData(formData, { required: false });
+  if ("error" in images) {
+    return { ok: false, message: images.error, fieldErrors: { image: images.error } };
+  }
+  if (images.files.length > 0) {
+    const uploaded = await uploadMenuImages({ files: images.files, userId: context.userId });
     if ("error" in uploaded) {
+      if (uploaded.paths.length > 0)
+        await context.supabase.storage.from("cook-menu-images").remove(uploaded.paths);
       return { ok: false, message: uploaded.error, fieldErrors: { image: uploaded.error } };
     }
-    uploadedPath = uploaded.path;
+    uploadedPaths = uploaded.paths;
   }
 
   const saved = await marketplace
@@ -681,7 +713,9 @@ export async function updateMenuItemAction(
     .update({
       name: parsed.data.name,
       description: parsed.data.description,
-      ...(uploadedPath ? { image_url: uploadedPath } : {}),
+      ...(uploadedPaths.length > 0
+        ? { image_url: uploadedPaths[0], image_urls: uploadedPaths }
+        : {}),
       price_cents: parsed.data.priceCents,
       quantity_available: parsed.data.quantityAvailable,
       category: parsed.data.category,
@@ -701,14 +735,17 @@ export async function updateMenuItemAction(
     .single();
 
   if (saved.error) {
-    if (uploadedPath)
-      await context.supabase.storage.from("cook-menu-images").remove([uploadedPath]);
+    if (uploadedPaths.length > 0)
+      await context.supabase.storage.from("cook-menu-images").remove(uploadedPaths);
     return { ok: false, message: "Menu item could not be updated. Try again." };
   }
 
-  const previousPath = existing.data.image_url;
-  if (uploadedPath && previousPath && previousPath !== uploadedPath) {
-    await context.supabase.storage.from("cook-menu-images").remove([previousPath]);
+  const previousPaths: string[] = existing.data.image_urls?.length
+    ? existing.data.image_urls
+    : [existing.data.image_url].filter((path): path is string => Boolean(path));
+  const replacedPaths = previousPaths.filter((path) => !uploadedPaths.includes(path));
+  if (uploadedPaths.length > 0 && replacedPaths.length > 0) {
+    await context.supabase.storage.from("cook-menu-images").remove(replacedPaths);
   }
 
   revalidatePath("/my-kitchen/");
@@ -767,7 +804,7 @@ export async function deleteMenuItemAction(formData: FormData) {
   const marketplace = context.supabase.schema("lck_marketplace");
   const existing = await marketplace
     .from("cook_menu_items")
-    .select("image_url")
+    .select("image_url,image_urls")
     .eq("id", parsed.data.itemId)
     .eq("cook_id", context.userId)
     .maybeSingle();
@@ -780,8 +817,11 @@ export async function deleteMenuItemAction(formData: FormData) {
     .eq("cook_id", context.userId);
   if (deleted.error) return;
 
-  if (existing.data.image_url) {
-    await context.supabase.storage.from("cook-menu-images").remove([existing.data.image_url]);
+  const imagePaths = existing.data.image_urls?.length
+    ? existing.data.image_urls
+    : [existing.data.image_url].filter(Boolean);
+  if (imagePaths.length > 0) {
+    await context.supabase.storage.from("cook-menu-images").remove(imagePaths);
   }
 
   revalidatePath("/my-kitchen/");

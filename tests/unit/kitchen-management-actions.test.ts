@@ -84,6 +84,18 @@ function menuForm(overrides: Record<string, string | File> = {}) {
   return formData;
 }
 
+function menuFormWithImages(count: number) {
+  const formData = menuForm();
+  formData.delete("image");
+  for (let index = 0; index < count; index += 1) {
+    formData.append(
+      "images",
+      new File([pngHeader()], `ignored-name-${index}.png`, { type: "image/png" }),
+    );
+  }
+  return formData;
+}
+
 function pickupForm() {
   const formData = new FormData();
   for (let day = 0; day < 7; day += 1) {
@@ -122,7 +134,10 @@ function mockSupabase(
     select: () => ({ single: vi.fn().mockResolvedValue({ data: { id: "item-id" }, error: null }) }),
   }));
   managementMocks.menuItemSingle.mockResolvedValue({
-    data: { image_url: "user-id/old-image.png" },
+    data: {
+      image_url: "user-id/old-image.png",
+      image_urls: ["user-id/old-image.png", "user-id/old-image-2.png"],
+    },
     error: null,
   });
   managementMocks.updateMenuItem.mockImplementation(() => ({
@@ -302,10 +317,15 @@ describe("kitchen management actions", () => {
   });
 
   it("uploads menu images to generated owner paths and inserts normalized menu data", async () => {
-    const result = await createMenuItemAction(initialKitchenManagementActionState, menuForm());
+    const result = await createMenuItemAction(
+      initialKitchenManagementActionState,
+      menuFormWithImages(3),
+    );
 
     expect(result).toEqual({ ok: true, message: "Menu item created." });
-    expect(managementMocks.upload).toHaveBeenCalledWith(
+    expect(managementMocks.upload).toHaveBeenCalledTimes(3);
+    expect(managementMocks.upload).toHaveBeenNthCalledWith(
+      1,
       expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
       expect.any(Uint8Array),
       expect.objectContaining({ contentType: "image/png", upsert: false }),
@@ -318,8 +338,25 @@ describe("kitchen management actions", () => {
         allergens: ["Dairy"],
         main_ingredients: ["Chicken", "Rice", "Spices"],
         image_url: expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
+        image_urls: [
+          expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
+          expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
+          expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
+        ],
       }),
     );
+  });
+
+  it("rejects more than 3 menu item photos", async () => {
+    const result = await createMenuItemAction(
+      initialKitchenManagementActionState,
+      menuFormWithImages(4),
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/no more than 3/i);
+    expect(managementMocks.upload).not.toHaveBeenCalled();
+    expect(managementMocks.insertMenuItem).not.toHaveBeenCalled();
   });
 
   it("updates an existing menu item and removes the replaced image after save", async () => {
@@ -331,9 +368,13 @@ describe("kitchen management actions", () => {
         name: "Chicken biryani",
         price_cents: 1250,
         image_url: expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
+        image_urls: [expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/)],
       }),
     );
-    expect(managementMocks.remove).toHaveBeenCalledWith(["user-id/old-image.png"]);
+    expect(managementMocks.remove).toHaveBeenCalledWith([
+      "user-id/old-image.png",
+      "user-id/old-image-2.png",
+    ]);
   });
 
   it("deletes a confirmed owner-scoped menu item and removes its image", async () => {
@@ -344,7 +385,10 @@ describe("kitchen management actions", () => {
     await deleteMenuItemAction(formData);
 
     expect(managementMocks.deleteMenuItem).toHaveBeenCalled();
-    expect(managementMocks.remove).toHaveBeenCalledWith(["user-id/old-image.png"]);
+    expect(managementMocks.remove).toHaveBeenCalledWith([
+      "user-id/old-image.png",
+      "user-id/old-image-2.png",
+    ]);
   });
 
   it("does not delete a menu item without explicit confirmation", async () => {

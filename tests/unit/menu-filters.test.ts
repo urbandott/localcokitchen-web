@@ -12,6 +12,7 @@ const item: CustomerMenuItem = {
   name: "Chicken Curry",
   description: "Slow cooked with tomato",
   image_url: null,
+  image_urls: [],
   price_cents: 1000,
   quantity_available: 3,
   category: "Dinner",

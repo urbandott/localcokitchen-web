@@ -175,6 +175,20 @@ describe("Next.js security regressions", () => {
     expect(menuPage).toMatch(/Save your public profile first/);
   });
 
+  it("limits menu items to three owner-scoped photos and exposes only public approved item media", () => {
+    const migration = read("supabase/migrations/20260713040545_allow_menu_item_three_photos.sql");
+    const actions = read("features/kitchen/actions.ts");
+
+    expect(migration).toMatch(/add column if not exists image_urls text\[\]/);
+    expect(migration).toMatch(/cardinality\(image_urls\) between 1 and 3/);
+    expect(migration).toMatch(/image_url = image_urls\[1\]/);
+    expect(migration).toMatch(/storage\.objects\.name = any\(item\.image_urls\)/);
+    expect(migration).toMatch(/application\.status = 'approved'/);
+    expect(migration).toMatch(/profile\.is_public/);
+    expect(actions).toMatch(/Upload no more than 3 menu item photos/);
+    expect(actions).toMatch(/image_urls: uploaded\.paths/);
+  });
+
   it("creates checkout orders only through an authenticated atomic validation RPC", () => {
     const migration = read("supabase/migrations/20260707030047_add_atomic_customer_checkout.sql");
     const action = read("features/checkout/actions.ts");

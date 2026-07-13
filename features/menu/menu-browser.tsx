@@ -206,7 +206,14 @@ export function MenuBrowser({ items, error }: Props) {
             visibleItems.map((item) => (
               <article className="menu-item" key={item.id}>
                 {item.signed_image_url ? (
-                  <Image src={item.signed_image_url} width={360} height={280} alt={item.name} />
+                  <div className="menu-item__image-frame">
+                    <Image src={item.signed_image_url} width={360} height={280} alt={item.name} />
+                    {item.signed_image_urls.length > 1 ? (
+                      <span className="menu-item__photo-count">
+                        {item.signed_image_urls.length} photos
+                      </span>
+                    ) : null}
+                  </div>
                 ) : (
                   <div className="menu-item__image-fallback">No image</div>
                 )}
@@ -423,14 +430,19 @@ function ItemDialog({
           ×
         </button>
       </div>
-      {item.signed_image_url ? (
-        <Image
-          className="menu-dialog__image"
-          src={item.signed_image_url}
-          width={720}
-          height={460}
-          alt={item.name}
-        />
+      {item.signed_image_urls.length > 0 ? (
+        <div className="menu-dialog__photo-grid" aria-label={`${item.name} photos`}>
+          {item.signed_image_urls.map((imageUrl, index) => (
+            <Image
+              className="menu-dialog__image"
+              key={imageUrl}
+              src={imageUrl}
+              width={720}
+              height={460}
+              alt={index === 0 ? item.name : `${item.name} photo ${index + 1}`}
+            />
+          ))}
+        </div>
       ) : null}
       <p className="text-wrap-safe">{item.description}</p>
       <dl className="menu-item-details">

@@ -1,6 +1,7 @@
 "use client";
 
-import { useActionState } from "react";
+import Image from "next/image";
+import { useActionState, useEffect, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ReactNode } from "react";
 import { FilteredInput } from "@/components/filtered-input";
@@ -12,11 +13,17 @@ import {
   updateCookProfileAction,
   type KitchenManagementActionState,
 } from "@/features/kitchen/actions";
-import type { CookMenuItem, CookPickupWindow, CookProfile } from "@/types/database";
+import type { KitchenMenuItem } from "@/features/kitchen/kitchen-data";
+import type { CookPickupWindow, CookProfile } from "@/types/database";
 
 const initialKitchenManagementActionState: KitchenManagementActionState = {
   ok: false,
   message: "",
+};
+
+type PreviewPhoto = {
+  name: string;
+  signedUrl: string;
 };
 
 const weekdays = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -49,6 +56,18 @@ function SubmitButton({ children }: { children: ReactNode }) {
 
 function dollarsFromCents(cents: number): string {
   return (cents / 100).toFixed(2);
+}
+
+function photoNameFromPath(path: string, index: number): string {
+  const fallback = `Photo ${index + 1}`;
+  const rawName = path.split("/").pop()?.trim();
+  if (!rawName) return fallback;
+
+  try {
+    return decodeURIComponent(rawName);
+  } catch {
+    return rawName;
+  }
 }
 
 export function CookProfileManagementForm({
@@ -297,12 +316,44 @@ export function MenuItemCreateForm() {
   );
 }
 
-export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
+export function MenuItemEditForm({ item }: { item: KitchenMenuItem }) {
   const [state, formAction] = useActionState(
     updateMenuItemAction,
     initialKitchenManagementActionState,
   );
+  const [previewPhoto, setPreviewPhoto] = useState<PreviewPhoto | null>(null);
+  const [photosMarkedForRemoval, setPhotosMarkedForRemoval] = useState<ReadonlySet<string>>(
+    () => new Set(),
+  );
+  const dialogRef = useRef<HTMLDialogElement>(null);
   const fieldErrors = state.fieldErrors ?? {};
+
+  useEffect(() => {
+    const dialog = dialogRef.current;
+    if (!dialog) return;
+
+    if (previewPhoto && !dialog.open) {
+      dialog.showModal();
+      return;
+    }
+
+    if (!previewPhoto && dialog.open) {
+      dialog.close();
+    }
+  }, [previewPhoto]);
+
+  function togglePhotoRemoval(path: string, checked: boolean) {
+    setPhotosMarkedForRemoval((current) => {
+      const next = new Set(current);
+      if (checked) next.add(path);
+      else next.delete(path);
+      return next;
+    });
+  }
+
+  function closePreview() {
+    setPreviewPhoto(null);
+  }
 
   return (
     <details className="menu-item-editor">
@@ -414,10 +465,62 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
           />
           <FieldError error={fieldErrors.pickupWindowNote} />
         </label>
+        <div className="form-field">
+          <span>Current photos</span>
+          {item.image_urls.length > 0 ? (
+            <div className="menu-photo-manager">
+              {item.image_urls.map((path, index) => {
+                const photoName = item.image_names?.[index] || photoNameFromPath(path, index);
+                const signedUrl = item.signed_image_urls[index] ?? "";
+                const isMarkedForRemoval = photosMarkedForRemoval.has(path);
+
+                return (
+                  <div
+                    className={`menu-photo-manager__row${
+                      isMarkedForRemoval ? " is-marked-for-removal" : ""
+                    }`}
+                    key={path}
+                  >
+                    <span className="menu-photo-manager__name" title={photoName}>
+                      {photoName}
+                    </span>
+                    <div className="menu-photo-manager__actions">
+                      <button
+                        className="secondary-action compact-action menu-photo-manager__view"
+                        disabled={!signedUrl}
+                        onClick={() => setPreviewPhoto({ name: photoName, signedUrl })}
+                        type="button"
+                      >
+                        View
+                      </button>
+                      <label className="menu-photo-manager__delete" title={`Remove ${photoName}`}>
+                        <input
+                          checked={isMarkedForRemoval}
+                          name="removeImageUrls"
+                          onChange={(event) => togglePhotoRemoval(path, event.target.checked)}
+                          type="checkbox"
+                          value={path}
+                        />
+                        <span aria-hidden="true">🗑</span>
+                        <span className="sr-only">Remove {photoName}</span>
+                      </label>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          ) : (
+            <p className="next-muted">No saved photos found. Add at least one photo below.</p>
+          )}
+          <small>Photos marked with the delete icon are removed when you save changes.</small>
+        </div>
         <label>
-          <span>Replace menu item photos</span>
+          <span>Add replacement photos</span>
           <input accept="image/jpeg,image/png,image/webp" multiple name="images" type="file" />
-          <small>Optional. Upload 1–3 JPG, PNG, or WebP photos. Maximum 2 MB each.</small>
+          <small>
+            Optional. Add enough photos to keep this item between 1 and 3 total photos. Maximum 2 MB
+            each.
+          </small>
           <FieldError error={fieldErrors.image} />
         </label>
         <label className="next-check-field">
@@ -436,6 +539,35 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
           Delete menu item
         </button>
       </form>
+      <dialog
+        aria-labelledby={`menu-photo-preview-title-${item.id}`}
+        className="menu-item-dialog menu-photo-preview-dialog"
+        onCancel={closePreview}
+        ref={dialogRef}
+      >
+        {previewPhoto ? (
+          <div className="menu-dialog__content menu-photo-preview-dialog__content">
+            <div className="modal-heading">
+              <h2 id={`menu-photo-preview-title-${item.id}`}>{previewPhoto.name}</h2>
+              <button
+                aria-label="Close photo preview"
+                className="modal-close"
+                onClick={closePreview}
+                type="button"
+              >
+                ×
+              </button>
+            </div>
+            <Image
+              alt={`${item.name} preview: ${previewPhoto.name}`}
+              className="menu-photo-preview-dialog__image"
+              height={720}
+              src={previewPhoto.signedUrl}
+              width={960}
+            />
+          </div>
+        ) : null}
+      </dialog>
     </details>
   );
 }

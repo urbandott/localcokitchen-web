@@ -187,6 +187,7 @@ describe("Next.js security regressions", () => {
     expect(migration).toMatch(/profile\.is_public/);
     expect(actions).toMatch(/Upload no more than 3 menu item photos/);
     expect(actions).toMatch(/image_urls: uploaded\.paths/);
+    expect(actions).toMatch(/image_names: uploaded\.names/);
   });
 
   it("creates checkout orders only through an authenticated atomic validation RPC", () => {

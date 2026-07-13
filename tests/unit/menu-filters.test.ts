@@ -13,6 +13,7 @@ const item: CustomerMenuItem = {
   description: "Slow cooked with tomato",
   image_url: null,
   image_urls: [],
+  image_names: [],
   price_cents: 1000,
   quantity_available: 3,
   category: "Dinner",

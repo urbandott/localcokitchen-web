@@ -414,6 +414,12 @@ body {
   font-weight: 800;
 }
 
+.next-form .form-field > span {
+  color: var(--foreground);
+  font-size: 0.875rem;
+  font-weight: 800;
+}
+
 .auth-field {
   min-width: 0;
   display: grid;
@@ -727,6 +733,109 @@ body {
   border: 1px solid color-mix(in oklch, var(--destructive) 24%, var(--border));
   border-radius: 1rem;
   background: color-mix(in oklch, var(--destructive) 6%, var(--background));
+}
+
+.menu-photo-manager {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.menu-photo-manager__row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 1rem;
+  background: var(--background);
+}
+
+.menu-photo-manager__row.is-marked-for-removal {
+  border-color: color-mix(in oklch, var(--destructive) 42%, var(--border));
+  background: color-mix(in oklch, var(--destructive) 7%, var(--background));
+}
+
+.menu-photo-manager__name {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--foreground);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.menu-photo-manager__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.menu-photo-manager__view {
+  padding-inline: 0.8rem;
+}
+
+.menu-photo-manager__delete {
+  display: inline-grid !important;
+  width: 2.35rem;
+  height: 2.35rem;
+  place-items: center;
+  border: 1px solid color-mix(in oklch, var(--destructive) 34%, var(--border));
+  border-radius: 999px;
+  background: color-mix(in oklch, var(--destructive) 7%, var(--background));
+  cursor: pointer;
+}
+
+.menu-photo-manager__delete input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.menu-photo-manager__delete:has(input:checked) {
+  border-color: var(--destructive);
+  background: color-mix(in oklch, var(--destructive) 16%, var(--background));
+}
+
+.menu-photo-preview-dialog {
+  position: fixed;
+  inset: 50% auto auto 50%;
+  width: min(92vw, 56rem);
+  max-width: min(92vw, 56rem);
+  max-height: 90vh;
+  margin: 0;
+  padding: 0;
+  transform: translate(-50%, -50%);
+}
+
+.menu-photo-preview-dialog__content {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.menu-photo-preview-dialog__image {
+  width: 100%;
+  max-height: min(70vh, 45rem);
+  border-radius: 1.2rem;
+  object-fit: contain;
+  background: var(--cream);
+}
+
+@media (max-width: 560px) {
+  .menu-photo-manager__row {
+    grid-template-columns: 1fr;
+  }
+
+  .menu-photo-manager__actions {
+    justify-content: space-between;
+  }
+}
+
+.menu-photo-manager__view:disabled {
+  color: var(--muted-foreground);
+  cursor: not-allowed;
+  opacity: 0.72;
 }
 
 .profile-details-form {

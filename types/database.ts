@@ -24,6 +24,7 @@ export type CustomerMenuItem = {
   description: string;
   image_url: string | null;
   image_urls: string[];
+  image_names: string[];
   price_cents: number;
   quantity_available: number;
   category: string;
@@ -90,6 +91,7 @@ export type CookMenuItem = {
   description: string;
   image_url: string;
   image_urls: string[];
+  image_names: string[];
   price_cents: number;
   quantity_available: number;
   category: string;

@@ -6,6 +6,29 @@ import type {
   CookProfile,
 } from "@/types/database";
 
+const KITCHEN_IMAGE_SIGNED_URL_SECONDS = 900;
+
+export type KitchenMenuItem = CookMenuItem & {
+  signed_image_urls: string[];
+};
+
+async function signedKitchenImageUrls(
+  supabase: NonNullable<Awaited<ReturnType<typeof createClient>>>,
+  item: CookMenuItem,
+): Promise<string[]> {
+  const paths = item.image_urls?.length
+    ? item.image_urls
+    : [item.image_url].filter((path): path is string => Boolean(path));
+  return Promise.all(
+    paths.map(async (path) => {
+      const { data, error } = await supabase.storage
+        .from("cook-menu-images")
+        .createSignedUrl(path, KITCHEN_IMAGE_SIGNED_URL_SECONDS);
+      return error ? "" : data.signedUrl;
+    }),
+  );
+}
+
 export async function userHasCookWorkspace(userId: string): Promise<boolean> {
   const supabase = await createClient();
   if (!supabase) return false;
@@ -34,7 +57,7 @@ export async function userHasCookWorkspace(userId: string): Promise<boolean> {
 export async function getKitchenDashboard(userId: string): Promise<{
   application: CookApplication | null;
   profile: CookProfile | null;
-  menuItems: CookMenuItem[];
+  menuItems: KitchenMenuItem[];
   pickupWindows: CookPickupWindow[];
   error: string | null;
 }> {
@@ -74,10 +97,17 @@ export async function getKitchenDashboard(userId: string): Promise<{
     };
   }
 
+  const signedMenuItems = await Promise.all(
+    (menuItems.data ?? []).map(async (item) => ({
+      ...item,
+      signed_image_urls: await signedKitchenImageUrls(supabase, item),
+    })),
+  );
+
   return {
     application: application.data,
     profile: profile.data,
-    menuItems: menuItems.data ?? [],
+    menuItems: signedMenuItems,
     pickupWindows: pickupWindows.data ?? [],
     error: null,
   };

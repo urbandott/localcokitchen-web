@@ -77,6 +77,7 @@ const menuItem = {
   description: "Fragrant rice and chicken.",
   image_url: "legacy-cook-id/biryani.png",
   image_urls: ["legacy-cook-id/biryani.png"],
+  image_names: ["biryani.png"],
   price_cents: 1250,
   quantity_available: 8,
   category: "Dinner",

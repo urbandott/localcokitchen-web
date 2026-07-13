@@ -256,12 +256,45 @@ function menuImageFilesFromFormData(
   return { files };
 }
 
+function safeMenuImageDisplayName(file: File, index: number): string {
+  const fallback = `Menu item photo ${index + 1}`;
+  const cleaned = file.name
+    .replace(/[/\\]/g, "-")
+    .replace(/[\u0000-\u001f\u007f]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+  return (cleaned || fallback).slice(0, 180);
+}
+
+function imageNameFromPath(path: string, index: number): string {
+  const fallback = `Menu item photo ${index + 1}`;
+  const rawName = path.split("/").pop()?.trim();
+  if (!rawName) return fallback;
+  try {
+    return decodeURIComponent(rawName);
+  } catch {
+    return rawName;
+  }
+}
+
+function alignedImageNames(paths: string[], names: string[] | null | undefined): string[] {
+  return paths.map((path, index) => names?.[index] || imageNameFromPath(path, index));
+}
+
+function selectedExistingMenuImagePaths(formData: FormData, previousPaths: string[]): string[] {
+  const allowed = new Set(previousPaths);
+  return formData
+    .getAll("removeImageUrls")
+    .filter((value): value is string => typeof value === "string" && allowed.has(value));
+}
+
 async function uploadMenuImages(params: {
   files: File[];
   userId: string;
-}): Promise<{ paths: string[] } | { error: string; paths: string[] }> {
+}): Promise<{ names: string[]; paths: string[] } | { error: string; paths: string[] }> {
   const paths: string[] = [];
-  for (const file of params.files) {
+  const names: string[] = [];
+  for (const [index, file] of params.files.entries()) {
     const uploaded = await uploadKitchenImage({
       bucket: "cook-menu-images",
       file,
@@ -269,8 +302,9 @@ async function uploadMenuImages(params: {
     });
     if ("error" in uploaded) return { error: uploaded.error, paths };
     paths.push(uploaded.path);
+    names.push(safeMenuImageDisplayName(file, index));
   }
-  return { paths };
+  return { names, paths };
 }
 
 export async function submitCookApplicationAction(
@@ -622,6 +656,7 @@ export async function createMenuItemAction(
       description: parsed.data.description,
       image_url: uploaded.paths[0],
       image_urls: uploaded.paths,
+      image_names: uploaded.names,
       price_cents: parsed.data.priceCents,
       quantity_available: parsed.data.quantityAvailable,
       category: parsed.data.category,
@@ -685,7 +720,7 @@ export async function updateMenuItemAction(
   const marketplace = context.supabase.schema("lck_marketplace");
   const existing = await marketplace
     .from("cook_menu_items")
-    .select("image_url,image_urls")
+    .select("image_url,image_urls,image_names")
     .eq("id", itemId.data)
     .eq("cook_id", context.userId)
     .maybeSingle();
@@ -693,11 +728,37 @@ export async function updateMenuItemAction(
     return { ok: false, message: "Menu item could not be loaded." };
   }
 
-  let uploadedPaths: string[] = [];
+  const previousPaths: string[] = existing.data.image_urls?.length
+    ? existing.data.image_urls
+    : [existing.data.image_url].filter((path): path is string => Boolean(path));
+  const previousNames = alignedImageNames(previousPaths, existing.data.image_names);
+  const removePaths = selectedExistingMenuImagePaths(formData, previousPaths);
+  const retainedImages = previousPaths
+    .map((path, index) => ({ name: previousNames[index] || imageNameFromPath(path, index), path }))
+    .filter((image) => !removePaths.includes(image.path));
+  const retainedPaths = retainedImages.map((image) => image.path);
+  const retainedNames = retainedImages.map((image) => image.name);
   const images = menuImageFilesFromFormData(formData, { required: false });
   if ("error" in images) {
     return { ok: false, message: images.error, fieldErrors: { image: images.error } };
   }
+  if (retainedPaths.length + images.files.length < 1) {
+    return {
+      ok: false,
+      message: "Keep or upload at least one menu item photo.",
+      fieldErrors: { image: "Keep or upload at least one menu item photo." },
+    };
+  }
+  if (retainedPaths.length + images.files.length > 3) {
+    return {
+      ok: false,
+      message: "A menu item can have no more than 3 photos.",
+      fieldErrors: { image: "A menu item can have no more than 3 photos." },
+    };
+  }
+
+  let uploadedPaths: string[] = [];
+  let uploadedNames: string[] = [];
   if (images.files.length > 0) {
     const uploaded = await uploadMenuImages({ files: images.files, userId: context.userId });
     if ("error" in uploaded) {
@@ -706,16 +767,19 @@ export async function updateMenuItemAction(
       return { ok: false, message: uploaded.error, fieldErrors: { image: uploaded.error } };
     }
     uploadedPaths = uploaded.paths;
+    uploadedNames = uploaded.names;
   }
+  const nextImagePaths = [...retainedPaths, ...uploadedPaths];
+  const nextImageNames = [...retainedNames, ...uploadedNames];
 
   const saved = await marketplace
     .from("cook_menu_items")
     .update({
       name: parsed.data.name,
       description: parsed.data.description,
-      ...(uploadedPaths.length > 0
-        ? { image_url: uploadedPaths[0], image_urls: uploadedPaths }
-        : {}),
+      image_url: nextImagePaths[0],
+      image_urls: nextImagePaths,
+      image_names: nextImageNames,
       price_cents: parsed.data.priceCents,
       quantity_available: parsed.data.quantityAvailable,
       category: parsed.data.category,
@@ -740,12 +804,8 @@ export async function updateMenuItemAction(
     return { ok: false, message: "Menu item could not be updated. Try again." };
   }
 
-  const previousPaths: string[] = existing.data.image_urls?.length
-    ? existing.data.image_urls
-    : [existing.data.image_url].filter((path): path is string => Boolean(path));
-  const replacedPaths = previousPaths.filter((path) => !uploadedPaths.includes(path));
-  if (uploadedPaths.length > 0 && replacedPaths.length > 0) {
-    await context.supabase.storage.from("cook-menu-images").remove(replacedPaths);
+  if (removePaths.length > 0) {
+    await context.supabase.storage.from("cook-menu-images").remove(removePaths);
   }
 
   revalidatePath("/my-kitchen/");

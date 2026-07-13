@@ -137,6 +137,7 @@ function mockSupabase(
     data: {
       image_url: "user-id/old-image.png",
       image_urls: ["user-id/old-image.png", "user-id/old-image-2.png"],
+      image_names: ["original biryani.png", "plated biryani.png"],
     },
     error: null,
   });
@@ -343,6 +344,7 @@ describe("kitchen management actions", () => {
           expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
           expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
         ],
+        image_names: ["ignored-name-0.png", "ignored-name-1.png", "ignored-name-2.png"],
       }),
     );
   });
@@ -359,8 +361,12 @@ describe("kitchen management actions", () => {
     expect(managementMocks.insertMenuItem).not.toHaveBeenCalled();
   });
 
-  it("updates an existing menu item and removes the replaced image after save", async () => {
-    const result = await updateMenuItemAction(initialKitchenManagementActionState, menuForm());
+  it("updates an existing menu item and removes selected replaced photos after save", async () => {
+    const formData = menuForm();
+    formData.set("removeImageUrls", "user-id/old-image.png");
+    formData.append("removeImageUrls", "user-id/old-image-2.png");
+
+    const result = await updateMenuItemAction(initialKitchenManagementActionState, formData);
 
     expect(result).toEqual({ ok: true, message: "Menu item updated." });
     expect(managementMocks.updateMenuItem).toHaveBeenCalledWith(
@@ -369,12 +375,53 @@ describe("kitchen management actions", () => {
         price_cents: 1250,
         image_url: expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/),
         image_urls: [expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/)],
+        image_names: ["ignored-name.png"],
       }),
     );
     expect(managementMocks.remove).toHaveBeenCalledWith([
       "user-id/old-image.png",
       "user-id/old-image-2.png",
     ]);
+  });
+
+  it("keeps retained menu photo display names when adding a replacement", async () => {
+    const formData = menuForm();
+    formData.set("removeImageUrls", "user-id/old-image-2.png");
+
+    const result = await updateMenuItemAction(initialKitchenManagementActionState, formData);
+
+    expect(result).toEqual({ ok: true, message: "Menu item updated." });
+    expect(managementMocks.updateMenuItem).toHaveBeenCalledWith(
+      expect.objectContaining({
+        image_urls: ["user-id/old-image.png", expect.stringMatching(/^user-id\/[0-9a-f-]+\.png$/)],
+        image_names: ["original biryani.png", "ignored-name.png"],
+      }),
+    );
+  });
+
+  it("rejects deleting all menu photos without adding a replacement", async () => {
+    const formData = menuForm({ image: new File([], "empty.png", { type: "image/png" }) });
+    formData.delete("image");
+    formData.set("removeImageUrls", "user-id/old-image.png");
+    formData.append("removeImageUrls", "user-id/old-image-2.png");
+
+    const result = await updateMenuItemAction(initialKitchenManagementActionState, formData);
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/at least one menu item photo/i);
+    expect(managementMocks.upload).not.toHaveBeenCalled();
+    expect(managementMocks.updateMenuItem).not.toHaveBeenCalled();
+  });
+
+  it("rejects edits that would leave more than 3 total menu photos", async () => {
+    const formData = menuFormWithImages(2);
+
+    const result = await updateMenuItemAction(initialKitchenManagementActionState, formData);
+
+    expect(result.ok).toBe(false);
+    expect(result.message).toMatch(/no more than 3 photos/i);
+    expect(managementMocks.upload).not.toHaveBeenCalled();
+    expect(managementMocks.updateMenuItem).not.toHaveBeenCalled();
   });
 
   it("deletes a confirmed owner-scoped menu item and removes its image", async () => {

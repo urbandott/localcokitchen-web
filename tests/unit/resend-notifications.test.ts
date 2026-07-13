@@ -11,7 +11,7 @@ vi.mock("@/lib/supabase/privileged", () => ({
   createPrivilegedClient: routeMocks.createPrivilegedClient,
 }));
 
-import { POST } from "@/app/api/notifications/resend/route";
+import { GET, POST } from "@/app/api/notifications/resend/route";
 
 const notification: NotificationOutbox = {
   attempts: 1,
@@ -105,6 +105,15 @@ describe("Resend notification worker", () => {
     expect(routeMocks.createPrivilegedClient).not.toHaveBeenCalled();
   });
 
+  it("rejects unauthorized cron requests before touching Supabase", async () => {
+    const response = await GET(
+      new Request("https://local.test/api/notifications/resend", { method: "GET" }),
+    );
+
+    expect(response.status).toBe(401);
+    expect(routeMocks.createPrivilegedClient).not.toHaveBeenCalled();
+  });
+
   it("claims notifications, sends through Resend, and marks sent", async () => {
     vi.stubGlobal(
       "fetch",
@@ -127,5 +136,29 @@ describe("Resend notification worker", () => {
     expect(routeMocks.rpc).toHaveBeenCalledWith("mark_notification_sent", {
       p_notification_id: notification.id,
     });
+  });
+
+  it("allows Vercel Cron requests with the configured schedule", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue({
+        ok: true,
+        json: async () => ({ id: "email_123" }),
+      }),
+    );
+
+    const response = await GET(
+      new Request("https://local.test/api/notifications/resend", {
+        method: "GET",
+        headers: {
+          "user-agent": "vercel-cron/1.0",
+          "x-vercel-cron-schedule": "*/5 * * * *",
+        },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ claimed: 1, failed: 0, sent: 1 });
+    expect(routeMocks.rpc).toHaveBeenCalledWith("claim_pending_notifications", { p_limit: 25 });
   });
 });

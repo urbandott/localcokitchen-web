@@ -3,6 +3,8 @@ import { renderNotificationEmail, sendResendEmail } from "@/features/notificatio
 import { getServerEnv } from "@/lib/env";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 
+const NOTIFICATION_CRON_SCHEDULE = "*/5 * * * *";
+
 function authorized(request: Request, secret: string | undefined): boolean {
   if (!secret) return false;
   const authorization = request.headers.get("authorization");
@@ -11,12 +13,13 @@ function authorized(request: Request, secret: string | undefined): boolean {
   return bearer === secret || workerHeader === secret;
 }
 
-export async function POST(request: Request) {
-  const env = getServerEnv();
-  if (!authorized(request, env.NOTIFICATION_WORKER_SECRET)) {
-    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
-  }
+function authorizedVercelCron(request: Request): boolean {
+  const userAgent = request.headers.get("user-agent") ?? "";
+  const schedule = request.headers.get("x-vercel-cron-schedule");
+  return userAgent.includes("vercel-cron/1.0") && schedule === NOTIFICATION_CRON_SCHEDULE;
+}
 
+async function processPendingNotifications(env: ReturnType<typeof getServerEnv>) {
   if (!env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
     return NextResponse.json(
       { ok: false, error: "Notification worker is not configured." },
@@ -67,4 +70,22 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ ok: true, claimed: notifications?.length ?? 0, failed, sent });
+}
+
+export async function GET(request: Request) {
+  const env = getServerEnv();
+  if (!authorizedVercelCron(request) && !authorized(request, env.NOTIFICATION_WORKER_SECRET)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+  }
+
+  return processPendingNotifications(env);
+}
+
+export async function POST(request: Request) {
+  const env = getServerEnv();
+  if (!authorized(request, env.NOTIFICATION_WORKER_SECRET)) {
+    return NextResponse.json({ ok: false, error: "Unauthorized." }, { status: 401 });
+  }
+
+  return processPendingNotifications(env);
 }

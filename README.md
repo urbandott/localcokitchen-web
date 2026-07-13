@@ -35,6 +35,17 @@ NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_SUPABASE_PUBLISHABLE_KEY
 
 Do not add a service-role key to the frontend. The Next.js app is designed to use the Supabase publishable key plus RLS/RPC authorization.
 
+Server-only features also require private environment variables in `.env.local` or the deployment environment:
+
+```text
+SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SUPABASE_SECRET_KEY
+NOTIFICATION_WORKER_SECRET=LONG_RANDOM_WORKER_SECRET
+RESEND_API_KEY=YOUR_RESEND_API_KEY
+RESEND_FROM_EMAIL=LocalCoKitchen <orders@localcokitchen.com>
+```
+
+Never prefix these values with `NEXT_PUBLIC_`; they must remain server-only.
+
 ## Run locally
 
 Start the Next.js dev server:
@@ -97,6 +108,22 @@ Production redirect URLs should include the same paths under:
 https://localcokitchen.com
 https://www.localcokitchen.com
 ```
+
+## Scheduled notifications
+
+Order lifecycle emails are queued in `lck_private.notification_outbox` and delivered by the server-only route:
+
+```text
+/api/notifications/resend
+```
+
+The repository includes `vercel.json` with a Vercel Cron schedule that calls this route every 5 minutes. Vercel Cron uses HTTP `GET`, so the route accepts Vercel cron requests that include the expected cron user agent and schedule header. Manual or external worker calls should use `POST` with:
+
+```text
+Authorization: Bearer YOUR_NOTIFICATION_WORKER_SECRET
+```
+
+The worker requires `SUPABASE_SECRET_KEY`, `NOTIFICATION_WORKER_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` in the deployment environment.
 
 ## Verification
 

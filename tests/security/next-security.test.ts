@@ -381,16 +381,23 @@ describe("Next.js security regressions", () => {
     const route = read("app/api/notifications/resend/route.ts");
     const helper = read("features/notifications/resend.ts");
     const env = read("lib/env.ts");
+    const vercelConfig = read("vercel.json");
 
     expect(env).toMatch(/RESEND_API_KEY/);
     expect(env).toMatch(/RESEND_FROM_EMAIL/);
     expect(env).toMatch(/NOTIFICATION_WORKER_SECRET/);
     expect(route).toMatch(/NOTIFICATION_WORKER_SECRET/);
+    expect(route).toMatch(/export async function GET/);
+    expect(route).toMatch(/export async function POST/);
+    expect(route).toMatch(/vercel-cron\/1\.0/);
+    expect(route).toMatch(/x-vercel-cron-schedule/);
     expect(route).toMatch(/createPrivilegedClient/);
     expect(route).toMatch(/claim_pending_notifications/);
     expect(route).toMatch(/mark_notification_sent/);
     expect(route).toMatch(/mark_notification_failed/);
     expect(route).toMatch(/sendResendEmail/);
+    expect(vercelConfig).toMatch(/"path": "\/api\/notifications\/resend"/);
+    expect(vercelConfig).toMatch(/"schedule": "\*\/5 \* \* \* \*"/);
     expect(helper).toMatch(/https:\/\/api\.resend\.com\/emails/);
     expect(helper).toMatch(/Authorization: `Bearer \$\{request\.apiKey\}`/);
     expect(helper).toMatch(/escapeHtml/);

@@ -32,6 +32,8 @@ function formatDate(value: string | null): string {
 }
 
 function ApplicationDetails({ application }: { application: CookApplication }) {
+  const showFullDetails = ["submitted", "approved", "suspended"].includes(application.status);
+
   return (
     <section className="next-card" aria-labelledby="application-details-title">
       <h2 id="application-details-title">Application details</h2>
@@ -41,22 +43,6 @@ function ApplicationDetails({ application }: { application: CookApplication }) {
           <dd>{applicationStatusLabel(application.status)}</dd>
         </div>
         <div>
-          <dt>Legal name</dt>
-          <dd>{application.legal_name ?? "Not added yet"}</dd>
-        </div>
-        <div>
-          <dt>Phone</dt>
-          <dd>{application.phone ?? "Not added yet"}</dd>
-        </div>
-        <div>
-          <dt>Pickup ZIP code</dt>
-          <dd>{application.pickup_zip_code ?? "Not added yet"}</dd>
-        </div>
-        <div>
-          <dt>Food handler training</dt>
-          <dd>{application.food_handler_training_completed ? "Completed" : "Not confirmed"}</dd>
-        </div>
-        <div>
           <dt>Submitted</dt>
           <dd>{formatDate(application.submitted_at)}</dd>
         </div>
@@ -64,6 +50,26 @@ function ApplicationDetails({ application }: { application: CookApplication }) {
           <dt>Reviewed</dt>
           <dd>{formatDate(application.reviewed_at)}</dd>
         </div>
+        {showFullDetails ? (
+          <>
+            <div>
+              <dt>Legal name</dt>
+              <dd>{application.legal_name ?? "Not added yet"}</dd>
+            </div>
+            <div>
+              <dt>Phone</dt>
+              <dd>{application.phone ?? "Not added yet"}</dd>
+            </div>
+            <div>
+              <dt>Pickup ZIP code</dt>
+              <dd>{application.pickup_zip_code ?? "Not added yet"}</dd>
+            </div>
+            <div>
+              <dt>Food handler training</dt>
+              <dd>{application.food_handler_training_completed ? "Completed" : "Not confirmed"}</dd>
+            </div>
+          </>
+        ) : null}
       </dl>
     </section>
   );

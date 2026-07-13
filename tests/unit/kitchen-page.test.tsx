@@ -178,9 +178,11 @@ describe("My Kitchen access", () => {
   it("shows rejected review notes and allows resubmission on the application page", async () => {
     kitchenPageMocks.getDashboard.mockResolvedValue({
       application: {
-        user_id: "legacy-cook-id",
+        ...approvedApplication,
         status: "rejected",
         review_notes: "Please upload a clearer ID photo.",
+        submitted_at: null,
+        reviewed_at: "2026-07-04T00:00:00.000Z",
       },
       profile: null,
       menuItems: [],
@@ -196,6 +198,58 @@ describe("My Kitchen access", () => {
 
     expect(container.textContent).toContain("Application details");
     expect(container.textContent).toContain("Please upload a clearer ID photo.");
+    expect(container.querySelector("form[aria-label='Cook application form']")).not.toBeNull();
+  });
+
+  it("hides the application form and shows full details after submission", async () => {
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: {
+        ...approvedApplication,
+        status: "submitted",
+        reviewed_at: null,
+      },
+      profile: null,
+      menuItems: [],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await KitchenApplicationPage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    expect(container.textContent).toContain("Submitted for review");
+    expect(container.textContent).toContain("Asha Cook");
+    expect(container.textContent).toContain("+1 312-555-0101");
+    expect(container.textContent).toContain("60601");
+    expect(container.querySelector("form[aria-label='Cook application form']")).toBeNull();
+  });
+
+  it("shows only status dates and the form for draft applications", async () => {
+    kitchenPageMocks.getDashboard.mockResolvedValue({
+      application: {
+        ...approvedApplication,
+        status: "draft",
+        legal_name: "Draft Cook",
+        submitted_at: null,
+        reviewed_at: null,
+      },
+      profile: null,
+      menuItems: [],
+      pickupWindows: [],
+      error: null,
+    });
+
+    const page = await KitchenApplicationPage();
+
+    await act(async () => {
+      root.render(page);
+    });
+
+    expect(container.textContent).toContain("Not submitted");
+    expect(container.textContent).not.toContain("Draft Cook");
     expect(container.querySelector("form[aria-label='Cook application form']")).not.toBeNull();
   });
 

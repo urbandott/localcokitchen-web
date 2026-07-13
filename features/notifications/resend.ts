@@ -1,5 +1,5 @@
 import { BRAND_NAME } from "@/lib/brand";
-import type { Json, NotificationOutbox } from "@/types/database";
+import type { Json, NotificationOutbox, OpsNotificationHealthAlert } from "@/types/database";
 
 export type ResendEmailRequest = {
   apiKey: string;
@@ -57,6 +57,25 @@ export function renderNotificationEmail(notification: NotificationOutbox): {
     "If you have questions, contact info@localcokitchen.com.",
   ].filter((line): line is string => line !== null);
 
+  const text = lines.join("\n");
+  const html = `<p>${lines.map((line) => escapeHtml(line)).join("</p><p>")}</p>`;
+  return { html, subject, text };
+}
+
+export function renderOpsNotificationHealthEmail(alert: OpsNotificationHealthAlert): {
+  html: string;
+  subject: string;
+  text: string;
+} {
+  const severity = alert.severity === "critical" ? "Critical" : "Warning";
+  const subject = `[${BRAND_NAME}] ${severity}: notification delivery health`;
+  const lines = [
+    subject,
+    "",
+    alert.message,
+    "",
+    "Open the LocalCoKitchen admin notification delivery page to review failed and pending notifications.",
+  ];
   const text = lines.join("\n");
   const html = `<p>${lines.map((line) => escapeHtml(line)).join("</p><p>")}</p>`;
   return { html, subject, text };

@@ -386,6 +386,7 @@ describe("Next.js security regressions", () => {
     expect(env).toMatch(/RESEND_API_KEY/);
     expect(env).toMatch(/RESEND_FROM_EMAIL/);
     expect(env).toMatch(/NOTIFICATION_WORKER_SECRET/);
+    expect(env).toMatch(/NOTIFICATION_ALERT_EMAIL/);
     expect(route).toMatch(/NOTIFICATION_WORKER_SECRET/);
     expect(route).toMatch(/export async function GET/);
     expect(route).toMatch(/export async function POST/);
@@ -395,11 +396,14 @@ describe("Next.js security regressions", () => {
     expect(route).toMatch(/claim_pending_notifications/);
     expect(route).toMatch(/mark_notification_sent/);
     expect(route).toMatch(/mark_notification_failed/);
+    expect(route).toMatch(/claim_notification_health_alerts/);
+    expect(route).toMatch(/mark_notification_health_alert_sent/);
     expect(route).toMatch(/sendResendEmail/);
     expect(vercelConfig).toMatch(/"path": "\/api\/notifications\/resend"/);
     expect(vercelConfig).toMatch(/"schedule": "\*\/5 \* \* \* \*"/);
     expect(helper).toMatch(/https:\/\/api\.resend\.com\/emails/);
     expect(helper).toMatch(/Authorization: `Bearer \$\{request\.apiKey\}`/);
+    expect(helper).toMatch(/renderOpsNotificationHealthEmail/);
     expect(helper).toMatch(/escapeHtml/);
     expect(helper).not.toMatch(/NEXT_PUBLIC/);
   });
@@ -430,5 +434,33 @@ describe("Next.js security regressions", () => {
     expect(data).toMatch(/get_admin_notification_summary/);
     expect(actions).toMatch(/retry_admin_notification/);
     expect(actions).toMatch(/z\.string\(\)\.uuid\(\)/);
+  });
+
+  it("throttles out-of-app notification health alerts in private service-role-only storage", () => {
+    const migration = read(
+      "supabase/migrations/20260713025317_add_notification_health_ops_alerts.sql",
+    );
+    const route = read("app/api/notifications/resend/route.ts");
+
+    expect(migration).toMatch(
+      /create table if not exists lck_private\.notification_health_alert_state/,
+    );
+    expect(migration).toMatch(
+      /alter table lck_private\.notification_health_alert_state enable row level security/,
+    );
+    expect(migration).toMatch(/claim_notification_health_alerts/);
+    expect(migration).toMatch(/mark_notification_health_alert_sent/);
+    expect(migration).toMatch(/last_sent_at <= now\(\) - interval '1 hour'/);
+    expect(migration).toMatch(/last_claimed_at <= now\(\) - interval '10 minutes'/);
+    expect(migration).toMatch(/to service_role/);
+    expect(migration).not.toMatch(/grant .*notification_health_alert_state[\s\S]*to anon/i);
+    expect(migration).not.toMatch(
+      /grant .*notification_health_alert_state[\s\S]*to authenticated/i,
+    );
+    expect(migration).not.toMatch(
+      /grant execute on function lck_private\.(?:claim_notification_health_alerts|mark_notification_health_alert_sent)[\s\S]*to anon/i,
+    );
+    expect(route).toMatch(/NOTIFICATION_ALERT_EMAIL/);
+    expect(route).toMatch(/processNotificationHealthAlerts/);
   });
 });

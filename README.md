@@ -40,6 +40,7 @@ Server-only features also require private environment variables in `.env.local` 
 ```text
 SUPABASE_SECRET_KEY=YOUR_SERVER_ONLY_SUPABASE_SECRET_KEY
 NOTIFICATION_WORKER_SECRET=LONG_RANDOM_WORKER_SECRET
+NOTIFICATION_ALERT_EMAIL=ops@localcokitchen.com
 RESEND_API_KEY=YOUR_RESEND_API_KEY
 RESEND_FROM_EMAIL=LocalCoKitchen <orders@localcokitchen.com>
 ```
@@ -123,7 +124,7 @@ The repository includes `vercel.json` with a Vercel Cron schedule that calls thi
 Authorization: Bearer YOUR_NOTIFICATION_WORKER_SECRET
 ```
 
-The worker requires `SUPABASE_SECRET_KEY`, `NOTIFICATION_WORKER_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` in the deployment environment.
+The worker requires `SUPABASE_SECRET_KEY`, `NOTIFICATION_WORKER_SECRET`, `RESEND_API_KEY`, and `RESEND_FROM_EMAIL` in the deployment environment. Set `NOTIFICATION_ALERT_EMAIL` to send throttled operational health alerts when failed notifications or stale pending notifications indicate delivery problems.
 
 ## Verification
 

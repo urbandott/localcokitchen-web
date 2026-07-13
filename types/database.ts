@@ -283,6 +283,12 @@ export type AdminNotificationRow = {
   total_count: number;
 };
 
+export type OpsNotificationHealthAlert = {
+  alert_key: string;
+  severity: "warning" | "critical";
+  message: string;
+};
+
 export type Database = {
   lck_marketplace: {
     Tables: {
@@ -448,11 +454,51 @@ export type Database = {
         Insert: Partial<NotificationOutbox>;
         Update: Partial<NotificationOutbox>;
       };
+      notification_health_alert_state: {
+        Row: {
+          alert_key: string;
+          severity: "warning" | "critical";
+          message: string;
+          last_seen_at: string;
+          last_claimed_at: string | null;
+          last_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: Partial<{
+          alert_key: string;
+          severity: "warning" | "critical";
+          message: string;
+          last_seen_at: string;
+          last_claimed_at: string | null;
+          last_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        }>;
+        Update: Partial<{
+          alert_key: string;
+          severity: "warning" | "critical";
+          message: string;
+          last_seen_at: string;
+          last_claimed_at: string | null;
+          last_sent_at: string | null;
+          created_at: string;
+          updated_at: string;
+        }>;
+      };
     };
     Functions: {
+      claim_notification_health_alerts: {
+        Args: Record<string, never>;
+        Returns: OpsNotificationHealthAlert[];
+      };
       claim_pending_notifications: {
         Args: { p_limit?: number };
         Returns: NotificationOutbox[];
+      };
+      mark_notification_health_alert_sent: {
+        Args: { p_alert_key: string };
+        Returns: boolean;
       };
       mark_notification_failed: {
         Args: { p_error: string; p_notification_id: string };

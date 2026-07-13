@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
-import { renderNotificationEmail, sendResendEmail } from "@/features/notifications/resend";
+import {
+  renderNotificationEmail,
+  renderOpsNotificationHealthEmail,
+  sendResendEmail,
+} from "@/features/notifications/resend";
 import { getServerEnv } from "@/lib/env";
 import { createPrivilegedClient } from "@/lib/supabase/privileged";
 
 const NOTIFICATION_CRON_SCHEDULE = "*/5 * * * *";
+type PrivilegedClient = NonNullable<ReturnType<typeof createPrivilegedClient>>;
 
 function authorized(request: Request, secret: string | undefined): boolean {
   if (!secret) return false;
@@ -69,7 +74,55 @@ async function processPendingNotifications(env: ReturnType<typeof getServerEnv>)
     }
   }
 
-  return NextResponse.json({ ok: true, claimed: notifications?.length ?? 0, failed, sent });
+  const healthAlerts = await processNotificationHealthAlerts(supabase, env);
+
+  return NextResponse.json({
+    ok: true,
+    alertsFailed: healthAlerts.failed,
+    alertsSent: healthAlerts.sent,
+    claimed: notifications?.length ?? 0,
+    failed,
+    sent,
+  });
+}
+
+async function processNotificationHealthAlerts(
+  supabase: PrivilegedClient,
+  env: ReturnType<typeof getServerEnv>,
+): Promise<{ failed: number; sent: number }> {
+  if (!env.NOTIFICATION_ALERT_EMAIL || !env.RESEND_API_KEY || !env.RESEND_FROM_EMAIL) {
+    return { failed: 0, sent: 0 };
+  }
+
+  const { data: alerts, error } = await supabase
+    .schema("lck_private")
+    .rpc("claim_notification_health_alerts");
+
+  if (error) return { failed: 1, sent: 0 };
+
+  let sent = 0;
+  let failed = 0;
+  for (const alert of alerts ?? []) {
+    try {
+      const email = renderOpsNotificationHealthEmail(alert);
+      await sendResendEmail({
+        apiKey: env.RESEND_API_KEY,
+        from: env.RESEND_FROM_EMAIL,
+        html: email.html,
+        subject: email.subject,
+        text: email.text,
+        to: env.NOTIFICATION_ALERT_EMAIL,
+      });
+      await supabase
+        .schema("lck_private")
+        .rpc("mark_notification_health_alert_sent", { p_alert_key: alert.alert_key });
+      sent += 1;
+    } catch {
+      failed += 1;
+    }
+  }
+
+  return { failed, sent };
 }
 
 export async function GET(request: Request) {

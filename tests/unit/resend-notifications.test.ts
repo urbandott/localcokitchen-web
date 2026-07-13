@@ -1,5 +1,9 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { renderNotificationEmail, sendResendEmail } from "@/features/notifications/resend";
+import {
+  renderNotificationEmail,
+  renderOpsNotificationHealthEmail,
+  sendResendEmail,
+} from "@/features/notifications/resend";
 import type { NotificationOutbox } from "@/types/database";
 
 const routeMocks = vi.hoisted(() => ({
@@ -43,11 +47,15 @@ describe("Resend notification worker", () => {
     process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY = "publishable-key-that-is-long";
     process.env.SUPABASE_SECRET_KEY = "server-secret-key-that-is-long";
     process.env.NOTIFICATION_WORKER_SECRET = "worker-secret-that-is-long";
+    process.env.NOTIFICATION_ALERT_EMAIL = "ops@example.com";
     process.env.RESEND_API_KEY = "re_test_key";
     process.env.RESEND_FROM_EMAIL = "LocalCoKitchen <orders@localcokitchen.com>";
     routeMocks.rpc.mockImplementation((name: string) => {
       if (name === "claim_pending_notifications") {
         return Promise.resolve({ data: [notification], error: null });
+      }
+      if (name === "claim_notification_health_alerts") {
+        return Promise.resolve({ data: [], error: null });
       }
       return Promise.resolve({ data: true, error: null });
     });
@@ -64,6 +72,19 @@ describe("Resend notification worker", () => {
     const email = renderNotificationEmail(notification);
 
     expect(email.subject).toContain("bbbbbbbb");
+    expect(email.text).toContain("<script>alert(1)</script>");
+    expect(email.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
+    expect(email.html).not.toContain("<script>");
+  });
+
+  it("renders operational health alerts without unsafe HTML", () => {
+    const email = renderOpsNotificationHealthEmail({
+      alert_key: "failed_notifications",
+      message: "5 notifications failed <script>alert(1)</script>",
+      severity: "warning",
+    });
+
+    expect(email.subject).toContain("Warning");
     expect(email.text).toContain("<script>alert(1)</script>");
     expect(email.html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
     expect(email.html).not.toContain("<script>");
@@ -135,6 +156,51 @@ describe("Resend notification worker", () => {
     expect(routeMocks.rpc).toHaveBeenCalledWith("claim_pending_notifications", { p_limit: 25 });
     expect(routeMocks.rpc).toHaveBeenCalledWith("mark_notification_sent", {
       p_notification_id: notification.id,
+    });
+  });
+
+  it("sends throttled operational health alerts when claimed", async () => {
+    routeMocks.rpc.mockImplementation((name: string) => {
+      if (name === "claim_pending_notifications") {
+        return Promise.resolve({ data: [], error: null });
+      }
+      if (name === "claim_notification_health_alerts") {
+        return Promise.resolve({
+          data: [
+            {
+              alert_key: "failed_notifications",
+              message: "5 notifications have failed delivery.",
+              severity: "warning",
+            },
+          ],
+          error: null,
+        });
+      }
+      return Promise.resolve({ data: true, error: null });
+    });
+    const fetchMock = vi.fn().mockResolvedValue({
+      ok: true,
+      json: async () => ({ id: "email_123" }),
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const response = await POST(
+      new Request("https://local.test/api/notifications/resend", {
+        method: "POST",
+        headers: { authorization: "Bearer worker-secret-that-is-long" },
+      }),
+    );
+
+    expect(response.status).toBe(200);
+    expect(await response.json()).toMatchObject({ alertsFailed: 0, alertsSent: 1 });
+    expect(fetchMock).toHaveBeenCalledWith(
+      "https://api.resend.com/emails",
+      expect.objectContaining({
+        body: expect.stringContaining("ops@example.com"),
+      }),
+    );
+    expect(routeMocks.rpc).toHaveBeenCalledWith("mark_notification_health_alert_sent", {
+      p_alert_key: "failed_notifications",
     });
   });
 

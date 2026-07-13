@@ -239,6 +239,25 @@ export type AdminAuditEvent = {
   created_at: string;
 };
 
+export type NotificationOutbox = {
+  id: string;
+  notification_type: string;
+  recipient_user_id: string | null;
+  recipient_email: string;
+  channel: "email";
+  template_key: string;
+  target_type: string;
+  target_id: string | null;
+  payload: Json;
+  status: "pending" | "processing" | "sent" | "failed" | "cancelled";
+  attempts: number;
+  next_attempt_at: string;
+  sent_at: string | null;
+  last_error: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export type Database = {
   lck_marketplace: {
     Tables: {
@@ -377,6 +396,29 @@ export type Database = {
       };
       set_admin_cook_kitchen_disabled: {
         Args: { p_cook_id: string; p_disabled: boolean };
+        Returns: boolean;
+      };
+    };
+  };
+  lck_private: {
+    Tables: {
+      notification_outbox: {
+        Row: NotificationOutbox;
+        Insert: Partial<NotificationOutbox>;
+        Update: Partial<NotificationOutbox>;
+      };
+    };
+    Functions: {
+      claim_pending_notifications: {
+        Args: { p_limit?: number };
+        Returns: NotificationOutbox[];
+      };
+      mark_notification_failed: {
+        Args: { p_error: string; p_notification_id: string };
+        Returns: boolean;
+      };
+      mark_notification_sent: {
+        Args: { p_notification_id: string };
         Returns: boolean;
       };
     };

@@ -7,6 +7,9 @@ const publicEnvSchema = z.object({
 });
 
 const serverEnvSchema = publicEnvSchema.extend({
+  NOTIFICATION_WORKER_SECRET: z.string().min(20).optional(),
+  RESEND_API_KEY: z.string().min(10).optional(),
+  RESEND_FROM_EMAIL: z.string().min(3).optional(),
   SUPABASE_SECRET_KEY: z.string().min(20).optional(),
   STRIPE_SECRET_KEY: z.string().min(20).optional(),
   STRIPE_WEBHOOK_SECRET: z.string().min(10).optional(),

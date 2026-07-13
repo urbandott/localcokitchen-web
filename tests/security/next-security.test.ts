@@ -376,4 +376,24 @@ describe("Next.js security regressions", () => {
     expect(migration).not.toMatch(/grant .*notification_outbox[\s\S]*to authenticated/i);
     expect(migration).toMatch(/- 'payload' - 'provider_reference' - 'token' - 'secret'/);
   });
+
+  it("runs Resend notification delivery only from a protected server worker", () => {
+    const route = read("app/api/notifications/resend/route.ts");
+    const helper = read("features/notifications/resend.ts");
+    const env = read("lib/env.ts");
+
+    expect(env).toMatch(/RESEND_API_KEY/);
+    expect(env).toMatch(/RESEND_FROM_EMAIL/);
+    expect(env).toMatch(/NOTIFICATION_WORKER_SECRET/);
+    expect(route).toMatch(/NOTIFICATION_WORKER_SECRET/);
+    expect(route).toMatch(/createPrivilegedClient/);
+    expect(route).toMatch(/claim_pending_notifications/);
+    expect(route).toMatch(/mark_notification_sent/);
+    expect(route).toMatch(/mark_notification_failed/);
+    expect(route).toMatch(/sendResendEmail/);
+    expect(helper).toMatch(/https:\/\/api\.resend\.com\/emails/);
+    expect(helper).toMatch(/Authorization: `Bearer \$\{request\.apiKey\}`/);
+    expect(helper).toMatch(/escapeHtml/);
+    expect(helper).not.toMatch(/NEXT_PUBLIC/);
+  });
 });

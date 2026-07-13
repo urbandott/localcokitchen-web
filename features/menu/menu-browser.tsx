@@ -3,6 +3,7 @@
 import Image from "next/image";
 import { useActionState, useEffect, useMemo, useRef, useState } from "react";
 import { useFormStatus } from "react-dom";
+import { FilteredInput } from "@/components/filtered-input";
 import {
   addCartItem,
   CART_STORAGE_KEY,
@@ -174,8 +175,9 @@ export function MenuBrowser({ items, error }: Props) {
         </label>
         <label className="form-field">
           <span>Minimum available quantity</span>
-          <input
-            type="number"
+          <FilteredInput
+            filter="digits"
+            inputMode="numeric"
             min={1}
             max={10}
             step={1}
@@ -294,9 +296,10 @@ export function MenuBrowser({ items, error }: Props) {
                     >
                       −
                     </button>
-                    <input
+                    <FilteredInput
                       aria-label={`Quantity for ${item.name}`}
-                      type="number"
+                      filter="digits"
+                      inputMode="numeric"
                       min={1}
                       max={Math.min(item.quantity_available, 10)}
                       step={1}

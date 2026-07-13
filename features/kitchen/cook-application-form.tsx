@@ -2,6 +2,7 @@
 
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
+import { FilteredInput } from "@/components/filtered-input";
 import {
   submitCookApplicationAction,
   type CookApplicationActionState,
@@ -87,8 +88,9 @@ export function CookApplicationForm({
 
       <label className="next-field">
         <span>Phone number</span>
-        <input
+        <FilteredInput
           autoComplete="tel"
+          filter="phone"
           inputMode="tel"
           name="phone"
           maxLength={20}
@@ -115,8 +117,9 @@ export function CookApplicationForm({
 
       <label className="next-field">
         <span>Pickup ZIP code</span>
-        <input
+        <FilteredInput
           autoComplete="postal-code"
+          filter="digits"
           inputMode="numeric"
           name="pickupZipCode"
           pattern="[0-9]{5}"

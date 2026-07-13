@@ -9,6 +9,8 @@ const config = [
       ".next/**",
       "node_modules/**",
       "coverage/**",
+      "playwright-report/**",
+      "test-results/**",
       "js/**",
       "test/**",
       "supabase/functions/**",

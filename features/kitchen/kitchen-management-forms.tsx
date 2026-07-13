@@ -3,6 +3,7 @@
 import { useActionState } from "react";
 import { useFormStatus } from "react-dom";
 import type { ReactNode } from "react";
+import { FilteredInput } from "@/components/filtered-input";
 import {
   createMenuItemAction,
   deleteMenuItemAction,
@@ -100,8 +101,9 @@ export function CookProfileManagementForm({
       </label>
       <label>
         <span>Pickup ZIP code</span>
-        <input
+        <FilteredInput
           name="pickupZipCode"
+          filter="digits"
           inputMode="numeric"
           maxLength={5}
           pattern="[0-9]{5}"
@@ -112,9 +114,10 @@ export function CookProfileManagementForm({
       </label>
       <label>
         <span>Preorder cutoff hours</span>
-        <input
+        <FilteredInput
           name="preorderCutoffHours"
-          type="number"
+          filter="digits"
+          inputMode="numeric"
           min={1}
           max={168}
           required
@@ -182,14 +185,23 @@ export function MenuItemCreateForm() {
       <div className="kitchen-two-column">
         <label>
           <span>Price</span>
-          <input name="price" inputMode="decimal" required placeholder="12.00" />
+          <FilteredInput
+            name="price"
+            filter="decimal"
+            inputMode="decimal"
+            maxIntegerDigits={5}
+            decimalPlaces={2}
+            required
+            placeholder="12.00"
+          />
           <FieldError error={fieldErrors.priceCents} />
         </label>
         <label>
           <span>Quantity available</span>
-          <input
+          <FilteredInput
             name="quantityAvailable"
-            type="number"
+            filter="digits"
+            inputMode="numeric"
             min={1}
             max={10000}
             required
@@ -225,12 +237,26 @@ export function MenuItemCreateForm() {
       <div className="kitchen-two-column">
         <label>
           <span>Portion size</span>
-          <input name="portionSize" maxLength={120} placeholder="16 oz bowl" />
+          <FilteredInput
+            name="portionSize"
+            filter="noLetters"
+            inputMode="decimal"
+            maxLength={120}
+            placeholder="16"
+          />
           <FieldError error={fieldErrors.portionSize} />
         </label>
         <label>
           <span>Serves</span>
-          <input name="portionServes" type="number" min={1} max={50} required defaultValue={1} />
+          <FilteredInput
+            name="portionServes"
+            filter="digits"
+            inputMode="numeric"
+            min={1}
+            max={50}
+            required
+            defaultValue={1}
+          />
           <FieldError error={fieldErrors.portionServes} />
         </label>
       </div>
@@ -291,9 +317,12 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
         <div className="kitchen-two-column">
           <label>
             <span>Price</span>
-            <input
+            <FilteredInput
               name="price"
+              filter="decimal"
               inputMode="decimal"
+              maxIntegerDigits={5}
+              decimalPlaces={2}
               required
               defaultValue={dollarsFromCents(item.price_cents)}
             />
@@ -301,9 +330,10 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
           </label>
           <label>
             <span>Quantity available</span>
-            <input
+            <FilteredInput
               name="quantityAvailable"
-              type="number"
+              filter="digits"
+              inputMode="numeric"
               min={1}
               max={10000}
               required
@@ -335,14 +365,21 @@ export function MenuItemEditForm({ item }: { item: CookMenuItem }) {
         <div className="kitchen-two-column">
           <label>
             <span>Portion size</span>
-            <input name="portionSize" maxLength={120} defaultValue={item.portion_size ?? ""} />
+            <FilteredInput
+              name="portionSize"
+              filter="noLetters"
+              inputMode="decimal"
+              maxLength={120}
+              defaultValue={item.portion_size ?? ""}
+            />
             <FieldError error={fieldErrors.portionSize} />
           </label>
           <label>
             <span>Serves</span>
-            <input
+            <FilteredInput
               name="portionServes"
-              type="number"
+              filter="digits"
+              inputMode="numeric"
               min={1}
               max={50}
               required

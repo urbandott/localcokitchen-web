@@ -82,7 +82,7 @@ const menuItem = {
   allergens: ["Dairy"],
   dietary_tags: ["Halal"],
   main_ingredients: ["Chicken", "Rice", "Spices"],
-  portion_size: "24 oz",
+  portion_size: "24",
   portion_serves: 1,
   spice_level: "Medium",
   pickup_window_note: "Pickup after 5 PM",

@@ -43,6 +43,12 @@ function optionalTextField(label: string, max: number) {
     .transform((value) => value || null);
 }
 
+function optionalNoLetterTextField(label: string, max: number) {
+  return optionalTextField(label, max).refine((value) => !value || !/\p{L}/u.test(value), {
+    message: `${label} cannot include letters.`,
+  });
+}
+
 export function parseCommaList(value: string, maxItems: number, maxLength: number): string[] {
   const items = value
     .normalize("NFC")
@@ -116,7 +122,7 @@ export const menuItemSchema = z.object({
       return z.NEVER;
     }
   }),
-  portionSize: optionalTextField("Portion size", 120),
+  portionSize: optionalNoLetterTextField("Portion size", 120),
   portionServes: z.coerce.number().int().min(1).max(50),
   spiceLevel: z.enum(["Not spicy", "Mild", "Medium", "Hot", "Extra hot"]),
   pickupWindowNote: optionalTextField("Pickup note", 500),

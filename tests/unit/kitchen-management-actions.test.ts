@@ -74,7 +74,7 @@ function menuForm(overrides: Record<string, string | File> = {}) {
   formData.set("dietaryTags", "Halal, Spicy");
   formData.set("allergens", "Dairy");
   formData.set("mainIngredients", "Chicken, Rice, Spices");
-  formData.set("portionSize", "24 oz");
+  formData.set("portionSize", "24");
   formData.set("portionServes", "1");
   formData.set("spiceLevel", "Medium");
   formData.set("pickupWindowNote", "Pickup after 5 PM.");

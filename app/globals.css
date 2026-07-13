@@ -385,8 +385,10 @@ body {
 }
 
 .next-form {
+  min-width: 0;
   display: grid;
   gap: 1rem;
+  width: 100%;
   max-width: 620px;
   padding: clamp(1.25rem, 3vw, 1.8rem);
   border: 1px solid var(--border);
@@ -396,6 +398,7 @@ body {
 }
 
 .form-action-row {
+  min-width: 0;
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
@@ -403,6 +406,7 @@ body {
 }
 
 .next-form label {
+  min-width: 0;
   display: grid;
   gap: 0.45rem;
   color: var(--foreground);
@@ -411,6 +415,7 @@ body {
 }
 
 .auth-field {
+  min-width: 0;
   display: grid;
   gap: 0.5rem;
 }
@@ -493,6 +498,10 @@ body {
 .next-form input,
 .next-form textarea,
 .next-form select {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 48px;
   padding: 0.75rem 0.9rem;
   border: 1px solid var(--border);
@@ -519,6 +528,12 @@ body {
 .next-form textarea {
   min-height: 130px;
   resize: vertical;
+}
+
+.next-form input[type="checkbox"],
+.next-form input[type="radio"],
+.next-form input[type="hidden"] {
+  width: auto;
 }
 
 .next-alert {
@@ -649,6 +664,10 @@ body {
   display: grid;
   gap: 1rem;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.kitchen-two-column > * {
+  min-width: 0;
 }
 
 .pickup-window-grid {
@@ -1022,11 +1041,13 @@ body {
 }
 
 .form-field {
+  min-width: 0;
   display: grid;
   gap: 0.45rem;
 }
 
 .form-field label {
+  min-width: 0;
   color: var(--foreground);
   font-size: 0.82rem;
   font-weight: 800;
@@ -1035,6 +1056,10 @@ body {
 .form-field input,
 .form-field select,
 .cart-item input {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   min-height: 2.75rem;
   border: 1px solid var(--border);
   border-radius: 1rem;

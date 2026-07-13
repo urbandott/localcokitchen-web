@@ -21,6 +21,7 @@ vi.mock("@/lib/supabase/server", () => ({
 
 import { retryNotificationAction } from "@/features/admin/actions";
 import { listAdminNotifications } from "@/features/admin/admin-data";
+import { getAdminNotificationHealthAlerts } from "@/features/admin/notification-health";
 
 function retryForm(notificationId: string) {
   const formData = new FormData();
@@ -112,5 +113,52 @@ describe("admin notification observability", () => {
       "retry_admin_notification",
       expect.anything(),
     );
+  });
+
+  it("raises health alerts for failed delivery volume and stale pending notifications", () => {
+    const alerts = getAdminNotificationHealthAlerts(
+      [
+        {
+          newest_created_at: "2026-07-13T00:00:00.000Z",
+          oldest_created_at: "2026-07-13T00:00:00.000Z",
+          status: "pending",
+          total_count: 3,
+        },
+        {
+          newest_created_at: "2026-07-13T00:20:00.000Z",
+          oldest_created_at: "2026-07-13T00:10:00.000Z",
+          status: "failed",
+          total_count: 5,
+        },
+      ],
+      new Date("2026-07-13T00:31:00.000Z"),
+    );
+
+    expect(alerts).toHaveLength(2);
+    expect(alerts[0]).toMatchObject({ severity: "warning" });
+    expect(alerts[0]?.message).toContain("5 notifications have failed");
+    expect(alerts[1]?.message).toContain("31 minutes");
+  });
+
+  it("does not raise health alerts for normal notification state", () => {
+    const alerts = getAdminNotificationHealthAlerts(
+      [
+        {
+          newest_created_at: "2026-07-13T00:25:00.000Z",
+          oldest_created_at: "2026-07-13T00:20:00.000Z",
+          status: "pending",
+          total_count: 2,
+        },
+        {
+          newest_created_at: "2026-07-13T00:20:00.000Z",
+          oldest_created_at: "2026-07-13T00:10:00.000Z",
+          status: "failed",
+          total_count: 1,
+        },
+      ],
+      new Date("2026-07-13T00:31:00.000Z"),
+    );
+
+    expect(alerts).toEqual([]);
   });
 });

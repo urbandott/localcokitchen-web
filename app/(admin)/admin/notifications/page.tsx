@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { retryNotificationAction } from "@/features/admin/actions";
 import { listAdminNotifications } from "@/features/admin/admin-data";
+import { getAdminNotificationHealthAlerts } from "@/features/admin/notification-health";
 import { requireAdmin } from "@/lib/auth/session";
 import { createMetadata } from "@/lib/seo/metadata";
 import type { AdminNotificationSummary, NotificationOutbox } from "@/types/database";
@@ -56,6 +57,7 @@ export default async function AdminNotificationsPage({
     status: selectedStatus,
   });
   const totalVisible = notifications[0]?.total_count ?? 0;
+  const healthAlerts = getAdminNotificationHealthAlerts(summary);
 
   return (
     <div className="content-page next-page-grid">
@@ -76,6 +78,20 @@ export default async function AdminNotificationsPage({
           </article>
         ))}
       </section>
+
+      {healthAlerts.length > 0 ? (
+        <section className="next-alert" role="alert" aria-labelledby="notification-health-title">
+          <h2 id="notification-health-title">Notification health needs attention</h2>
+          <ul>
+            {healthAlerts.map((alert) => (
+              <li key={alert.message}>
+                {alert.severity === "critical" ? "Critical: " : "Warning: "}
+                {alert.message}
+              </li>
+            ))}
+          </ul>
+        </section>
+      ) : null}
 
       <form className="audit-filter-form">
         <label>
